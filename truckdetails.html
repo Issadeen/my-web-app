@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="dark">
+  <head>
+    <meta charset="UTF-8">
+    <title>Truck Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+    <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+  </head>
+  <body class="bg-gray-900 text-white">
+    <div class="flex justify-between items-center bg-gray-800 p-4">
+      <div>
+        <h1 class="text-lg font-medium">Truck Details</h1>
+      </div>
+      <div>
+        <button class="bg-gray-700 text-white px-2 py-1 rounded-lg mr-2"><i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+    <div class="flex justify-center items-center mt-4">
+      <div class="w-full max-w-md">
+        <div class="relative">
+          <input type="text" id="search-input" class="w-full bg-gray-800 text-white rounded-lg px-4 py-2 pr-12" placeholder="Search...">
+          <button id="search-button" class="absolute right-0 top-0 bottom-0 bg-gray-700 text-white rounded-lg px-4 py-2"><i class="fas fa-search"></i></button>
+        </div>
+      </div>
+    </div>
+    <div id="data-cards-container" class="flex flex-wrap justify-center mt-4"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+      // Initialize Firebase
+      var firebaseConfig = {
+        apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+            authDomain: "my-1-wb.firebaseapp.com",
+            projectId: "my-1-wb",
+            storageBucket: "my-1-wb.appspot.com",
+            messagingSenderId: "865633557898",
+            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+      };
+      firebase.initializeApp(firebaseConfig);
+      var database = firebase.database();
+
+      // Retrieve data from Firebase and create data cards
+      var dataCardsContainer = document.getElementById("data-cards-container");
+      var dataRef = database.ref("trucks");
+      dataRef.on("child_added", function (childSnapshot) {
+        var childData = childSnapshot.val();
+        var dataCard = document.createElement("div");
+        dataCard.classList.add("w-full", "max-w-md", "bg-gray-800", "rounded-lg", "shadow-lg", "p-4", "mb-4", "mx-2");
+        dataCard.innerHTML = `
+          <div class="data-card bg-gray-900 rounded-lg shadow-lg p-4">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-medium">${childData.truck_no}</h2>
+              <div class="flex items-center">
+                <button class="copy-button bg-blue-500 text-white px-2 py-1 rounded-lg mr-2" data-key="${childSnapshot.key}"><i class="fas fa-copy fa-xs"></i><span class="ml-2">Copy</span></button>
+                <button class="edit-button bg-green-500 text-white px-2 py-1 rounded-lg mr-2" data-key="${childSnapshot.key}"><i class="fas fa-edit fa-xs"></i><span class="ml-2">Edit</span></button>
+                <button class="delete-button bg-red-500 text-white px-2 py-1 rounded-lg" data-key="${childSnapshot.key}"><i class="fas fa-trash fa-xs"></i><span class="ml-2">Delete</span></button>
+              </div>
+            </div>
+            <p class="text-gray-400">Driver: ${childData.driver}</p>
+            <p class="text-gray-400">Transporter: ${childData.transporter}</p>
+            <p class="text-gray-400">PMs: ${childData.pms_1} ${childData.pms_2} ${childData.pms_3} ${childData.pms_4}</p>
+            <p class="text-gray-400">AGO Comp: ${childData.ago_comp_1} ${childData.ago_comp_2} ${childData.ago_comp_3} ${childData.ago_comp_4}</p>
+          </div>
+        `;
+        dataCardsContainer.appendChild(dataCard);
+
+      // Add event listener to copy button
+var copyButton = dataCard.querySelector(".copy-button");
+copyButton.addEventListener("click", function () {
+  var truckId = copyButton.getAttribute("data-key");
+  var code = prompt("Please enter the code to confirm that you are authorized to copy this data:");
+  if (code === "AI230032") {
+    var truckData = childSnapshot.val();
+
+    // Format the truck data as a string
+    var truckDataString = `Truck no: ${truckData.truck_no}\n`;
+    truckDataString += `TRANSPORTER: ${truckData.transporter}\n`;
+    truckDataString += `DRIVER: ${truckData.driver}\n`;
+    truckDataString += `AGO: ${truckData.ago_comp_1},${truckData.ago_comp_2},${truckData.ago_comp_3},${truckData.ago_comp_4}\n`;
+    truckDataString += `PMS: ${truckData.pms_1},${truckData.pms_2},${truckData.pms_3},${truckData.pms_4}`;
+
+    // Write the formatted data to the clipboard
+    navigator.clipboard.writeText(truckDataString).then(function() {
+      copyButton.innerHTML = '<i class="fas fa-check fa-xs"></i><span class="ml-2">Copied</span>';
+      setTimeout(function() {
+        copyButton.innerHTML = '<i class="fas fa-copy fa-xs"></i><span class="ml-2">Copy</span>';
+      }, 2000);
+    }, function() {
+      alert("Failed to copy data");
+    });
+  } else {
+    alert("Invalid code");
+  }
+});
+
+   
+        // Add event listener to edit button
+        var editButton = dataCard.querySelector(".edit-button");
+        editButton.addEventListener("click", function () {
+          var truckId = editButton.getAttribute("data-key");
+          var code = prompt("Please enter the code to confirm that you are authorized to edit this data:");
+          if (code === "AI230032") {
+            var editUrl = "edittruck.html?id=" + truckId;
+            window.location.href = editUrl;
+          } else {
+            alert("Invalid code");
+          }
+        });
+
+        // Add event listener to delete button
+        var deleteButton = dataCard.querySelector(".delete-button");
+        deleteButton.addEventListener("click", function () {
+          var truckId = deleteButton.getAttribute("data-key");
+          var code = prompt("Please enter the code to confirm that you are authorized to delete this data:");
+          if (code === "AI230032") {
+            database.ref("trucks/" + truckId).remove().then(function() {
+              dataCard.remove();
+            }, function() {
+              alert("Failed to delete data");
+            });
+          } else {
+            alert("Invalid code");
+          }
+        });
+
+        // Hide copy, edit, and delete buttons on small screens
+        if (window.innerWidth < 640) {
+          copyButton.innerHTML = '<i class="fas fa-copy fa-xs"></i><span class="sr-only">Copy</span>';
+          editButton.innerHTML = '<i class="fas fa-edit fa-xs"></i><span class="sr-only">Edit</span>';
+          deleteButton.innerHTML = '<i class="fas fa-trash fa-xs"></i><span class="sr-only">Delete</span>';
+          copyButton.querySelector("span").classList.remove("ml-2");
+          editButton.querySelector("span").classList.remove("ml-2");
+          deleteButton.querySelector("span").classList.remove("ml-2");
+          copyButton.classList.add("px-1", "py-0.5");
+          editButton.classList.add("px-1", "py-0.5");
+          deleteButton.classList.add("px-1", "py-0.5");
+        }
+        // Hide copy, edit, and delete buttons on all screens
+          copyButton.innerHTML = '<i class="fas fa-copy fa-xs"></i><span class="sr-only">Copy</span>';
+          editButton.innerHTML = '<i class="fas fa-edit fa-xs"></i><span class="sr-only">Edit</span>';
+deleteButton.innerHTML = '<i class="fas fa-trash fa-xs"></i><span class="sr-only">Delete</span>';
+copyButton.querySelector("span").classList.remove("ml-2");
+editButton.querySelector("span").classList.remove("ml-2");
+deleteButton.querySelector("span").classList.remove("ml-2");
+copyButton.classList.add("px-1", "py-0.5");
+editButton.classList.add("px-1", "py-0.5");
+deleteButton.classList.add("px-1", "py-0.5");
+
+      });
+
+      var backButton = document.querySelector(".bg-gray-700");
+backButton.addEventListener("click", function () {
+  window.location.href = "dashboard.html";
+});
+
+
+      // Add event listener to search input
+      var searchInput = document.getElementById("search-input");
+      searchInput.addEventListener("input", function () {
+        var searchTerm = searchInput.value.toLowerCase();
+        var dataCards = dataCardsContainer.querySelectorAll(".data-card");
+        dataCards.forEach(function (dataCard) {
+          var truckNo = dataCard.querySelector("h2").textContent.toLowerCase();
+          if (truckNo.includes(searchTerm)) {
+            dataCard.style.display = "block";
+          } else {
+            dataCard.style.display = "none";
+          }
+        });
+      });
+    </script>
+             <script>
+              if (!navigator.onLine) {
+                  alert("You are currently offline. Please check your internet connection.");
+              }
+          </script>
+  </body>
+</html>
