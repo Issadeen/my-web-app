@@ -148,6 +148,21 @@ button.paid::after {
 
   </style>
   <body class="bg-gray-900 text-white">
+    <!-- Prompt the user for the access code -->
+    <script>
+      // Prompt the user for the access code
+      var accessCode = prompt("Please enter the access code:");
+
+      // Check if the entered code is correct
+      if (accessCode === "AI230032") {
+        // Code is correct, allow access to the wallet page
+        // ... (rest of your JavaScript code for the wallet page) ...
+      } else {
+        // Code is incorrect, redirect or show an error message
+        alert("Invalid access code. You will be redirected.");
+        window.location.href = "index.html"; // Redirect to the index page or another appropriate page
+      }
+    </script>
     <nav class="flex justify-between items-center p-4 bg-gray-800">
       <h1 class="text-2xl font-bold">Wallet</h1>
       <div>
