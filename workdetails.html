@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+  <style>
+/* base styles for all screen sizes */
+body {
+  background-color: #1a202c;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* styles for small screens */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* styles for medium screens */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* styles for large screens */
+@media (min-width: 1025px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* styles for buttons */
+button {
+  background-color: #4a5568;
+  border: none;
+  border-radius: 0.25rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #2d3748;
+}
+
+/* styles for links */
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* styles for recent activity list */
+#activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#activity-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* styles for blinking cursor */
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { visibility: visible; }
+  50% { visibility: hidden; }
+}
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+ <nav class="flex items-center justify-between bg-gray-800 p-4">
+  <div>
+    <h1 class="text-lg font-bold">Work Details</h1>
+  </div>
+  <div>
+    <a href="dashboard.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Back</a>
+    <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded" id="logout-button">Logout</button>
+  </div>
+</nav>
+  <div class="container mx-auto mt-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Work Details</h2>
+        <div class="text-gray-400 mb-2">View and manage work details.</div>
+        <a href="add_work_detail.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Add Work Detail</a>
+        <a href="work_details.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">View Work Details</a>
+      </div>
+      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Invoices</h2>
+        <div class="text-gray-400 mb-2">View and manage invoices.</div>
+        <a href="invoices.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">View Invoices</a>
+      </div>
+      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Reports</h2>
+        <div class="text-gray-400 mb-2">View and generate reports.</div>
+        <a href="reports.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">View Reports</a>
+      </div>
+    </div>
+    <div class="mt-4">
+      <h2 class="text-lg font-bold mb-2">Recent Activity</h2>
+      <ul id="activity-list">
+        <!-- list of recent activity items -->
+      </ul>
+      <div class="text-gray-400 mt-2">Press <span class="blinking-cursor">|</span> to refresh.</div>
+    </div>
+    
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+            authDomain: "my-1-wb.firebaseapp.com",
+            projectId: "my-1-wb",
+            storageBucket: "my-1-wb.appspot.com",
+            messagingSenderId: "865633557898",
+            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Function to retrieve the recent activity from Firebase and display it as a list
+    async function displayRecentActivity() {
+      const activityList = document.getElementById('activity-list');
+      activityList.innerHTML = '';
+
+      const querySnapshot = await db.collection('activity').orderBy('timestamp', 'desc').limit(10).get();
+      querySnapshot.forEach((doc) => {
+        const activity = doc.data();
+        const date = activity.timestamp.toDate().toLocaleDateString();
+        const time = activity.timestamp.toDate().toLocaleTimeString();
+        const activityItem = `
+          <li class="text-gray-400 mb-2">${activity.message} - ${date} ${time}</li>
+        `;
+        activityList.innerHTML += activityItem;
+      });
+    }
+
+    // Function to listen for changes to the recent activity in Firebase and update the display accordingly
+    function listenForChanges() {
+      db.collection('activity').orderBy('timestamp', 'desc').limit(1).onSnapshot((querySnapshot) => {
+        displayRecentActivity();
+      });
+    }
+
+    // Function to refresh the recent activity list when the user presses the refresh key
+    function handleRefreshKey(event) {
+      if (event.key === 'r') {
+        displayRecentActivity();
+      }
+    }
+
+    // Add event listener to the logout button
+    const logoutButton = document.getElementById('logout-button');
+    logoutButton.addEventListener('click', () => {
+      // your logout code here
+    });
+
+    // Display the recent activity and listen for changes
+    displayRecentActivity();
+    listenForChanges();
+    document.addEventListener('keydown', handleRefreshKey);
+  </script>
+</body>
+</html>

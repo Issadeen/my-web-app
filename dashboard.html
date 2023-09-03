@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issaerium 23 Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+  <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+</head>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+<style>
+ 
+  @media (max-width: 640px) {
+  #welcome-title {
+    font-size: 2rem;
+  }
+  #welcome-message {
+    font-size: 1rem;
+  }
+  .welcome-container {
+  margin-top: 30rem;
+}
+h2.text-3xl.font-bold.mb-4 {
+    display: none;
+}
+.dashboard-container {
+    margin-top: 7rem;
+  }
+
+}
+
+  </style>
+<body class="bg-gray-900 text-white">
+  <div class="flex flex-col h-screen">
+    <div class="flex items-center justify-between bg-gray-800 p-4">
+      <div class="flex items-center">
+        <h1 class="text-lg font-medium mr-4">Issaerium 23</h1>
+      </div>
+      <div class="flex items-center">
+        <button class="bg-gray-700 text-white px-4 py-2 rounded-lg mr-2"><i class="fas fa-bell"></i></button>
+        <button class="bg-gray-700 text-white px-4 py-2 rounded-lg md:hidden" id="menu-button"><i class="fas fa-bars"></i></button>
+        <div class="hidden md:block">
+          <div class="relative">
+            <button class="bg-gray-700 text-white px-4 py-2 rounded-lg" id="user-button"> Issa <i class="fas fa-caret-down ml-2"></i></button>
+            <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg hidden" id="user-menu">
+              <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Profile</a>
+              <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Settings</a>
+              <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Logout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center">
+  <div class="welcome-container mb-18">
+    <h1 class="text-4xl font-bold mb-4" id="welcome-title">Welcome to your <span id="issaerium"></span> dashboard</h1>
+    <p class="text-lg" id="welcome-message">Here you can manage your : trucks, work details, and wallet.</p>
+  </div>
+  <div class="dashboard-container">
+    <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a href="truckdetails.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Truck Details">
+        <div class="text-6xl mb-4"><i class="fas fa-truck"></i></div>
+        <div class="text-2xl font-medium mb-4">Truck Details</div>
+        <div class="text-lg text-center">View and manage truck information.</div>
+      </a>
+      <a href="workdetails.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Work Details">
+        <div class="text-6xl mb-4"><i class="fas fa-clipboard-list"></i></div>
+        <div class="text-2xl font-medium mb-4">Work Details</div>
+        <div class="text-lg text-center">Track and review work assignments.</div>
+      </a>
+      <a href="newtrucks.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="New Trucks">
+        <div class="text-6xl mb-4"><i class="fas fa-plus"></i></div>
+        <div class="text-2xl font-medium mb-4">New Trucks</div>
+        <div class="text-lg text-center">Add and register new trucks.</div>
+      </a>
+      <a href="wallet.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Wallet">
+        <div class="text-6xl mb-4"><i class="fas fa-wallet"></i></div>
+        <div class="text-2xl font-medium mb-4">Wallet</div>
+        <div class="text-lg text-center">Manage your wallet and transactions.</div>
+      </a>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+
+  <script>
+    var menuButton = document.getElementById("menu-button");
+    var userButton = document.getElementById("user-button");
+    var userMenu = document.getElementById("user-menu");
+
+    menuButton.addEventListener("click", function () {
+      userMenu.classList.toggle("hidden");
+    });
+
+    userButton.addEventListener("click", function () {
+      userMenu.classList.toggle("hidden");
+    });
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+            authDomain: "my-1-wb.firebaseapp.com",
+            projectId: "my-1-wb",
+            storageBucket: "my-1-wb.appspot.com",
+            messagingSenderId: "865633557898",
+            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const welcomeTitle = document.getElementById('welcome-title');
+const issaerium = document.getElementById('issaerium');
+
+let i = 0;
+const intervalId = setInterval(() => {
+  if (i < 'Issaerium 23'.length) {
+    issaerium.innerText += 'Issaerium 23'[i];
+    i++;
+  } else {
+    clearInterval(intervalId);
+  }
+}, 120);
+
+const welcomeMessage = document.getElementById('welcome-message');
+const buttons = document.querySelectorAll('.dashboard-container a');
+
+buttons.forEach(button => {
+  button.addEventListener('mouseenter', () => {
+    const name = button.dataset.name;
+    welcomeMessage.innerText = name;
+  });
+  
+  button.addEventListener('mouseleave', () => {
+    welcomeMessage.innerText = 'Here you can manage your : trucks, work details, and wallet.';
+  });
+}); 
+
+const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+const settingsButton = document.querySelector('#user-menu a:nth-child(2)');
+const logoutButton = document.querySelector('#user-menu a:nth-child(3)');
+
+document.addEventListener('DOMContentLoaded', () => {
+  const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+  const userMenu = document.querySelector('#user-menu');
+
+  profileButton.addEventListener('click', () => {
+    // Perform action for Profile button
+  });
+
+  const settingsButton = document.querySelector('#user-menu a:nth-child(2)');
+  const logoutButton = document.querySelector('#user-menu a:nth-child(3)');
+
+  settingsButton.addEventListener('click', () => {
+    window.location.href = 'settings.html';
+  });
+
+logoutButton.addEventListener('click', () => {
+  // Clear session data
+  sessionStorage.clear();
+
+  // Redirect to login page
+  window.location.href = 'index.html';
+
+
+});
+});
+
+document.addEventListener('click', (event) => {
+  const userMenu = document.querySelector('#user-menu');
+  const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+
+  if (!userMenu.contains(event.target) && event.target !== profileButton && userMenu.classList.contains('show')) {
+    // Hide user menu
+    userMenu.classList.remove('show');
+
+  }
+
+  // Toggle visibility of user-menu when user-button is clicked
+document.getElementById('user-button').addEventListener('click', function() {
+  var userMenu = document.getElementById('user-menu');
+  if (userMenu.classList.contains('hidden')) {
+    userMenu.classList.remove('hidden');
+  } else {
+    userMenu.classList.add('hidden');
+  }
+});
+
+// Hide user-menu when clicking outside of it
+document.addEventListener('click', function(event) {
+  var userMenu = document.getElementById('user-menu');
+  var userButton = document.getElementById('user-button');
+  if (!userMenu.contains(event.target) && event.target !== userButton && !userMenu.classList.contains('hidden')) {
+    userMenu.classList.add('hidden');
+  }
+});
+
+});
+
+let logoutTimer;
+
+function resetLogoutTimer() {
+  // Clear any existing timer
+  clearTimeout(logoutTimer);
+
+  // Set a new timer for 5 minutes
+  logoutTimer = setTimeout(() => {
+    // Clear session data
+    sessionStorage.clear();
+
+    // Redirect to login page
+    window.location.href = 'index.html';
+  }, 5 * 60 * 1000); // 5 minutes in milliseconds
+}
+
+// Call resetLogoutTimer whenever the user performs any activity
+document.addEventListener('mousemove', resetLogoutTimer);
+document.addEventListener('keypress', resetLogoutTimer);
+</script>
+
+<script>
+  // Disable caching of the dashboard page
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
+  // Check if user is logged in
+  firebase.auth().onAuthStateChanged((user) => {
+    if (!user) {
+      // Redirect to login page
+      window.location.href = 'index.html';
+    }
+  });
+
+
+
+
+// Define the messages to display
+const messages = ['trucks', 'work details', 'wallet'];
+
+// Set the initial message index, delay, and counter
+let messageIndex = 0;
+let counter = 0;
+const delay = 1000; // 1 second
+
+// Add a blinking cursor to the welcome message
+welcomeMessage.insertAdjacentHTML('beforeend', '<span class="blinking-cursor">|</span>');
+
+// Update the welcome message after 3 seconds
+setTimeout(() => {
+  // Set an interval to update the welcome message
+  const animationInterval = setInterval(() => {
+    // Get the current message
+    const message = messages[messageIndex];
+
+    // Animate the typing of the message
+    let i = 0;
+    const typeInterval = setInterval(() => {
+      welcomeMessage.firstChild.textContent = `Here you can manage your: ${message.slice(0, i)}`;
+      i++;
+      if (i > message.length) {
+        clearInterval(typeInterval);
+      }
+    }, delay / message.length);
+
+    // Wait a bit before animating the deletion of the message
+    setTimeout(() => {
+      // Blink the cursor twice before deleting
+      let blinkCount = 0;
+      const blinkInterval = setInterval(() => {
+        const cursor = document.querySelector('.blinking-cursor');
+        if (cursor.style.visibility === 'visible') {
+          cursor.style.visibility = 'hidden';
+        } else {
+          cursor.style.visibility = 'visible';
+        }
+        blinkCount++;
+        if (blinkCount >= 4) {
+          clearInterval(blinkInterval);
+        }
+      }, delay / 4);
+
+      // Animate the deletion of the message
+      setTimeout(() => {
+        let j = message.length;
+        const deleteInterval = setInterval(() => {
+          welcomeMessage.firstChild.textContent = `Here you can manage your: ${message.slice(0, j)}`;
+          j--;
+          if (j < 0) {
+            clearInterval(deleteInterval);
+          }
+        }, delay / message.length);
+      }, delay);
+    }, delay);
+
+    // Increment the message index and counter
+    messageIndex = (messageIndex + 1) % messages.length;
+    counter++;
+
+    // Stop the animation after it has played twice
+    if (counter >= messages.length * 2) {
+      clearInterval(animationInterval);
+    }
+  }, delay * 3);
+}, 3000); // 3 seconds
+
+// Add CSS styles for blinking cursor
+const style = document.createElement('style');
+style.textContent = `
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { visibility: visible; }
+  50% { visibility: hidden; }
+}
+`;
+document.head.appendChild(style);
+
+</script>
+<script>
+  if (!navigator.onLine) {
+      alert("You are currently offline. Please check your internet connection.");
+  }
+</script>
+</body>
+</html>

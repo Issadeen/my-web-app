@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Work Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-gray-900 text-white">
+    <nav class="flex justify-between items-center p-4 bg-gray-800">
+      <h1 class="text-2xl font-bold">Add Work Details</h1>
+      <div>
+        <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Logout</button>
+        <button id="cancel_button" class="ml-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">Cancel</button>
+      </div>
+    </nav>
+    <div class="max-w-md mx-auto my-10 p-8 bg-gray-800 rounded">
+      <form id="add_work_details_form">
+        <div class="mb-4">
+          <label for="truck_no" class="block mb-2">Truck No:</label>
+          <input type="text" id="truck_no" class="w-full px-3 py-2 bg-gray-700 rounded" required />
+        </div>
+        <div class="mb-4">
+          <label for="lo_company" class="block mb-2">LO Company:</label>
+          <input type="text" id="lo_company" class="w-full px-3 py-2 bg-gray-700 rounded" required />
+        </div>
+        <div class="mb-4">
+          <label for="product" class="block mb-2">Product:</label>
+          <input type="text" id="product" class="w-full px-3 py-2 bg-gray-700 rounded" required />
+        </div>
+        <div class="mb-4">
+          <label for="observed_quantity" class="block mb-2">Observed Quantity:</label>
+          <input type="number" id="observed_quantity" class="w-full px-3 py-2 bg-gray-700 rounded" required />
+        </div>
+        <button type="submit" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded">Submit</button>
+      </form>
+    </div>
+
+    <!-- Add your JavaScript code here -->
+        <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+            authDomain: "my-1-wb.firebaseapp.com",
+            projectId: "my-1-wb",
+            storageBucket: "my-1-wb.appspot.com",
+            messagingSenderId: "865633557898",
+            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+    };
+// Initialize Firebase app
+const app = firebase.initializeApp(firebaseConfig);
+
+// Get a reference to the Realtime Database
+const db = firebase.database(app);
+
+// Handle form submission
+document.getElementById("add_work_details_form").addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  // Get form values
+  var truckNo = document.getElementById("truck_no").value;
+  var loCompany = document.getElementById("lo_company").value;
+  var product = document.getElementById("product").value;
+  var observedQuantity = document.getElementById("observed_quantity").value;
+
+  // Validate form data
+  if (!truckNo || !loCompany || !product || !observedQuantity) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  // Check if truck already exists in database
+  db.ref("work_details").orderByChild("truck_no").equalTo(truckNo).once("value", function(snapshot) {
+    if (snapshot.exists()) {
+      alert("A truck with this number already exists.");
+      return;
+    }
+
+    // Add new truck to database
+    db.ref("work_details").push({
+      truck_no: truckNo,
+      lo_company: loCompany,
+      product: product,
+      observed_quantity: observedQuantity
+    }, function(error) {
+      if (error) {
+        alert("An error occurred while adding the truck to the database.");
+      } else {
+        alert("Truck added successfully!");
+        document.getElementById("add_work_details_form").reset();
+      }
+    });
+  });
+});
+
+    // Handle "Cancel" button click
+    document.getElementById("cancel_button").addEventListener("click", function() {
+      window.location.href = "workdetails.html";
+    });
+
+    // Handle "Logout" button click
+    document.getElementById("logout_button").addEventListener("click", function() {
+      firebase.auth().signOut().then(function() {
+        window.location.href = "index.html";
+      }).catch(function(error) {
+        alert("An error occurred while logging out.");
+      });
+    });
+    </script>
+  </body>
+</html>

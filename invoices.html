@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unpaid Invoices</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
+    <style>
+                .max-w-md {
+  max-width: 100%;
+}
+
+table {
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid white;
+    }
+
+    th, td {
+      padding: 0.5rem;
+    }
+
+    th {
+      text-align: left;
+    }
+
+    tr:nth-child(even) {
+      background-color: #1f2937;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #111827;
+    }
+
+    tr:hover {
+      background-color: #4b5563;
+    }
+
+    .bg-gray-900 {
+      background-color: #111827;
+    }
+
+    .bg-gray-800 {
+      background-color: #1f2937;
+    }
+
+    .bg-gray-700 {
+      background-color: #374151;
+    }
+
+    .bg-gray-600 {
+      background-color: #4b5563;
+    }
+
+    .bg-gray-500 {
+      background-color: #6b7280;
+    }
+
+    .bg-gray-400 {
+      background-color: #9ca3af;
+    }
+
+    .bg-gray-300 {
+      background-color: #d1d5db;
+    }
+
+    .bg-gray-200 {
+      background-color: #e5e7eb;
+    }
+
+    .bg-gray-100 {
+      background-color: #f3f4f6;
+    }
+
+    .bg-gray-50 {
+      background-color: #f9fafb;
+    }
+
+    .text-gray-900 {
+      color: #111827;
+    }
+
+    .text-gray-800 {
+      color: #1f2937;
+    }
+
+    .text-gray-700 {
+      color: #374151;
+    }
+
+    .text-gray-600 {
+      color: #4b5563;
+    }
+
+    .text-gray-500 {
+      color: #6b7280;
+    }
+
+    .text-gray-400 {
+      color: #9ca3af;
+    }
+
+    .text-gray-300 {
+      color: #d1d5db;
+    }
+
+    .text-gray-200 {
+      color: #e5e7eb;
+    }
+
+    .text-gray-100 {
+      color: #f3f4f6;
+    }
+
+    .text-gray-50 {
+      color: #f9fafb;
+    }
+
+    .hover\:bg-gray-900:hover {
+      background-color: #111827;
+    }
+
+    .hover\:bg-gray-800:hover {
+      background-color: #1f2937;
+    }
+
+    .hover\:bg-gray-700:hover {
+      background-color: #374151;
+    }
+
+
+    .max-w-md {
+  max-width: 100%;
+}
+        /* Dark mode styles */
+        body.dark {
+            background-color: #111827;
+        }
+
+        .dark .text-gray-900 {
+            color: #fff;
+        }
+
+        .dark .bg-gray-800 {
+            background-color: #1f2937;
+        }
+
+        .dark .bg-gray-700 {
+            background-color: #374151;
+        }
+
+        .dark .bg-red-600 {
+            background-color: #EF4444;
+        }
+
+        /* Add cell borders */
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body class="dark text-white">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Unpaid Invoices</h1>
+        </div>
+    </nav>
+
+    <!-- Table -->
+    <div class="container mx-auto my-10 p-8 bg-gray-800 rounded">
+        <table class="table-auto w-full">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Truck No</th>
+                    <th class="px-4 py-2">LO Company</th>
+                    <th class="px-4 py-2">Product</th>
+                    <th class="px-4 py-2">Observed Quantity</th>
+                    <th class="px-4 py-2">AT 20</th>
+                </tr>
+            </thead>
+            <tbody id="invoice_table_body">
+                <!-- Table rows for unpaid trucks will be added dynamically using JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+            authDomain: "my-1-wb.firebaseapp.com",
+            projectId: "my-1-wb",
+            storageBucket: "my-1-wb.appspot.com",
+            messagingSenderId: "865633557898",
+            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(app);
+        var workDetailsRef = db.ref("work_details");
+
+        // Function to update the invoice table with unpaid trucks
+        function updateInvoiceTable() {
+            var tableBody = document.getElementById("invoice_table_body");
+            tableBody.innerHTML = "";
+
+            workDetailsRef.on("value", function (snapshot) {
+                snapshot.forEach(function (childSnapshot) {
+                    var childData = childSnapshot.val();
+
+                    if (childData.loaded && !childData.paid) {
+                        var row = tableBody.insertRow();
+
+                        var truckNoCell = row.insertCell();
+                        truckNoCell.textContent = childData.truck_no;
+
+                        var loCompanyCell = row.insertCell();
+                        loCompanyCell.textContent = childData.lo_company;
+
+                        var productCell = row.insertCell();
+                        productCell.textContent = childData.product;
+
+                        var observedQuantityCell = row.insertCell();
+                        observedQuantityCell.textContent = childData.observed_quantity;
+
+                        var at20Cell = row.insertCell();
+                        var at20Input = document.createElement("input");
+                        at20Input.type = "text";
+                        at20Input.placeholder = "Enter AT 20";
+                        at20Input.style.backgroundColor = getComputedStyle(row).backgroundColor;
+                        at20Input.style.color = "#fff";
+                        at20Input.setAttribute("data-id", childSnapshot.key);
+                        at20Cell.appendChild(at20Input);
+                        at20Input.value = childData.at20 || "";
+                    }
+                });
+            });
+        }
+
+        // Initial update of the invoice table
+        updateInvoiceTable();
+    </script>
+</body>
+</html>
