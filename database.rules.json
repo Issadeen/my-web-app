@@ -1,8 +1,0 @@
-{
-  "rules": {
-    "trucks": {
-      ".read": true,
-      ".write": true,
-    }
-  }
-}
