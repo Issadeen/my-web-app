@@ -66,7 +66,11 @@
         </div>
         <div class="mb-4">
           <label for="pms-4" class="block font-medium">PMs 4</label>
-          <input type="text" id="pms-4" name="pms-4" required>
+          <input type="text" id="pms-4" name="pms-4" >
+        </div>
+        <div class="mb-4">
+          <label for="pms-5" class="block font-medium">PMs 5</label>
+          <input type="text" id="pms-5" name="pms-5">
         </div>
         <div class="mb-4">
           <label for="ago-comp-1" class="block font-medium">AGO Comp 1</label>
@@ -82,7 +86,11 @@
         </div>
         <div class="mb-4">
           <label for="ago-comp-4" class="block font-medium">AGO Comp 4</label>
-          <input type="text" id="ago-comp-4" name="ago-comp-4" required>
+          <input type="text" id="ago-comp-4" name="ago-comp-4" >
+        </div>
+        <div class="mb-4">
+          <label for="ago-comp-5" class="block font-medium">AGO Comp 5</label>
+          <input type="text" id="ago-comp-5" name="ago-comp-5">
         </div>
         <div class="flex justify-end">
           <input type="submit" value="Save">
@@ -93,6 +101,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
+
+      
       // Initialize Firebase
       var firebaseConfig = {
         apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
@@ -121,10 +131,12 @@
           document.getElementById("pms-2").value = truckData.pms_2;
           document.getElementById("pms-3").value = truckData.pms_3;
           document.getElementById("pms-4").value = truckData.pms_4;
+          document.getElementById("pms-5").value = truckData.pms_5;
           document.getElementById("ago-comp-1").value = truckData.ago_comp_1;
           document.getElementById("ago-comp-2").value = truckData.ago_comp_2;
           document.getElementById("ago-comp-3").value = truckData.ago_comp_3;
           document.getElementById("ago-comp-4").value = truckData.ago_comp_4;
+          document.getElementById("ago-comp-5").value = truckData.ago_comp_5;
         });
       }
 
@@ -139,10 +151,12 @@
         var pms2 = document.getElementById("pms-2").value;
         var pms3 = document.getElementById("pms-3").value;
         var pms4 = document.getElementById("pms-4").value;
+        var pms5 = document.getElementById("pms-5").value;
         var agoComp1 = document.getElementById("ago-comp-1").value;
         var agoComp2 = document.getElementById("ago-comp-2").value;
         var agoComp3 = document.getElementById("ago-comp-3").value;
         var agoComp4 = document.getElementById("ago-comp-4").value;
+        var agoComp5 = document.getElementById("ago-comp-5").value;
         var truckData = {
           truck_no: truckNo,
           driver: driver,
@@ -151,10 +165,12 @@
           pms_2: pms2,
           pms_3: pms3,
           pms_4: pms4,
+          pms_5: pms5,
           ago_comp_1: agoComp1,
           ago_comp_2: agoComp2,
           ago_comp_3: agoComp3,
-          ago_comp_4: agoComp4
+          ago_comp_4: agoComp4,
+          ago_comp_4: agoComp5
         };
         if (truckId) {
           database.ref("trucks/" + truckId).update(truckData);

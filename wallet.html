@@ -1,155 +1,161 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en" class="bg-white dark:bg-gray-800">
+<head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wallet</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
-  </head>
-  <style>
-        .max-w-md {
-  max-width: 100%;
-}
-
-table {
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid white;
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
     }
 
-    th, td {
-      padding: 0.5rem;
+    #dataContainer {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 20px;
     }
 
-    th {
-      text-align: left;
+    body.dark {
+        /* Dark theme */
+        background-color: black;
+        color: white;
+    }
+    .card__details {
+        text-align: center;
     }
 
-    tr:nth-child(even) {
-      background-color: #1f2937;
+    .card__title {
+        font-family: 'auto', cursive; /* Replace with the actual font name */
+        font-size: 1.5em;
+        color: #fff;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+        font-style: italic; /* Make the title italic */
+
+    }
+    .card {
+        width: 300px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin: 20px auto; /* 20px top and bottom margin, auto left and right margin */
+        background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
     }
 
-    tr:nth-child(odd) {
-      background-color: #111827;
+    .card__chip {
+        position: center;
+        width: 50px;
+        height: 40px;
+        background: #ddd;
+        border-radius: 8px;
     }
 
-    tr:hover {
-      background-color: #4b5563;
+    .card__logo {
+        align-self: flex-end;
     }
 
-    .bg-gray-900 {
-      background-color: #111827;
+    .card__number,
+    .card__name,
+    .card__expiry {
+        color: #fff;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+        transform: scale(1.05); /* Make the card slightly larger */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Increase the shadow */
+        transition: all 0.3s ease; /* Animate the changes */
+    }
+    .data-card {
+        width: 270px; /* Reduced width */
+        height: auto; /* Make the height adjust to the content */
+        overflow: auto; /* Add scrollbars if the content is too large */
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.1); /* Added box shadow */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin: 20px auto; /* 10px vertical margin, auto horizontal margin */
+        background: var(--light-background);
+        border: 2px solid blue; /* Added blue border */
+        backface-visibility: hidden;
+        transform-style: preserve-3d;
+    }
+    
+    .data-card:hover {
+        transform: scale(1.05); /* Make the card slightly larger */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Increase the shadow */
+        transition: all 0.3s ease; /* Animate the changes */
+    }
+    .theme-dark {
+        background-color: #2d3748; /* This is the color for bg-gray-800 */
+        color: #fff; /* This is the color for text-white */
     }
 
-    .bg-gray-800 {
-      background-color: #1f2937;
+    .theme-light {
+        background-color: #fff; /* This is the color for bg-white */
+        color: #1a202c; /* This is the color for text-gray-900 */
     }
-
-    .bg-gray-700 {
-      background-color: #374151;
-    }
-
-    .bg-gray-600 {
-      background-color: #4b5563;
-    }
-
-    .bg-gray-500 {
-      background-color: #6b7280;
-    }
-
-    .bg-gray-400 {
-      background-color: #9ca3af;
-    }
-
-    .bg-gray-300 {
-      background-color: #d1d5db;
-    }
-
-    .bg-gray-200 {
-      background-color: #e5e7eb;
-    }
-
-    .bg-gray-100 {
-      background-color: #f3f4f6;
-    }
-
-    .bg-gray-50 {
-      background-color: #f9fafb;
-    }
-
-    .text-gray-900 {
-      color: #111827;
-    }
-
-    .text-gray-800 {
-      color: #1f2937;
-    }
-
-    .text-gray-700 {
-      color: #374151;
-    }
-
-    .text-gray-600 {
-      color: #4b5563;
-    }
-
-    .text-gray-500 {
-      color: #6b7280;
-    }
-
-    .text-gray-400 {
-      color: #9ca3af;
-    }
-
-    .text-gray-300 {
-      color: #d1d5db;
-    }
-
-    .text-gray-200 {
-      color: #e5e7eb;
-    }
-
-    .text-gray-100 {
-      color: #f3f4f6;
-    }
-
-    .text-gray-50 {
-      color: #f9fafb;
-    }
-
-    .hover\:bg-gray-900:hover {
-      background-color: #111827;
-    }
-
-    .hover\:bg-gray-800:hover {
-      background-color: #1f2937;
-    }
-
-    .hover\:bg-gray-700:hover {
-      background-color: #374151;
-    }
-
-
-    .max-w-md {
-  max-width: 100%;
-}
-
-button.paid {
-  background-color: rgb(15, 15, 15);
-  color: #fff;
-  border: none;
-}
-
-button.paid::after {
-  content: "\2713";
-}
-
-
-  </style>
-  <body class="bg-gray-900 text-white">
-    <!-- Prompt the user for the access code -->
+</style>
+</head>
+<body class="dark">
+    <nav class="flex items-center justify-between p-6 bg-gray-800">
+        <div class="text-2xl font-semibold text-white">Wallet</div>
+        <div class="flex items-center">
+            <button id="themeToggle" class="px-4 py-2 text-white bg-blue-500 rounded">Toggle Theme</button>
+        </div>
+    </nav>
+    <div class="card">
+        <div class="card__chip"></div>
+        <div class="card__logo">
+        </div>
+        <div class="card__details">
+            <h2 class="card__title">Issaerium-23 Card</h2>
+            <p id="totalAmount" class="card__amount">Total Amount: $0</p>
+        </div>
+    </div>
+    <div id="dataContainer" class="mt-10"></div>
     <script>
+        // Add Firebase to your JavaScript project
+var firebaseConfig = {
+    apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+    authDomain: "my-1-wb.firebaseapp.com",
+    projectId: "my-1-wb",
+    storageBucket: "my-1-wb.appspot.com",
+    messagingSenderId: "865633557898",
+    appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database(app);
+var workDetailsRef = db.ref("work_details");
+
+// Check user's sign-in state
+firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) {
+    // User is not signed in, redirect to index.html
+    window.location.href = "index.html";
+  }
+});
+
+<!-- Prompt the user for the access code -->
+    
       // Prompt the user for the access code
       var accessCode = prompt("Please enter the access code:");
 
@@ -162,214 +168,200 @@ button.paid::after {
         alert("Invalid access code. You will be redirected.");
         window.location.href = "index.html"; // Redirect to the index page or another appropriate page
       }
-    </script>
-    <nav class="flex justify-between items-center p-4 bg-gray-800">
-      <h1 class="text-2xl font-bold">Wallet</h1>
-      <div>
-        <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Logout</button>
-      </div>
-    </nav>
-<div> <span id="totalAmount">0</span></div>
-    <div class="max-w-md mx-auto my-10 p-8 bg-gray-800 rounded">
-      <table class="table-auto w-full">
-        <thead>
-          <tr>
-            <th class="px-4 py-2">Truck No</th>
-            <th class="px-4 py-2">LO Company</th>
-            <th class="px-4 py-2">Product</th>
-            <th class="px-4 py-2">Observed Quantity</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Paid</th>
-          </tr>
-        </thead>
-        <tbody id="wallet_table_body">
-          <!-- Table rows will be added dynamically using JavaScript -->
-        </tbody>
-      </table>
-    </div>
+    
 
-    <!-- Add your JavaScript code here -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-
-
-<script>
-  var firebaseConfig = {
-           apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
-            authDomain: "my-1-wb.firebaseapp.com",
-            projectId: "my-1-wb",
-            storageBucket: "my-1-wb.appspot.com",
-            messagingSenderId: "865633557898",
-            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
-  };
-
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database(app);
-  var workDetailsRef = db.ref("work_details");
-
-  // Create an array to store input elements for each truck
-  var amountInputs = [];
-
-  function updateTotalAmount() {
-    var totalAmount = 0;
-    amountInputs.forEach(function(input) {
-      var amount = parseInt(input.value) || 0;
-      totalAmount += amount;
-    });
-    totalAmountElement.textContent = "Total amount: " + totalAmount;
-  }
-
- // Listen for changes to the data in the "work_details" node
-workDetailsRef.on("value", function(snapshot) {
-  var workDetails = snapshot.val();
-  if (workDetails) {
-    // Clear the existing table rows
-    var tableBody = document.getElementById("wallet_table_body");
-    tableBody.innerHTML = "";
-
-    // Initialize the total amount to zero
-    var totalAmount = 0;
-
-    // Loop through the child nodes of the "work_details" node
-    snapshot.forEach(function(childSnapshot) {
-      // Get the key and data of the current child node
-      var childKey = childSnapshot.key;
-      var childData = childSnapshot.val();
-
-      // Check if the truck is loaded
-      if (childData.loaded) {
-        // Create a new row for the current child node
-        var row = tableBody.insertRow();
-
-        var truckNoCell = row.insertCell();
-          truckNoCell.textContent = childData.truck_no;
-          truckNoCell.style.border = "1px solid black";
-
-          var loCompanyCell = row.insertCell();
-          loCompanyCell.textContent = childData.lo_company;
-          loCompanyCell.style.border = "1px solid black";
-
-          var productCell = row.insertCell();
-          productCell.textContent = childData.product;
-          productCell.style.border = "1px solid black";
-
-          var observedQuantityCell = row.insertCell();
-          observedQuantityCell.textContent = childData.observed_quantity;
-          observedQuantityCell.style.border = "1px solid black";
-
-          var amountCell = row.insertCell();
-          amountCell.style.border = "1px solid black";
-          var amountInput = document.createElement("input");
-          amountInput.type = "text";
-          amountInput.placeholder = "Enter amount";
-          amountInput.style.backgroundColor = getComputedStyle(row).backgroundColor;
-          amountInput.style.color = "#fff";
-          amountInput.setAttribute("data-id", childKey);
-          amountInput.addEventListener("input", function() {
-            var cleanedValue = this.value.replace(/[^0-9]/g, "");
-            this.value = cleanedValue;
-            updateTotalAmount();
-            var childRef = workDetailsRef.child(childKey);
-            childRef.update({ amount: cleanedValue });
-          });
-          amountCell.appendChild(amountInput);
-          amountInputs[childKey] = amountInput;
-          amountInput.value = childData.amount || "";
-
-          var payCell = row.insertCell();
-          payCell.style.border = "1px solid black";
-          var payButton = document.createElement("button");
-          payButton.textContent = "Pay";
-          payButton.addEventListener("click", function() {
-            var amount = amountInputs[childKey].value;
-
-            if (amount !== "") { // Check if amount is not empty
-              var childRef = workDetailsRef.child(childKey);
-              childRef.update({ paid: true, amount: amount });
-              payButton.classList.toggle("paid");
-            }
-          });
-          payCell.appendChild(payButton);
-
-        // Add an event listener to the amount input field that updates the total amount whenever the user enters or changes an amount
-        amountInput.addEventListener("input", function() {
-          // Remove any non-numeric characters from the input value
-          var cleanedValue = this.value.replace(/[^0-9]/g, "");
-          this.value = cleanedValue;
-          // Update the "amount" field of the child node in the database
-          var childRef = workDetailsRef.child(childKey);
-          childRef.update({ amount: cleanedValue });
-          // Set the value of the amount cell to the input value
-          var amountCellId = "amountCell_" + this.getAttribute("data-id");
-          var amountCell = document.getElementById(amountCellId);
-          amountCell.textContent = cleanedValue;
-          // Update the total amount
-          totalAmount = 0;
-          snapshot.forEach(function(childSnapshot) {
-            var childData = childSnapshot.val();
-            if (childData.loaded && childData.amount && !isNaN(childData.amount)) {
-              totalAmount += parseInt(childData.amount);
-            }
-          });
-          // Display the total amount in your desired location (e.g., an HTML element with id "totalAmount")
-          if (totalAmountElement) {
-            totalAmountElement.textContent = "Total Amount: " + totalAmount;
-          }
-        });
-
-        // Set the "paid" class on the pay button if the "paid" field is true
-        if (childData.paid) {
-          payButton.classList.add("paid");
-        }
-
-        // Calculate the total amount for each input entered
-        if (childData.amount && !isNaN(childData.amount)) {
-          totalAmount += parseInt(childData.amount);
-        }
-      }
-    });
-
-    // Define totalAmountElement after the loop
-    var totalAmountElement = document.getElementById("totalAmount");
-
-    // Display the total amount in your desired location (e.g., an HTML element with id "totalAmount")
-    if (totalAmountElement) {
-      totalAmountElement.textContent = "Total Amount: " + totalAmount;
-    }
-  }
+document.getElementById('themeToggle').addEventListener('click', function() {
+    document.body.classList.toggle('dark');
 });
-</script>
-<script>
 
-      // Logout user after 4 or 5 minutes of inactivity
-      var logoutTimer = null;
-      function resetLogoutTimer() {
-        if (logoutTimer) {
-          clearTimeout(logoutTimer);
+let totalAmount = 0;
+const dataContainer = document.getElementById('dataContainer');
+
+// Fetch data from Firebase
+workDetailsRef.on('value', (snapshot) => {
+        // Clear existing data
+        dataContainer.innerHTML = '';
+        totalAmount = 0;
+
+    const data = snapshot.val();
+    if (data) { // Check if data exists
+        const dataArray = Object.entries(data); // Convert object to array
+
+        dataArray.forEach(([key, item]) => {
+
+     
+        // Check if the truck is loaded
+        if (item.loaded) {
+        // Check if item.amount is a valid number before adding
+        if (!isNaN(item.amount)) {
+            totalAmount += Number(item.amount);
         }
-        logoutTimer = setTimeout(function() {
-          // TODO: Logout user
-          alert("You have been logged out due to inactivity.");
-        }, 5 * 60 * 1000); // 5 minutes
-        logoutTimer = setTimeout(function() {
-          // TODO: Logout user
-          alert("You have been logged out due to inactivity.");
-        }, 4 * 60 * 1000); // 4 minutes
-      }
-      resetLogoutTimer();
-      document.addEventListener("mousemove", resetLogoutTimer);
-      document.addEventListener("keypress", resetLogoutTimer);
+    
 
-      // Handle "Logout" button click
-      document.getElementById("logout_button").addEventListener("click", function() {
-        firebase.auth().signOut().then(function() {
-          resetLogoutTimer(); // Reset the logout timer
-          window.location.href = "index.html";
-        }).catch(function(error) {
-          alert("An error occurred while logging out.");
+        const card = document.createElement('div');
+        card.className = 'data-card';
+        card.className = 'data-card bg-white dark:bg-gray-800 shadow rounded p-6 my-4';
+
+        const truckNo = document.createElement('p');
+        truckNo.textContent = `Truck No: ${item.truck_no}`; // Updated
+        card.appendChild(truckNo);
+
+        const loadingCompany = document.createElement('p');
+        loadingCompany.textContent = `LO Company: ${item.lo_company}`; // Updated
+        card.appendChild(loadingCompany);
+
+        const product = document.createElement('p');
+        product.textContent = `Product: ${item.product}`;
+        card.appendChild(product);
+
+        const observedQuantity = document.createElement('p');
+        observedQuantity.textContent = `Observed Quantity: ${item.observed_quantity}`; // Updated
+        card.appendChild(observedQuantity);
+
+        const amount = document.createElement('div');
+        amount.textContent = `Amount: $${item.amount}`;
+        amount.contentEditable = true; // Make the div editable
+        amount.addEventListener('blur', function(e) {
+            // Extract the number from the text content
+            const newAmount = Number(this.textContent.replace('Amount: $', ''));
+            if (!isNaN(newAmount)) {
+                // Subtract the old amount and add the new amount
+                totalAmount = totalAmount - Number(item.amount) + newAmount;
+                document.getElementById('totalAmount').textContent = `Total Amount: $${totalAmount}`;
+                // Update the item amount
+                item.amount = newAmount;
+                // Save the new amount to Firebase
+                workDetailsRef.child(key).update({ amount: newAmount });  
+            }
         });
-      });
+
+        card.appendChild(amount);
+
+        const paidButton = document.createElement('button');
+        paidButton.textContent = 'Paid?';
+        paidButton.className = 'px-4 py-2 mt-4 text-white bg-blue-500 rounded';
+
+        // Disable the button if the amount is zero or undefined
+        if (item.amount === 0 || item.amount === undefined) {
+            paidButton.disabled = true;
+        }
+
+        // If the item is paid, strike through the amount and disable editing
+        if (item.paid) {
+            amount.style.textDecoration = 'line-through';
+            amount.contentEditable = false;
+            paidButton.textContent = '✓';
+            paidButton.disabled = true;
+        }
+
+        paidButton.addEventListener('click', function() {
+    paidButton.textContent = '✓';
+    paidButton.disabled = true;
+    amount.style.textDecoration = 'line-through';
+    amount.contentEditable = false;
+
+    // Get the current timestamp
+    const paidTimestamp = Date.now();
+
+    // Update the item status and paid timestamp in Firebase
+    workDetailsRef.child(key).update({ paid: true, paidTimestamp });
+
+    // Start a 1-minute countdown
+    let timeLeft = 60; // 1 minute in seconds
+    const countdown = document.createElement('p');
+    card.appendChild(countdown);
+    const countdownInterval = setInterval(() => {
+        timeLeft--;
+        countdown.textContent = `Time left: ${timeLeft} seconds`;
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            // Delete data from Firebase when countdown reaches zero
+            workDetailsRef.child(key).remove();
+            card.remove();
+        }
+    }, 1000);
+
+    // If the item is paid, calculate the remaining time
+    if (item.paid && !isNaN(item.paidTimestamp)) {
+        const now = Date.now();
+        const timePassed = Math.floor((now - paidTimestamp) / 1000); // Time passed in seconds
+        let timeLeft = 60 - timePassed; // Remaining time in seconds
+
+        const countdown = document.createElement('div'); // Create a new countdown element for this card
+        card.appendChild(countdown); // Add the countdown element to the card
+
+        const countdownInterval = setInterval(() => {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            countdown.textContent = `Time left: ${minutes} minutes ${seconds} seconds`;
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                // Delete data from Firebase when countdown reaches zero
+                workDetailsRef.child(key).remove();
+                card.remove();
+            }
+        }, 1000);
+    }
+});
+
+
+        
+
+
+
+            // Strike through the amount if the item is paid
+            if (item.paid) {
+                amount.style.textDecoration = 'line-through';
+                paidButton.textContent = '✓';
+                paidButton.disabled = true;
+            }
+
+            card.appendChild(paidButton);
+            dataContainer.appendChild(card);
+        }
+     else {
+        // If there's no data, show a message to the user
+        dataContainer.innerHTML = 'No loaded trucks for now, You can Check back later to see if any 😊';
+    }
+        });
+
+    document.getElementById('totalAmount').textContent = `Total Amount: $${totalAmount}`;
+    }
+});
+
+document.getElementById('themeToggle').addEventListener('click', function() {
+    var elements = document.body.getElementsByTagName('*');
+
+    // Include the html element in the elements array
+    elements = Array.from(elements).concat([document.documentElement]);
+
+    elements.forEach(function(element) {
+        // Toggle background color
+        if (element.classList.contains('bg-gray-800')) {
+            element.classList.remove('bg-gray-800');
+            element.classList.add('bg-white');
+        } else if (element.classList.contains('bg-white')) {
+            element.classList.remove('bg-white');
+            element.classList.add('bg-gray-800');
+        }
+
+        // Toggle text color
+        if (element.classList.contains('text-white')) {
+            element.classList.remove('text-white');
+            element.classList.add('text-gray-900');
+        } else if (element.classList.contains('text-gray-900')) {
+            element.classList.remove('text-gray-900');
+            element.classList.add('text-white');
+        }
+    });
+
+    // Toggle the theme-specific class for the html element
+    document.documentElement.classList.toggle('theme-dark');
+    document.documentElement.classList.toggle('theme-light');
+});
+
+
     </script>
-  </body>
+</body>
 </html>

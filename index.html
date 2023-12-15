@@ -6,17 +6,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Add the signing-in-message style here */
     body {
-      background-color: #1a202c;
+      background-color: white;
+      color: #1a202c;
+      margin: 0;
+      padding: 0;
     }
 
-    /* ya kucenter index na account */
     .container {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      background-color: white;
+      color: #1a202c;
     }
 
     .signing-in-message {
@@ -36,7 +39,6 @@
       }
     }
 
-    /* Add the button animation style here */
     .morphic-button.green {
       transition: transform 0.2s;
     }
@@ -45,67 +47,73 @@
       transform: scale(1.05);
     }
 
-    /* Add the error-message style here */
     .error-message {
       color: #ff0000;
       font-size: 14px;
       margin-top: 10px;
     }
 
-    /* Add the dark theme styles here */
-    .container {
+    body.dark-theme {
+      background-color: #1a202c;
+      color: #fff;
+    }
+
+    .container.dark-theme {
       background-color: #1a202c;
       color: #fff;
     }
 
     .card {
-      background-color: #2d3748;
-      color: #fff;
+      background-color: var(--card-bg-color);
+      color: var(--card-text-color);
     }
 
     .card-header {
-      background-color: #1a202c;
-      color: #fff;
+      background-color: var(--card-header-bg-color);
+      color: var(--card-header-text-color);
     }
 
     .card-body {
-      background-color: #2d3748;
-      color: #fff;
+      background-color: var(--card-body-bg-color);
+      color: var(--card-body-text-color);
     }
 
     label {
-      color: #fff;
+      color: var(--label-text-color);
     }
 
     input[type="email"],
     input[type="password"] {
-      background-color: #4a5568;
-      color: #fff;
+      background-color: var(--input-bg-color);
+      color: var(--input-text-color);
     }
 
     .morphic-button.green {
-      background-color: #48bb78;
-      color: #fff;
+      background-color: #28a745;
+      color: white;
     }
 
     .morphic-button.green:hover {
-      background-color: #38a169;
+      background-color: #28a745;
+      transform: scale(1.05);
     }
 
     .error-message {
-      color: #f56565;
+      color: var(--error-text-color);
     }
 
     a {
-      color: #fff;
+      color: var(--link-text-color);
     }
 
     a:hover {
-      color: #cbd5e0;
-    }
+      color: var(--link-hover-text-color);
+    } 
 
     .theme-switch-container {
-      color: #fff;
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
     }
 
     .theme-switch-container label {
@@ -116,7 +124,7 @@
       appearance: none;
       width: 40px;
       height: 20px;
-      background-color: #4a5568;
+      background-color: var(--switch-bg-color);
       border-radius: 20px;
       position: relative;
       cursor: pointer;
@@ -128,7 +136,7 @@
       position: absolute;
       width: 16px;
       height: 16px;
-      background-color: #fff;
+      background-color: var(--switch-circle-color);
       border-radius: 50%;
       top: 2px;
       left: 2px;
@@ -136,14 +144,13 @@
     }
 
     .theme-switch-container input[type="checkbox"]:checked {
-      background-color: #48bb78;
+      background-color: var(--switch-checked-bg-color);
     }
 
     .theme-switch-container input[type="checkbox"]:checked::before {
       transform: translateX(20px);
     }
 
-    /* Add media queries for responsive design */
     @media screen and (max-width: 640px) {
       .container {
         max-width: 100%;
@@ -176,41 +183,59 @@
     }
 
     .typewriter h1 {
-  overflow: hidden;
-  border-right: .15em solid #36445f;
-  white-space: nowrap;
-  margin: 0 auto;
-  letter-spacing: .15em;
-  animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite, pause 2s steps(1, end) 3.5s, delete-text 3.5s steps(40, end) 5.5s, retype-text 3.5s steps(40, end) 9s;
-}
+      overflow: hidden;
+      border-right: .15em solid var(--typewriter-border-color);
+      white-space: nowrap;
+      margin: 0 auto;
+      letter-spacing: .15em;
+      animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite, pause 2s steps(1, end) 3.5s, delete-text 3.5s steps(40, end) 5.5s, retype-text 3.5s steps(40, end) 9s;
+    }
 
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
-}
+    @keyframes typing {
+      from {
+        width: 0
+      }
+      to {
+        width: 100%
+      }
+    }
 
-@keyframes blink-caret {
-  from, to { border-color: transparent }
-  50% { border-color: #36445f; }
-}
+    @keyframes blink-caret {
+      from,
+      to {
+        border-color: transparent
+      }
+      50% {
+        border-color: var(--typewriter-border-color);
+      }
+    }
 
-@keyframes pause {
-  from { width: 100% }
-  to { width: 100% }
-}
+    @keyframes pause {
+      from {
+        width: 100%
+      }
+      to {
+        width: 100%
+      }
+    }
 
-@keyframes delete-text {
-  from { width: 100% }
-  to { width: 0 }
-}
+    @keyframes delete-text {
+      from {
+        width: 100%
+      }
+      to {
+        width: 0
+      }
+    }
 
-@keyframes retype-text {
-  from { width: 0 }
-  to { width: 100% }
-}
-
-
-
+    @keyframes retype-text {
+      from {
+        width: 0
+      }
+      to {
+        width: 100%
+      }
+    }
   </style>
 </head>
 <body>
@@ -221,8 +246,6 @@
         <div class="typewriter">
           <h1 id="sign-in-text">Hello there 👋</h1>
         </div>
-        
-        
       </div>
       <div class="card-body">
         <form id="login-form">
@@ -232,14 +255,17 @@
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" required>
 
-          <!-- Add the class "animate-button" to the button -->
           <button type="submit" class="morphic-button green animate-button">Sign in</button>
         </form>
         <div id="signing-in-message" class="signing-in-message">Signing in...</div>
         <div id="error-message" class="error-message"></div>
-        <a href="forgot-password.html">Forgot password?</a> <!-- Add the link to forgot-password.html -->
+        <a href="forgot-password.html">Forgot password?</a>
         <span class="separator">· </span>
         <a href="create-account.html" id="create-account-link">Create an account</a>
+        <div class="theme-switch-container">
+          <label for="theme-switch">Dark mode:</label>
+          <input type="checkbox" id="theme-switch">
+        </div>
       </div>
     </div>
   </div>
@@ -247,72 +273,78 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script>
-    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
-      authDomain: "my-1-wb.firebaseapp.com",
-      projectId: "my-1-wb",
-      storageBucket: "my-1-wb.appspot.com",
-      messagingSenderId: "865633557898",
-      appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+          authDomain: "my-1-wb.firebaseapp.com",
+          projectId: "my-1-wb",
+          storageBucket: "my-1-wb.appspot.com",
+          messagingSenderId: "865633557898",
+          appId: "1:865633557898:web:5e8a848b08d7475054bc73"
     };
     firebase.initializeApp(firebaseConfig);
 
     const form = document.getElementById("login-form");
     const signingInMessage = document.getElementById("signing-in-message");
     const errorMessage = document.getElementById("error-message");
+    const themeSwitch = document.getElementById("theme-switch");
+    const body = document.querySelector("body");
+    const container = document.querySelector(".container");
+    const cardBody = document.querySelector(".card-body");
+
+    // Function to set the theme based on user preference
+    function setTheme(theme) {
+      body.classList.toggle("dark-theme", theme === "dark");
+      container.classList.toggle("dark-theme", theme === "dark");
+      themeSwitch.checked = theme === "dark";
+      localStorage.setItem("theme", theme);
+    }
+
+    // Function to initialize theme on page load
+    function initializeTheme() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") {
+        setTheme("dark");
+      } else {
+        setTheme("light");
+      }
+    }
+
+    // Call initializeTheme on page load
+    initializeTheme();
+
+    // Event listener for theme switch
+    themeSwitch.addEventListener("change", () => {
+      if (themeSwitch.checked) {
+        setTheme("dark");
+      } else {
+        setTheme("light");
+      }
+    });
+
+    const signInText = document.querySelector('#sign-in-text');
+
+    setTimeout(() => {
+      signInText.textContent = 'Sign in to Issaerium-23';
+    }, 9000);
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      // Show "Signing in..." message
       signingInMessage.style.display = "block";
-      errorMessage.textContent = ""; // Clear any previous error message
+      errorMessage.textContent = "";
 
       try {
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        // Handle successful sign-in, e.g., redirect to dashboard
         window.location.href = "dashboard.html";
       } catch (error) {
-        // Handle sign-in error, e.g., display an error message
         console.error("Sign-in error:", error.message);
         errorMessage.textContent = "Invalid email or password. Please try again.";
       } finally {
-        // Hide "Signing in..." message
         signingInMessage.style.display = "none";
       }
     });
-
-    const themeSwitch = document.getElementById("theme-switch");
-    const container = document.querySelector(".container");
-
-    function setTheme(theme) {
-      container.classList.toggle("dark-theme", theme === "dark");
-      themeSwitch.checked = theme === "dark";
-      localStorage.setItem("theme", theme);
-      const otherThemeSwitch = document.querySelector(".other-theme-switch");
-      if (otherThemeSwitch) {
-        otherThemeSwitch.checked = theme !== "dark";
-      }
-    }
-
-    themeSwitch.addEventListener("change", () => {
-      setTheme(themeSwitch.checked ? "dark" : "light");
-    });
-
-   
-
-
-  </script>
-  <script>
-    const signInText = document.querySelector('#sign-in-text');
-
-setTimeout(() => {
-    signInText.textContent = 'Sign in to Issaerium-23';
-}, 9000);
-
   </script>
 </body>
 </html>

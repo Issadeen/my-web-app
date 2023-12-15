@@ -130,17 +130,42 @@
     .max-w-md {
   max-width: 100%;
 }
+
+@media (max-width: 1024px) {
+  #work_details_table {
+    display: none;
+  }
+  #work_details_cards {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  #work_details_table {
+    table-layout: fixed;
+  }
+  #work_details_cards {
+    display: none;
+  }
+}
+
   </style>
   <body class="bg-gray-900 text-white">
-    <nav class="flex justify-between items-center p-4 bg-gray-800">
-      <h1 class="text-2xl font-bold">Work Details</h1>
-      <div>
-        <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">Logout</button>
-        <button id="add_button" class="ml-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">Add Work Details</button>
-      </div>
-    </nav>
-    <div class="max-w-md mx-auto my-10 p-8 bg-gray-800 rounded">
-      <table class="table-auto w-full">
+      <nav class="flex justify-between items-center p-4 bg-gray-800">
+        <h1 class="text-2xl font-bold">Work Details</h1>
+        <div>
+          <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+          <button id="add_button" class="ml-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </nav>
+  </body>
+    <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
+      <table class="table-auto w-full" id="work_details_table">
+        <!-- Table content -->
         <thead>
           <tr>
             <th class="px-4 py-2">Truck No</th>
@@ -153,6 +178,9 @@
           <!-- Table rows will be added dynamically using JavaScript -->
         </tbody>
       </table>
+      <div id="work_details_cards" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Cards will be added dynamically using JavaScript -->
+      </div>
     </div>
 
     <!-- Add your JavaScript code here -->
@@ -177,19 +205,27 @@ const db = firebase.database(app);
 // Get a reference to the "work_details" node in the database
 var workDetailsRef = db.ref("work_details");
 
+
 // Listen for changes to the data in the "work_details" node
 workDetailsRef.on("value", function(snapshot) {
   var workDetails = snapshot.val();
   if (workDetails) {
-    // Clear the existing table rows
+    // Clear the existing table rows and cards
     var tableBody = document.getElementById("work_details_table_body");
     tableBody.innerHTML = "";
+    var cardsContainer = document.getElementById("work_details_cards");
+    cardsContainer.innerHTML = "";
 
     // Loop through the child nodes of the "work_details" node
     snapshot.forEach(function(childSnapshot) {
       // Get the key and data of the current child node
       var childKey = childSnapshot.key;
       var childData = childSnapshot.val();
+
+      // Ignore this child node if it's marked as deleted
+      if (childData.deleted) {
+        return;
+      }
 
       // Create a new row for the current child node
       var row = tableBody.insertRow();
@@ -198,24 +234,30 @@ workDetailsRef.on("value", function(snapshot) {
       row.insertCell().textContent = childData.product;
       row.insertCell().textContent = childData.observed_quantity;
 
-      // Create a new cell for the delete button
-      const deleteCell = row.insertCell();
-
       // Create a new delete button element
-      const deleteButton = document.createElement('button');
-      deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+      var deleteButton = document.createElement('button');
+      deleteButton.innerText = 'Delete';
 
-      // Add a click event listener to the delete button
-      deleteButton.addEventListener('click', function() {
-        // Prompt the user before deleting the row
-        if (confirm("Are you sure you want to delete this row?")) {
-          // Get a reference to the child node with the current key
-          var childRef = workDetailsRef.child(childKey);
+      // Create a new loaded button element
+      var loadedButton = document.createElement('button');
+      loadedButton.innerText = 'Loaded';
 
-          // Remove the child node from the database
-          childRef.remove();
-        }
+      // Add a click event listener to the loaded button
+      loadedButton.addEventListener('click', function() {
+        // Mark the row as loaded
+        row.classList.add("loaded");
+        // Disable the loaded button
+        this.disabled = true;
+        // Replace the name "Loaded" with a tick icon
+        this.innerHTML = '<i class="fas fa-check"></i>';
+        // Get a reference to the child node with the current key
+        var childRef = workDetailsRef.child(childKey);
+        // Update the loaded field of the child node in the database
+        childRef.update({loaded: true});
       });
+
+      // Create a new cell for the delete button
+      var deleteCell = row.insertCell();
 
       // Add the delete button to the new cell
       deleteCell.appendChild(deleteButton);
@@ -223,41 +265,94 @@ workDetailsRef.on("value", function(snapshot) {
       // Create a new cell for the loaded button
       const loadedCell = row.insertCell();
 
-      // Create a new loaded button element
-      const loadedButton = document.createElement('button');
-      loadedButton.innerText = 'Loaded';
-
-      // Check if the row is already marked as loaded in the database
-if (childData.loaded) {
-  // Mark the row as loaded
-  row.classList.add("loaded");
-  // Disable the loaded button
-  loadedButton.disabled = true;
-  // Replace the name "Loaded" with a tick icon
-  loadedButton.innerHTML = '<i class="fas fa-check"></i>';
-}
-
-
-      // Add a click event listener to the loaded button
-loadedButton.addEventListener('click', function() {
-  // Mark the row as loaded
-  row.classList.add("loaded");
-  // Disable the loaded button
-  loadedButton.disabled = true;
-  // Replace the name "Loaded" with a tick icon
-  loadedButton.innerHTML = '<i class="fas fa-check"></i>';
-  // Get a reference to the child node with the current key
-  var childRef = workDetailsRef.child(childKey);
-  // Update the loaded field of the child node in the database
-  childRef.update({loaded: true});
-});
-
-
       // Add the loaded button to the new cell
       loadedCell.appendChild(loadedButton);
-    });
-  }
-});
+
+      // Check if the row is already marked as loaded in the database
+      if (childData.loaded) {
+        // Mark the row as loaded
+        row.classList.add("loaded");
+        // Disable the loaded button
+        loadedButton.disabled = true;
+        // Replace the name "Loaded" with a tick icon
+        loadedButton.innerHTML = '<i class="fas fa-check"></i>';
+      }
+
+            // Add a click event listener to the delete button
+            deleteButton.addEventListener('click', function() {
+              // Mark the row as deleted
+              row.classList.add("deleted");
+              // Disable the delete button
+              deleteButton.disabled = true;
+              // Replace the name "Delete" with a cross icon
+              deleteButton.innerHTML = '<i class="fas fa-times"></i>';
+              // Get a reference to the child node with the current key
+              var childRef = workDetailsRef.child(childKey);
+              // Update the deleted field of the child node in the database
+              childRef.update({deleted: true});
+            });
+
+            // Create a new card for the current child node
+            var card = document.createElement("div");
+            card.className = "p-6 bg-gray-800 rounded-lg shadow-lg max-w-md border border-blue-500 mx-auto transform transition duration-500 ease-in-out hover:scale-105 mb-4";
+
+            // Create elements for the card
+            var truckNo = document.createElement("p");
+            truckNo.textContent = "Truck No: " + childData.truck_no;
+            card.appendChild(truckNo);
+
+            var loCompany = document.createElement("p");
+            loCompany.textContent = "LO Company: " + childData.lo_company;
+            card.appendChild(loCompany);
+
+            var product = document.createElement("p");
+            product.textContent = "Product: " + childData.product;
+            card.appendChild(product);
+
+            var observedQuantity = document.createElement("p");
+            observedQuantity.textContent = "Observed Quantity: " + childData.observed_quantity;
+            card.appendChild(observedQuantity);
+
+            // Create a div to wrap the buttons
+            var buttonsDiv = document.createElement("div");
+            buttonsDiv.className = "flex justify-between items-center space-x-4";
+
+            // Add the delete button to the div
+            buttonsDiv.appendChild(deleteButton.cloneNode(true));
+
+            // ...
+
+            // Create a new loaded button for the card
+            var loadedButtonCard = loadedButton.cloneNode(true);
+
+            // Add the same event listener to the loaded button for the card
+            loadedButtonCard.addEventListener('click', function() {
+              // Mark the card as loaded
+              card.classList.add("loaded");
+              // Disable the loaded button
+              this.disabled = true;
+              // Replace the name "Loaded" with a tick icon
+              this.innerHTML = '<i class="fas fa-check"></i>';
+              // Get a reference to the child node with the current key
+              var childRef = workDetailsRef.child(childKey);
+              // Update the loaded field of the child node in the database
+              childRef.update({loaded: true});
+            });
+
+            // Add the loaded button to the div
+            buttonsDiv.appendChild(loadedButtonCard);
+
+            // ...
+
+            // Add the div to the card
+            card.appendChild(buttonsDiv);
+
+            // Add the card to the container
+            cardsContainer.appendChild(card);
+          });
+        }
+      });
+
 
 // Handle "Add Work Details" button click
 document.getElementById("add_button").addEventListener("click", function() {
@@ -292,6 +387,7 @@ document.getElementById("logout_button").addEventListener("click", function() {
     alert("An error occurred while logging out.");
   });
 });
+
     </script>
   </body>
 </html>
