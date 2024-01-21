@@ -78,6 +78,75 @@
         typing 5s steps(40, end),
         blink-caret .75s step-end infinite;
     }
+
+    .dashboard-container a {
+      border: 2px solid var(--primary-color); /* Primary color outer ring */
+      box-shadow: 0 0 10px var(--primary-color); /* Primary color box shadow */
+    }
+
+    .dark-hover:hover {
+      background-color: var(--primary-color); /* Or whatever color you want on hover in dark theme */
+    }
+
+    .blinking-cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      from, to { visibility: visible; }
+      50% { visibility: hidden; }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .show {
+      display: block;
+    }
+
+    .light-theme .dashboard-container a {
+      background-color: #fff;
+      color: #333;
+      border: 2px solid blue; /* Blue outer ring */
+      box-shadow: 0 0 10px blue; /* Blue box shadow */
+    }
+
+    .light-theme .dashboard-container a:hover {
+      background-color: #fff; /* Or whatever color you want on hover in light theme */
+    }
+
+    .dark-theme .dashboard-container a {
+      background-color: var(--primary-color);
+      color: #fff;
+      border: 2px solid var(--primary-color); /* Primary color outer ring */
+      box-shadow: 0 0 10px var(--primary-color); /* Primary color box shadow */
+    }
+
+    .dark-theme .dashboard-container a:hover {
+      background-color: var(--primary-color); /* Or whatever color you want on hover in dark theme */
+    }
+
+    .light-theme .dashboard-container a {
+      background-color: #fff;
+      color: #333;
+      border: 2px solid blue; /* Blue outer ring */
+      box-shadow: 0 0 10px blue; /* Blue box shadow */
+    }
+
+    .light-theme .dashboard-container a:hover {
+      background-color: #fff; /* Or whatever color you want on hover in light theme */
+    }
+        
+    #user-menu {
+      display: none;
+    }
+
+    #user-menu:not(.hidden) {
+      display: block;
+    }
+
+    
   </style>
 
 </head>
@@ -96,12 +165,10 @@
             <button type="button" class="bg-gray-700 text-white px-4 py-2 rounded-lg mr-2" title="Notification">
               <i class="fas fa-bell"></i>
             </button>
-            <button type="button" class="bg-gray-700 text-white px-4 py-2 rounded-lg md:hidden" id="menu-button" title="Menu">
-              <i class="fas fa-bars"></i>
-            </button>
-            <div class="hidden md:block">
+            <div class="flex items-center">
+
               <div class="relative">
-                <button class="bg-gray-700 text-white px-4 py-2 rounded-lg" id="user-button"> Issa <i class="fas fa-caret-down ml-2"></i></button>
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-lg" id="user-button"> Menu <i class="fas fa-caret-down ml-2"></i></button>
                 <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg hidden" id="user-menu">
                   <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Profile</a>
                   <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Settings</a>
@@ -208,16 +275,13 @@
               themeToggleBtn.addEventListener('click', toggleTheme);
             </script>
            <script>
-              var menuButton = document.getElementById("menu-button");
-              var userButton = document.getElementById("user-button");
-              var userMenu = document.getElementById("user-menu");
+              document.addEventListener('DOMContentLoaded', (event) => {
+                var menuContainer = document.querySelector(".relative");
+                var userMenu = document.getElementById("user-menu");
 
-              menuButton.addEventListener("click", function () {
-                userMenu.classList.toggle("hidden");
-              });
-
-              userButton.addEventListener("click", function () {
-                userMenu.classList.toggle("hidden");
+                menuContainer.addEventListener("click", function () {
+                  userMenu.classList.toggle("hidden");
+                });
               });
 
               const firebaseConfig = {

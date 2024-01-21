@@ -299,6 +299,11 @@ body.dark input[type="text"] {
                 <label for="ago_comp_5">AGO Comp 5:</label>
                 <input type="text" id="ago_comp_5" pattern="[0-9]+(\.[0-9]+)?">
             </div>
+            <!-- Add more form groups for AGO compartments and hide them initially -->
+            <div class="form-group" id="ago-comp-6-group" style="display: none;">
+                <label for="ago_comp_6">AGO Comp 6:</label>
+                <input type="text" id="ago_comp_6" pattern="[0-9]+(\.[0-9]+)?">
+            </div>
 
             <div class="form-group">
                 <label for="pms_1">PMS 1:</label>
@@ -323,10 +328,15 @@ body.dark input[type="text"] {
                 <label for="pms_5">PMS 5:</label>
                 <input type="text" id="pms_5" pattern="[0-9]+(\.[0-9]+)?">
             </div>
+            <!-- Add more form groups for PMS compartments and hide them initially -->
+            <div class="form-group" id="pms-6-group" style="display: none;">
+                <label for="pms_6">PMS 6:</label>
+                <input type="text" id="pms_6" pattern="[0-9]+(\.[0-9]+)?">
+        </div>
 
             <!-- Add the new form group with a checkbox input -->
             <div class="form-group">
-                <label for="add-compartments">Add 2 more AGO and PMS Comps:</label>
+                <label for="add-compartments">Add 3 more AGO and PMS Comps:</label>
                 <input type="checkbox" id="add-compartments">
             </div>
         </div>
@@ -352,10 +362,14 @@ body.dark input[type="text"] {
         const pms4Group = document.getElementById("pms-4-group");
         const agoComp4Input = document.getElementById("ago_comp_4");
         const pms4Input = document.getElementById("pms_4");
-const agoComp5Group = document.getElementById("ago-comp-5-group");
-const pms5Group = document.getElementById("pms-5-group");
-const agoComp5Input = document.getElementById("ago_comp_5");
-const pms5Input = document.getElementById("pms_5");
+        const agoComp5Group = document.getElementById("ago-comp-5-group");
+        const pms5Group = document.getElementById("pms-5-group");
+        const agoComp5Input = document.getElementById("ago_comp_5");
+        const pms5Input = document.getElementById("pms_5");
+        const agoComp6Group = document.getElementById("ago-comp-6-group");
+        const pms6Group = document.getElementById("pms-6-group");
+        const agoComp6Input = document.getElementById("ago_comp_6");
+        const pms6Input = document.getElementById("pms_6");
 
 addCompartmentsCheckbox.addEventListener("change", function () {
     if (this.checked) {
@@ -363,19 +377,27 @@ addCompartmentsCheckbox.addEventListener("change", function () {
         pms4Group.style.display = "block";
         agoComp5Group.style.display = "block";
         pms5Group.style.display = "block";
+        agoComp6Group.style.display = "block";
+        pms6Group.style.display = "block";
         agoComp4Input.required = true;
         pms4Input.required = true;
         agoComp5Input.required = true;
         pms5Input.required = true;
+        agoComp6Input.required = true;
+        pms6Input.required = true;
     } else {
         agoComp4Group.style.display = "none";
         pms4Group.style.display = "none";
         agoComp5Group.style.display = "none";
         pms5Group.style.display = "none";
+        agoComp6Group.style.display = "none";
+        pms6Group.style.display = "none";
         agoComp4Input.required = false;
         pms4Input.required = false;
         agoComp5Input.required = false;
         pms5Input.required = false;
+        agoComp6Input.required = false;
+        pms6Input.required = false;
     }
 });
 
@@ -385,12 +407,18 @@ form.addEventListener('submit', function (event) {
     var ago_comp_5 = document.getElementById('ago_comp_5').value;
     var pms_5 = document.getElementById('pms_5').value;
 
+    // GET THE VALUES OF THE AGO 6 AND PMS 6 INPUT FIELDS
+    var ago_comp_6 = document.getElementById('ago_comp_6').value;
+    var pms_6 = document.getElementById('pms_6').value;
+
     // ...
-    // Include the values of the AGO 5 and PMS 5 input fields
+    // Include the values of the AGO 5,6 and PMS 5,6 input fields
     newTruckRef.set({
         // ...
         ago_comp_5: ago_comp_5,
-        pms_5: pms_5
+        pms_5: pms_5,
+        ago_comp_6: ago_comp_6,
+        pms_6: pms_6
     }, function (error) {
         // ...
     });
@@ -448,6 +476,10 @@ form.addEventListener('submit', function (event) {
                 var ago_comp_5 = document.getElementById('ago_comp_5').value;
                 var pms_5 = document.getElementById('pms_5').value;
 
+                // GET THE VALUES OF THE AGO 6 AND PMS 6 INPUT FIELDS
+                var ago_comp_6 = document.getElementById('ago_comp_6').value;
+                var pms_6 = document.getElementById('pms_6').value;
+
                 // Save the form values to Firebase
                 var database = firebase.database();
                 var newTruckRef = database.ref('trucks').push();
@@ -462,11 +494,13 @@ form.addEventListener('submit', function (event) {
                     pms_1: pms_1,
                     pms_2: pms_2,
                     pms_3: pms_3,
-                    // Include the values of the AGO 4 and PMS 4 input fields
+                    // Include the values of the AGO 4,5,6 and PMS 4,5,6 input fields
                     ago_comp_4: ago_comp_4,
                     pms_4: pms_4,
                     ago_comp_5: ago_comp_5,
-                    pms_5: pms_5
+                    pms_5: pms_5,
+                    ago_comp_6: ago_comp_6,
+                    pms_6: pms_6
 
 
                 }, function (error) {

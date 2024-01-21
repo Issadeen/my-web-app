@@ -272,6 +272,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
@@ -284,8 +285,6 @@
     firebase.initializeApp(firebaseConfig);
 
     const form = document.getElementById("login-form");
-    const signingInMessage = document.getElementById("signing-in-message");
-    const errorMessage = document.getElementById("error-message");
     const themeSwitch = document.getElementById("theme-switch");
     const body = document.querySelector("body");
     const container = document.querySelector(".container");
@@ -327,24 +326,55 @@
       signInText.textContent = 'Sign in to Issaerium-23';
     }, 9000);
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+</script>
 
-      signingInMessage.style.display = "block";
-      errorMessage.textContent = "";
+<script>
+ 
+  const signInButton = document.querySelector(".morphic-button");
+  const signingInMessage = document.getElementById("signing-in-message");
+  const errorMessage = document.getElementById("error-message");
 
-      try {
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        console.error("Sign-in error:", error.message);
-        errorMessage.textContent = "Invalid email or password. Please try again.";
-      } finally {
-        signingInMessage.style.display = "none";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    signInButton.textContent = "Signing in...";
+    signingInMessage.style.display = "block";
+    errorMessage.textContent = "";
+
+    try {
+      // Check if the user is online
+      if (!navigator.onLine) {
+        throw new Error("You are offline. Please check your internet connection.");
       }
-    });
-  </script>
+
+      const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      
+      // Store the user's email in Firestore
+      firebase.firestore().collection('users').doc(user.uid).set({
+        email: user.email
+      }, { merge: true });
+
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      console.error("Sign-in error:", error.message);
+      
+      // Check the error code and set the appropriate error message
+      if (error.code === 'auth/invalid-email' || error.code === 'auth/user-not-found') {
+        errorMessage.textContent = "Invalid email. Please try again.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage.textContent = "Invalid password. Please try again.";
+      } else {
+        errorMessage.textContent = error.message;
+      }
+
+      signInButton.textContent = "Sign in";
+    } finally {
+      signingInMessage.style.display = "none";
+    }
+  });
+</script>
 </body>
 </html>

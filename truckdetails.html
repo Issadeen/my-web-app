@@ -152,6 +152,9 @@ window.addEventListener("scroll", function () {
                 
                 var ago_comp_5 = childData.ago_comp_5 ? childData.ago_comp_5 : '';
                 var pms_5 = childData.pms_5 ? childData.pms_5 : '';
+
+                var ago_comp_6 = childData.ago_comp_5 ? childData.ago_comp_6 : '';
+                var pms_6 = childData.pms_5 ? childData.pms_6 : '';
                 
                 // Function to check if a value is undefined
                 function checkUndefined(value) {
@@ -159,15 +162,15 @@ window.addEventListener("scroll", function () {
                 }
 
                 // Calculate the total of AGO and PMS
-                var totalAgo = (Number(childData.ago_comp_1) || 0) + (Number(childData.ago_comp_2) || 0) + (Number(childData.ago_comp_3) || 0) + (Number(childData.ago_comp_4) || 0) + (Number(childData.ago_comp_5) || 0);
-                var totalPms = (Number(childData.pms_1) || 0) + (Number(childData.pms_2) || 0) + (Number(childData.pms_3) || 0) + (Number(childData.pms_4) || 0) + (Number(childData.pms_5) || 0);
+                var totalAgo = (Number(childData.ago_comp_1) || 0) + (Number(childData.ago_comp_2) || 0) + (Number(childData.ago_comp_3) || 0) + (Number(childData.ago_comp_4) || 0) + (Number(childData.ago_comp_5) || 0) + (Number(childData.ago_comp_6) || 0);
+                var totalPms = (Number(childData.pms_1) || 0) + (Number(childData.pms_2) || 0) + (Number(childData.pms_3) || 0) + (Number(childData.pms_4) || 0) + (Number(childData.pms_5) || 0) + (Number(childData.pms_6) || 0);
 
                 dataCard.innerHTML = `
                     <h2 class="text-lg font-medium">${childData.truck_no}</h2>
                     <p>Driver: ${childData.driver}</p>
                     <p>Transporter: ${childData.transporter}</p>
-                    <p>AGO Comp: ${checkUndefined(childData.ago_comp_1)}, ${checkUndefined(childData.ago_comp_2)}, ${checkUndefined(childData.ago_comp_3)}, ${checkUndefined(childData.ago_comp_4)}, ${checkUndefined(childData.ago_comp_5)} (Total: ${totalAgo})</p>
-                    <p>PMS: ${checkUndefined(childData.pms_1)}, ${checkUndefined(childData.pms_2)}, ${checkUndefined(childData.pms_3)}, ${checkUndefined(childData.pms_4)}, ${checkUndefined(childData.pms_5)} (Total: ${totalPms})</p>
+                    <p>AGO Comp: ${checkUndefined(childData.ago_comp_1)}, ${checkUndefined(childData.ago_comp_2)}, ${checkUndefined(childData.ago_comp_3)}, ${checkUndefined(childData.ago_comp_4)}, ${checkUndefined(childData.ago_comp_5)},${checkUndefined(childData.ago_comp_6)} (Total: ${totalAgo})</p>
+                    <p>PMS: ${checkUndefined(childData.pms_1)}, ${checkUndefined(childData.pms_2)}, ${checkUndefined(childData.pms_3)}, ${checkUndefined(childData.pms_4)}, ${checkUndefined(childData.pms_5)},${checkUndefined(childData.pms_6)}  (Total: ${totalPms})</p>
                 `;
                 dataCard.setAttribute("data-truck-no", childData.truck_no);
             
@@ -182,8 +185,8 @@ window.addEventListener("scroll", function () {
             copyButton.appendChild(copyIcon);
             copyButton.addEventListener("click", function () {
                 // Create arrays of the compartments
-                var agoComps = [childData.ago_comp_1, childData.ago_comp_2, childData.ago_comp_3, childData.ago_comp_4, childData.ago_comp_5];
-                var pmsComps = [childData.pms_1, childData.pms_2, childData.pms_3, childData.pms_4, childData.pms_5];
+                var agoComps = [childData.ago_comp_1, childData.ago_comp_2, childData.ago_comp_3, childData.ago_comp_4, childData.ago_comp_5, childData.ago_comp_6];
+                var pmsComps = [childData.pms_1, childData.pms_2, childData.pms_3, childData.pms_4, childData.pms_5, childData.pms_6];
 
                 // Filter out the undefined compartments and join them with commas
                 var agoCompsString = agoComps.filter(comp => comp !== undefined).join(', ');
@@ -213,17 +216,29 @@ window.addEventListener("scroll", function () {
             editIcon.classList.add("fa", "fa-edit"); // Change these classes to match your icon library
             editButton.appendChild(editIcon);
             editButton.addEventListener("click", function () {
-            var code = prompt("Enter code to edit truck:");
-            if (code === "AI230032") {
-            // Redirect to edit page with truck ID in URL
-             window.location.href = "edittruck.html?id=" + childSnapshot.key;
-            } else {
-            alert("Incorrect code.");
+            firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+            // Get the user's work ID from Realtime Database
+            firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    let workId = snapshot.val().workId;
+                    let enteredWorkId = prompt("Enter your work ID to edit a truck:");
+                    if (workId === enteredWorkId) {
+                        // Redirect to edit page with truck ID in URL
+                        window.location.href = "edittruck.html?id=" + childSnapshot.key;
+                    } else {
+                        alert("Incorrect work ID.");
+                    }
+                }
+             });
+             } else {
+            alert("You need to be logged in to edit a truck.");
             }
-            });
+        });
+        });
             dataCard.appendChild(editButton);
 
-             dataCardsContainer.appendChild(dataCard);
+            dataCardsContainer.appendChild(dataCard);
 
             // Add event listener to delete button
             var deleteButton = document.createElement("button");
@@ -232,15 +247,27 @@ window.addEventListener("scroll", function () {
             deleteIcon.classList.add("fa", "fa-trash"); // Change these classes to match your icon library
             deleteButton.appendChild(deleteIcon);
             deleteButton.addEventListener("click", function () {
-            var code = prompt("Enter code to delete truck:");
-            if (code === "AI230032") {
-            // Delete truck from database
-            database.ref("trucks/" + childSnapshot.key).remove();
-            // Remove data card from page
-            dataCard.remove();
-            } else {
-            alert("Incorrect code.");
-            }
+            firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            // Get the user's work ID from Realtime Database
+            firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    let workId = snapshot.val().workId;
+                    let enteredWorkId = prompt("Enter your work ID to delete a truck:");
+                    if (workId === enteredWorkId) {
+                        // Delete truck from database
+                        database.ref("trucks/" + childSnapshot.key).remove();
+                        // Remove data card from page
+                        dataCard.remove();
+                    } else {
+                        alert("Incorrect work ID.");
+                    }
+                }
+            });
+        } else {
+            alert("You need to be logged in to delete a truck.");
+        }
+    });
             });
             dataCard.appendChild(deleteButton);
 
@@ -263,31 +290,45 @@ window.addEventListener("scroll", function () {
             });
 
             
+// Add event listener to toggle button
+var toggleButton = document.getElementById("toggle-button");
+toggleButton.addEventListener("click", function () {
+    var dataCards = dataCardsContainer.querySelectorAll("div");
+    var body = document.body;
+    var theme;
 
-            // Add event listener to toggle button
-            var toggleButton = document.getElementById("toggle-button");
-            toggleButton.addEventListener("click", function () {
-                var dataCards = dataCardsContainer.querySelectorAll("div");
-                dataCards.forEach(function (dataCard) {
-                    if (dataCard.classList.contains("bg-gray-800")) {
-                        dataCard.classList.remove("bg-gray-800", "text-white");
-                        dataCard.classList.add("bg-white", "text-black");
-                    } else {
-                        dataCard.classList.remove("bg-white", "text-black");
-                        dataCard.classList.add("bg-gray-800", "text-white");
-                    }
-                });
+    dataCards.forEach(function (dataCard) {
+        if (dataCard.classList.contains("bg-gray-800")) {
+            dataCard.classList.remove("bg-gray-800", "text-white");
+            dataCard.classList.add("bg-white", "text-black");
+        } else {
+            dataCard.classList.remove("bg-white", "text-black");
+            dataCard.classList.add("bg-gray-800", "text-white");
+        }
+    });
 
-                // Toggle the theme of the body
-                var body = document.body;
-                if (body.classList.contains("bg-gray-800")) {
-                    body.classList.remove("bg-gray-800", "text-white");
-                    body.classList.add("bg-white", "text-black");
-                } else {
-                    body.classList.remove("bg-white", "text-black");
-                    body.classList.add("bg-gray-800", "text-white");
-                }
-            });
+    // Toggle the theme of the body
+    if (body.classList.contains("bg-gray-800")) {
+        body.classList.remove("bg-gray-800", "text-white");
+        body.classList.add("bg-white", "text-black");
+        theme = 'light';
+    } else {
+        body.classList.remove("bg-white", "text-black");
+        body.classList.add("bg-gray-800", "text-white");
+        theme = 'dark';
+    }
+
+    // Save the current theme in localStorage
+    localStorage.setItem('theme', theme);
+});
+
+// When the page loads, check the saved theme and set it
+window.onload = () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        toggleTheme();
+    }
+};
         </script>
     </body>
 </html>
