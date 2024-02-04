@@ -1,58 +1,353 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Test PDF</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Display</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+  
+    #top-bar {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px;
+      border-bottom: 1px solid #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #toggle-button {
+      padding: 10px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #content {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 50px); /* Subtract the height of the top bar */
+      margin: 10px;
+    }
+
+    #owners-card {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      overflow: auto;
+      max-height: 200px; /* Adjust this value as needed */
+    }
+
+    #data {
+      flex-grow: 1;
+      overflow: auto;
+      height: calc(100vh - 250px); /* Adjust this value as needed */
+    }
+
+    table {
+      width: 100%;
+    }
+
+  :root {
+    --background-color: #f0f0f0;
+    --text-color: black;
+    --card-background-color: white;
+    --border-color: #888;
+    --button-background-color: #6c757d;
+    --header-background-color: #007BFF;
+    --header-text-color: white;
+    --even-row-background-color: #f2f2f2;
+    /* ...other variables... */
+    --table-background-color: white;
+    --table-text-color: black;
+    --table-border-color: #888;
+      /* ...other variables... */
+      --table-header-background-color: #007BFF;
+      --table-header-text-color: white;
+  }
+
+  .theme-dark {
+    --background-color: #282c34;
+    --text-color: white;
+    --card-background-color: #3b4049;
+    --border-color: #888;
+    --button-background-color: #6c757d;
+    --header-background-color: #007BFF;
+    --header-text-color: white;
+    --even-row-background-color: #f2f2f2;
+    /* ...other variables... */
+    --table-background-color: #3b4049;
+    --table-text-color: white;
+    --table-border-color: #888;
+  }
+
+  table {
+    background-color: var(--card-background-color);
+    color: var(--text-color);
+  }
+
+  th, td {
+    border: 1px solid var(--border-color);
+  }
+
+
+
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+
+  #owners-card {
+    background-color: var(--card-background-color);
+    border-color: var(--border-color);
+  }
+
+  #top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #toggle-button {
+    background-color: var(--button-background-color);
+    order: 2;
+  }
+
+  #data-display {
+    order: 1;
+  }
+
+  th {
+    background-color: var(--header-background-color);
+    color: var(--header-text-color);
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--even-row-background-color);
+  }
+.selected-owner {
+  background-color: green;
+}
+
+  </style>
 </head>
-<body>
-  <table id="expenses-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Amount</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Expense 1</td>
-        <td>$100</td>
-        <td>2022-01-01</td>
-      </tr>
-      <tr>
-        <td>Expense 2</td>
-        <td>$200</td>
-        <td>2022-02-02</td>
-      </tr>
-    </tbody>
-  </table>
+<body class="theme-light">
+  <div id="top-bar">
+    <div id="data-display">Data Display</div>
+    <a href="dataentry.html" id="unique-data-entry-link">+</a>
+    <a href="dataentry.html" id="data-entry-link" title="Go to Data Entry">Data Entry</a>
+    
+      <i class="fas fa-plus"></i>
+    </a>
+    <button id="download-button">Download PDF</button>
+    <button id="toggle-button">Toggle Theme</button>
+  </div>
+  <div id="content">
+    <div id="owners-card">
+      <div id="owners"></div>
+    </div>
+    <div id="data"></div>
+  </div>
 
-  <button id="downloadButton">Download PDF</button>
-
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+
   <script>
-    window.onload = function() {
-      var downloadButton = document.getElementById('downloadButton');
-      downloadButton.addEventListener('click', function() {
-        var expensesTable = document.getElementById('expenses-table');
+    var firebaseConfig = {
+      apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+      authDomain: "my-1-wb.firebaseapp.com",
+      projectId: "my-1-wb",
+      storageBucket: "my-1-wb.appspot.com",
+      messagingSenderId: "865633557898",
+      appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-        // Create a new jsPDF instance
-        var doc = new window.jspdf.jsPDF();
+    
 
-        // Prepare table data for autoTable
-        var headers = Array.from(expensesTable.rows[0].cells).map(cell => cell.textContent);
-        var data = Array.from(expensesTable.rows).slice(1).map(row => Array.from(row.cells).map(cell => cell.textContent));
+    const ownersDiv = document.getElementById('owners');
+    const dataDiv = document.getElementById('data');
+    const ownersSet = new Set();
 
-        // Add the table to the PDF
-        doc.autoTable({
-          head: [headers],
-          body: data,
-        });
+    const columnOrder = ['date', 'depot', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'payment date', 'transport', 'balance'];
 
-        // Save the PDF
-        doc.save('expenses.pdf');
+    firebase.database().ref('data').on('value', function(snapshot) {
+      ownersDiv.innerHTML = '';
+      snapshot.forEach(function(childSnapshot) {
+        const owner = childSnapshot.val().owner;
+        ownersSet.add(owner);
       });
+
+      ownersSet.forEach(function(owner) {
+        const ownerDiv = document.createElement('div');
+        ownerDiv.textContent = owner;
+        ownerDiv.addEventListener('click', function() {
+          // Remove tick mark from all owners
+          const ownerDivs = document.querySelectorAll('#owners div');
+          ownerDivs.forEach(o => {
+            o.textContent = o.textContent.replace(' ✔', '');
+          });
+
+          //remove selected-owner class from all owners
+          ownerDivs.forEach(o => {
+            o.classList.remove('selected-owner');
+          });
+
+          // Add tick mark to clicked owner
+          this.classList.add('selected-owner');
+          this.textContent += ' ✔';
+
+          dataDiv.innerHTML = '';
+          const table = document.createElement('table');
+          table.style.borderCollapse = 'collapse';
+          const headerRow = table.insertRow();
+          for (const column of columnOrder) {
+            const headerCell = document.createElement('th');
+            headerCell.textContent = column;
+            headerCell.style.border = '1px solid #888';
+            headerRow.appendChild(headerCell);
+          }
+
+          let totalBalance = 0;
+          snapshot.forEach(function(childSnapshot) {
+            if (childSnapshot.val().owner === owner) {
+              const data = childSnapshot.val();
+              const row = table.insertRow();
+              for (const column of columnOrder) {
+                const cell = row.insertCell();
+                cell.textContent = data[column] || '';
+                cell.style.border = '1px solid var(--border-color)';
+                if (column === 'balance') {
+                  totalBalance += Number(data[column] || 0);
+                }
+              }
+            }
+          });
+
+          // Add total balance row
+          const totalRow = table.insertRow();
+          const totalCell = totalRow.insertCell();
+          totalCell.textContent = 'Total Balance: ' + totalBalance;
+          totalCell.colSpan = columnOrder.length;
+          totalCell.style.textAlign = 'right';
+
+          dataDiv.appendChild(table);
+
+          // Apply CSS variables to table headers
+          const headers = table.getElementsByTagName('th');
+          for (let i = 0; i < headers.length; i++) {
+            headers[i].style.backgroundColor = 'var(--table-header-background-color)';
+            headers[i].style.color = 'var(--table-header-text-color)';
+          }
+        });
+        ownersDiv.appendChild(ownerDiv);
+      });
+    });
+
+    document.getElementById('toggle-button').addEventListener('click', function() {
+      const root = document.documentElement;
+      const lightTheme = {
+        '--background-color': '#f0f0f0',
+        '--text-color': 'black',
+        '--card-background-color': 'white',
+        '--border-color': '#888',
+        '--button-background-color': '#6c757d',
+        '--header-background-color': '#007BFF',
+        '--header-text-color': 'white',
+        '--even-row-background-color': '#f2f2f2',
+        '--table-header-background-color': '#007BFF',
+        '--table-header-text-color': 'white'
+      };
+      const darkTheme = {
+        '--background-color': '#282c34',
+        '--text-color': 'white',
+        '--card-background-color': '#3b4049',
+        '--border-color': '#888',
+        '--button-background-color': '#6c757d',
+        '--header-background-color': '#007BFF',
+        '--header-text-color': 'white',
+        '--even-row-background-color': '#3b4049',
+        '--table-header-background-color': '#282c34',
+        '--table-header-text-color': 'white'
+      };
+      const theme = getComputedStyle(root).getPropertyValue('--background-color').trim() === lightTheme['--background-color'] ? darkTheme : lightTheme;
+      Object.keys(theme).forEach(function(key) {
+        root.style.setProperty(key, theme[key]);
+      });
+
+       // Save the current theme to localStorage
+  localStorage.setItem('theme', JSON.stringify(theme));
+});
+
+// When the page loads, get the saved theme from localStorage and apply it
+window.addEventListener('load', function() {
+  const savedTheme = JSON.parse(localStorage.getItem('theme'));
+  if (savedTheme) {
+    const root = document.documentElement;
+    Object.keys(savedTheme).forEach(function(key) {
+      root.style.setProperty(key, savedTheme[key]);
+    });
+  } else {
+    // If there is no saved theme, default to light theme
+    const root = document.documentElement;
+    const lightTheme = {
+      // ...your light theme properties...
+    };
+    Object.keys(lightTheme).forEach(function(key) {
+      root.style.setProperty(key, lightTheme[key]);
+    });
+  }
+});
+
+document.getElementById('download-button').addEventListener('click', function() {
+  const selectedOwnerDiv = document.querySelector('#owners div.selected-owner');
+  if (selectedOwnerDiv) {
+    const owner = selectedOwnerDiv.textContent.replace(' ✔', '');
+    const table = document.querySelector('#data table');
+    if (table) {
+      var doc = new window.jspdf.jsPDF('landscape');
+      doc.text('Data for ' + owner, 10, 10); // Changed this line
+
+      // Convert HTML table to array
+      const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+      const data = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => 
+        Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
+      );
+
+      // Add table to PDF
+      doc.autoTable({
+        startY: 20,
+        head: [headers],
+        body: data,
+        styles: { 
+          lineColor: [0, 0, 0], // Set the line color to black
+          lineWidth: 0.5 // Set the line width to 0.5
+        },
+        willDrawCell: function(data) {
+          // If this is the last row, change the background color
+          if (data.section === 'body' && data.row.index === data.table.body.length - 1) {
+            data.cell.styles.fillColor = [200, 225, 200]; // Set the background color to light gray
+          }
+        }
+      });
+
+      doc.save('data.pdf'); // Changed this line
+    } else {
+      alert('No data to download!');
     }
+  } else {
+    alert('No owner selected!');
+  }
+});
+    
   </script>
 </body>
 </html>
