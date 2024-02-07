@@ -174,83 +174,93 @@
     
 
     const ownersDiv = document.getElementById('owners');
-    const dataDiv = document.getElementById('data');
-    const ownersSet = new Set();
+const dataDiv = document.getElementById('data');
+const ownersSet = new Set();
 
-    const columnOrder = ['date', 'depot', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'payment date', 'transport', 'balance'];
+const columnOrder = ['date', 'depot', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'paymentDate', 'transport', 'balance'];
 
-    firebase.database().ref('data').on('value', function(snapshot) {
-      ownersDiv.innerHTML = '';
-      snapshot.forEach(function(childSnapshot) {
-        const owner = childSnapshot.val().owner;
-        ownersSet.add(owner);
-      });
+firebase.database().ref('data').on('value', function(snapshot) {
+  ownersDiv.innerHTML = '';
+  snapshot.forEach(function(childSnapshot) {
+    const owner = childSnapshot.val().owner.toLowerCase();
+    ownersSet.add(owner);
+  });
 
-      ownersSet.forEach(function(owner) {
-        const ownerDiv = document.createElement('div');
-        ownerDiv.textContent = owner;
-        ownerDiv.addEventListener('click', function() {
-          // Remove tick mark from all owners
-          const ownerDivs = document.querySelectorAll('#owners div');
-          ownerDivs.forEach(o => {
-            o.textContent = o.textContent.replace(' ✔', '');
-          });
+  // ...
 
-          //remove selected-owner class from all owners
-          ownerDivs.forEach(o => {
-            o.classList.remove('selected-owner');
-          });
+// ...
 
-          // Add tick mark to clicked owner
-          this.classList.add('selected-owner');
-          this.textContent += ' ✔';
+ownersSet.forEach(function(owner) {
+  const ownerDiv = document.createElement('div');
+  ownerDiv.textContent = owner;
+  ownerDiv.addEventListener('click', function() {
+    // Convert clicked owner name to lowercase
+    const clickedOwner = this.textContent.toLowerCase();
 
-          dataDiv.innerHTML = '';
-          const table = document.createElement('table');
-          table.style.borderCollapse = 'collapse';
-          const headerRow = table.insertRow();
-          for (const column of columnOrder) {
-            const headerCell = document.createElement('th');
-            headerCell.textContent = column;
-            headerCell.style.border = '1px solid #888';
-            headerRow.appendChild(headerCell);
-          }
-
-          let totalBalance = 0;
-          snapshot.forEach(function(childSnapshot) {
-            if (childSnapshot.val().owner === owner) {
-              const data = childSnapshot.val();
-              const row = table.insertRow();
-              for (const column of columnOrder) {
-                const cell = row.insertCell();
-                cell.textContent = data[column] || '';
-                cell.style.border = '1px solid var(--border-color)';
-                if (column === 'balance') {
-                  totalBalance += Number(data[column] || 0);
-                }
-              }
-            }
-          });
-
-          // Add total balance row
-          const totalRow = table.insertRow();
-          const totalCell = totalRow.insertCell();
-          totalCell.textContent = 'Total Balance: ' + totalBalance;
-          totalCell.colSpan = columnOrder.length;
-          totalCell.style.textAlign = 'right';
-
-          dataDiv.appendChild(table);
-
-          // Apply CSS variables to table headers
-          const headers = table.getElementsByTagName('th');
-          for (let i = 0; i < headers.length; i++) {
-            headers[i].style.backgroundColor = 'var(--table-header-background-color)';
-            headers[i].style.color = 'var(--table-header-text-color)';
-          }
-        });
-        ownersDiv.appendChild(ownerDiv);
-      });
+    // Remove tick mark from all owners
+    const ownerDivs = document.querySelectorAll('#owners div');
+    ownerDivs.forEach(o => {
+      o.textContent = o.textContent.replace(' ✔', '');
     });
+
+    // Remove selected-owner class from all owners
+    ownerDivs.forEach(o => {
+      o.classList.remove('selected-owner');
+    });
+
+    // Add tick mark to clicked owner
+    this.classList.add('selected-owner');
+    this.textContent += ' ✔';
+
+    dataDiv.innerHTML = '';
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    const headerRow = table.insertRow();
+    for (const column of columnOrder) {
+      const headerCell = document.createElement('th');
+      headerCell.textContent = column;
+      headerCell.style.border = '1px solid #888';
+      headerRow.appendChild(headerCell);
+    }
+
+    let totalBalance = 0;
+    snapshot.forEach(function(childSnapshot) {
+      const dataOwner = (childSnapshot.val() && childSnapshot.val().owner || '').toLowerCase(); // Additional check
+      if (dataOwner === clickedOwner) {
+        const data = childSnapshot.val();
+        const row = table.insertRow();
+        for (const column of columnOrder) {
+          const cell = row.insertCell();
+          cell.textContent = data[column] || '';
+          cell.style.border = '1px solid var(--border-color)';
+          if (column === 'balance') {
+            totalBalance += Number(data[column] || 0);
+          }
+        }
+      }
+    });
+
+    // Add total balance row
+    const totalRow = table.insertRow();
+    const totalCell = totalRow.insertCell();
+    totalCell.textContent = 'Total Balance: ' + totalBalance;
+    totalCell.colSpan = columnOrder.length;
+    totalCell.style.textAlign = 'right';
+
+    dataDiv.appendChild(table);
+
+    // Apply CSS variables to table headers
+    const headers = table.getElementsByTagName('th');
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].style.backgroundColor = 'var(--table-header-background-color)';
+      headers[i].style.color = 'var(--table-header-text-color)';
+    }
+  });
+  ownersDiv.appendChild(ownerDiv);
+});
+
+});
+
 
     document.getElementById('toggle-button').addEventListener('click', function() {
       const root = document.documentElement;
