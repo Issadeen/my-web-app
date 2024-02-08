@@ -54,21 +54,37 @@
     }
 
   :root {
-    --background-color: #f0f0f0;
-    --text-color: black;
-    --card-background-color: white;
-    --border-color: #888;
-    --button-background-color: #6c757d;
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --card-background-color: #fff;
+    --border-color: #ddd;
+    --button-background-color: #bbb;
     --header-background-color: #007BFF;
     --header-text-color: white;
-    --even-row-background-color: #f2f2f2;
-    /* ...other variables... */
+    --even-row-background-color: #f9f9f9;
     --table-background-color: white;
     --table-text-color: black;
-    --table-border-color: #888;
-      /* ...other variables... */
-      --table-header-background-color: #007BFF;
-      --table-header-text-color: white;
+    --table-border-color: #ddd;
+    --table-header-background-color: #007BFF;
+    --table-header-text-color: white;
+  }
+
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+  }
+
+  #owners-card, #toggle-button {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  #top-bar, #content, #owners-card {
+    padding: 20px;
+  }
+
+  table {
+    margin: 20px 0;
   }
 
   .theme-dark {
@@ -86,32 +102,50 @@
     --table-border-color: #888;
   }
 
-  table {
-    background-color: var(--card-background-color);
-    color: var(--text-color);
-  }
+ 
 
   th, td {
     border: 1px solid var(--border-color);
   }
 
 
-
-  body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-  }
-
-  #owners-card {
-    background-color: var(--card-background-color);
-    border-color: var(--border-color);
-  }
-
   #top-bar {
+    background-color: var(--header-background-color);
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
+
+  #button-group {
+    display: flex;
+    gap: 10px; /* adjust this value as needed */
+ }
+
+  #data-display {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  #data-entry-link, #download-button, #toggle-button {
+    background-color: var(--button-background-color);
+    color: var(--header-text-color);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+  }
+
+  #data-entry-link:hover, #download-button:hover, #toggle-button:hover {
+    background-color: darken(var(--button-background-color), 10%);
+  }
+
+  .fas {
+    margin-right: 5px;
+  }
+ 
 
   #toggle-button {
     background-color: var(--button-background-color);
@@ -138,14 +172,12 @@
 </head>
 <body class="theme-light">
   <div id="top-bar">
+    <div id="button-group">
+      <a href="dataentry.html" id="data-entry-link" title="Go to Data Entry">Data Entry</a>
+      <button id="download-button">Download PDF</button>
+      <button id="toggle-button">Toggle Theme</button>
+    </div>
     <div id="data-display">Data Display</div>
-    <a href="dataentry.html" id="unique-data-entry-link">+</a>
-    <a href="dataentry.html" id="data-entry-link" title="Go to Data Entry">Data Entry</a>
-    
-      <i class="fas fa-plus"></i>
-    </a>
-    <button id="download-button">Download PDF</button>
-    <button id="toggle-button">Toggle Theme</button>
   </div>
   <div id="content">
     <div id="owners-card">
@@ -339,7 +371,7 @@ document.getElementById('download-button').addEventListener('click', function() 
         body: data,
         styles: { 
           lineColor: [0, 0, 0], // Set the line color to black
-          lineWidth: 0.5 // Set the line width to 0.5
+          lineWidth: 0.1 // Set the line width to 0.5
         },
         willDrawCell: function(data) {
           // If this is the last row, change the background color
@@ -348,6 +380,14 @@ document.getElementById('download-button').addEventListener('click', function() 
           }
         }
       });
+
+      // Add watermark
+      const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+      const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+      doc.setFontSize(10);
+      doc.setTextColor(200, 200, 200); // Set the text color to light gray
+      doc.text('Reviewed by ia24', pageWidth - 20, pageHeight - 10, null, null, 'right');
+
 
       doc.save('data.pdf'); // Changed this line
     } else {
