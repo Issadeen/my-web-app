@@ -87,36 +87,125 @@ a:hover {
   from, to { visibility: visible; }
   50% { visibility: hidden; }
 }
+
+:root {
+  --bg-color: #1a202c;
+  --text-color: #fff;
+  --btn-bg-color: #4a5568;
+  --btn-hover-bg-color: #2d3748;
+  --link-bg-color: #4a5568;
+  --link-hover-bg-color: #2d3748;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  --bg-color: #1a202c;
+  --text-color: #fff;
+  --btn-bg-color: #4a5568;
+  --btn-hover-bg-color: #2d3748;
+  --link-bg-color: #4a5568;
+  --link-hover-bg-color: #2d3748;
+  --box-bg-color: #2d3748;
+  --box-text-color: #fff;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+body.dark-theme {
+  --bg-color: #fff;
+  --text-color: #1a202c;
+  --btn-bg-color: #2d3748;
+  --btn-hover-bg-color: #4a5568;
+  --link-bg-color: #2d3748;
+  --link-hover-bg-color: #4a5568;
+  --box-bg-color: #f7fafc;
+  --box-text-color: #1a202c;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.container a {
+  background-color: var(--link-bg-color);
+  color: var(--text-color);
+  box-shadow: var(--box-shadow);
+}
+
+.container .rounded-lg {
+  background-color: var(--box-bg-color);
+  color: var(--box-text-color);
+}
+
+.container a:hover {
+  background-color: var(--link-hover-bg-color);
+}
+.link {
+  background-color: var(--link-bg-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  display: block;
+  margin-top: 0.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.link:hover {
+  background-color: var(--link-hover-bg-color);
+}
+button {
+  background-color: var(--btn-bg-color);
+  /* ... */
+}
+
+button:hover {
+  background-color: var(--btn-hover-bg-color);
+}
+.link {
+  background-color: var(--btn-bg-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  display: block;
+  margin-top: 0.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.link:hover {
+  background-color: var(--btn-hover-bg-color);
+}
+
   </style>
 </head>
-<body class="bg-gray-900 text-white">
- <nav class="flex items-center justify-between bg-gray-800 p-4">
+<body>
+<nav class="flex items-center justify-between bg-gray-800 p-4">
   <div>
     <h1 class="text-lg font-bold">Work Details</h1>
   </div>
   <div>
+    <button id="themeSwitcher" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Switch Theme</button>
     <a href="dashboard.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Back</a>
     <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded" id="logout-button">Logout</button>
   </div>
 </nav>
   <div class="container mx-auto mt-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
-        <h2 class="text-lg font-bold mb-2">Work Details</h2>
-        <div class="text-gray-400 mb-2">View and manage work details.</div>
-        <a href="add_work_detail.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Add Work Detail</a>
-        <a href="work_details.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">View Work Details</a>
+      <div class="rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Entry Details</h2>
+        <div>View and manage Entries.</div>
+        <a href="mentry.html" class="link">Add Entries</a>
+        <a href="kentry.html" class="link">View and Manage Entries</a>
       </div>
-      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+      <div class="rounded-lg shadow-lg p-4">
         <h2 class="text-lg font-bold mb-2">Invoices</h2>
         <div class="text-gray-400 mb-2">View and manage Ivoices & Expenses.</div>
-        <a href="invoices.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">View Invoices</a>
-        <a href="expenses.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Expenses</a>
+        <a href="dataentry.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">add Invoices</a>
+        <a href="display.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Invoices</a>
       </div>
-      <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+      <div class="rounded-lg shadow-lg p-4">
         <h2 class="text-lg font-bold mb-2">Reports</h2>
         <div class="text-gray-400 mb-2">View and generate reports.</div>
-        <a href="reports.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">View Reports</a>
+        <a href="expenses.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Expenses</a>
         <a href="tracker.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Tracker</a>
       </div>
     </div>
@@ -180,6 +269,19 @@ a:hover {
     logoutButton.addEventListener('click', () => {
       // your logout code here
     });
+
+  document.getElementById('themeSwitcher').addEventListener('click', function() {
+    document.body.classList.toggle('dark-theme');
+  });
+
+
+  window.addEventListener('load', function() {
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
+  });
 
     // Display the recent activity and listen for changes
     displayRecentActivity();
