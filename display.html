@@ -176,6 +176,7 @@
       <a href="dataentry.html" id="data-entry-link" title="Go to Data Entry">Data Entry</a>
       <button id="download-button">Download PDF</button>
       <button id="toggle-button">Toggle Theme</button>
+      <button id="editButton" disabled>Edit</button> <!-- Add this line -->
     </div>
     <div id="data-display">Data Display</div>
   </div>
@@ -188,6 +189,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
@@ -203,13 +205,51 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    
+    let canEdit;
 
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    // Enable the "Edit" button when the user is signed in
+    const editButton = document.getElementById('editButton');
+    editButton.disabled = false;
+
+    editButton.addEventListener('click', function() {
+      const workId = prompt('Please enter your work ID:');
+      if (workId) {
+        firebase.database().ref('users').once('value', function(snapshot) {
+          let workIdExists = false;
+          snapshot.forEach(function(userSnapshot) {
+            if (userSnapshot.val().workId === workId) {
+              workIdExists = true;
+              return true; // Stop looping through the users
+            }
+          });
+          if (workIdExists) {
+            canEdit = true;
+            // Enable editing for all editable divs
+            const editableDivs = document.querySelectorAll('[contentEditable="false"]');
+            editableDivs.forEach(function(div) {
+              div.contentEditable = 'true';
+            });
+          } else {
+            alert('Invalid work ID: ' + workId);
+          }
+        });
+      }
+    });
+  } else {
+    // Disable the "Edit" button when the Page reloads
+    const editButton = document.getElementById('editButton');
+    editButton.disabled = true;
+  }
+});
+
+    // Rest of your code...
     const ownersDiv = document.getElementById('owners');
 const dataDiv = document.getElementById('data');
 const ownersSet = new Set();
 
-const columnOrder = ['date', 'depot', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'paymentDate', 'transport', 'balance'];
+const columnOrder = ['date', 'deport', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'paymentDate', 'transport', 'balance'];
 
 firebase.database().ref('data').on('value', function(snapshot) {
   ownersDiv.innerHTML = '';
@@ -243,7 +283,6 @@ ownersSet.forEach(function(owner) {
     // Add tick mark to clicked owner
     this.classList.add('selected-owner');
     this.textContent += ' ✔';
-
     dataDiv.innerHTML = '';
     const table = document.createElement('table');
     table.style.borderCollapse = 'collapse';
@@ -256,6 +295,10 @@ ownersSet.forEach(function(owner) {
     }
 
     let totalBalance = 0;
+    // ...
+
+    // ...
+
     snapshot.forEach(function(childSnapshot) {
       const dataOwner = (childSnapshot.val() && childSnapshot.val().owner || '').toLowerCase(); // Additional check
       if (dataOwner === clickedOwner) {
@@ -263,11 +306,41 @@ ownersSet.forEach(function(owner) {
         const row = table.insertRow();
         for (const column of columnOrder) {
           const cell = row.insertCell();
-          cell.textContent = data[column] || '';
+          const editableDiv = document.createElement('div');
+          editableDiv.contentEditable = canEdit ? 'true' : 'false'; // Use canEdit here
+          editableDiv.textContent = Number(data[column]) === 0 ? '' : data[column]; // Modified here
+          editableDiv.addEventListener('input', function() {
+            // Update the corresponding data in the Firebase Realtime Database when the content is changed
+            const newValue = this.textContent;
+            firebase.database().ref('data/' + childSnapshot.key + '/' + column).set(newValue);
+
+            // If the payments, amount, transport, or expenses field is edited, recalculate the balance field
+            if (['payments', 'amount', 'transport', 'expenses'].includes(column)) {
+              const payments = Number(row.querySelector('[data-column="payments"] div').textContent) || 0;
+              const amount = Number(row.querySelector('[data-column="amount"] div').textContent) || 0;
+              const transport = Number(row.querySelector('[data-column="transport"] div').textContent) || 0;
+              const expenses = Number(row.querySelector('[data-column="expenses"] div').textContent) || 0;
+              const balance = payments - amount - transport - expenses;
+              firebase.database().ref('data/' + childSnapshot.key + '/balance').set(balance);
+              row.querySelector('[data-column="balance"] div').textContent = balance;
+            }
+
+            // If the price or at20 field is edited, recalculate the amount field
+            if (['price', 'at20'].includes(column)) {
+              const price = Number(row.querySelector('[data-column="price"] div').textContent) || 0;
+              const at20 = Number(row.querySelector('[data-column="at20"] div').textContent) || 0;
+              const amount = price * at20;
+              firebase.database().ref('data/' + childSnapshot.key + '/amount').set(amount);
+              row.querySelector('[data-column="amount"] div').textContent = amount;
+            }
+          });
+          cell.appendChild(editableDiv);
+          cell.dataset.column = column; // Add this line
           cell.style.border = '1px solid var(--border-color)';
           if (column === 'balance') {
             totalBalance += Number(data[column] || 0);
           }
+        
         }
       }
     });
