@@ -348,7 +348,7 @@ ownersSet.forEach(function(owner) {
     // Add total balance row
     const totalRow = table.insertRow();
     const totalCell = totalRow.insertCell();
-    totalCell.textContent = 'Total Balance: ' + totalBalance;
+    totalCell.textContent = 'Total Balance: ' + totalBalance.toFixed(2); // Use toFixed(2) to keep 2 decimal places
     totalCell.colSpan = columnOrder.length;
     totalCell.style.textAlign = 'right';
 
