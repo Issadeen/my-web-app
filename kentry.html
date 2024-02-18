@@ -158,6 +158,11 @@ body.dark-theme input.theme-input {
     .top-bar button {
         margin-left: auto;
     }
+
+    .filter-container {
+    display: none;
+  }
+
 </style>
 
 <!-- Your HTML code -->
@@ -238,6 +243,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                 remainingQuantity: tr800Quantity,
                 product: tr800Product.value,
                 destination: tr800Destination.value,
+                product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
                 timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
             }).then(() => {
                 // Display a confirmation message
@@ -277,16 +283,21 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                 return;
             }
 
+            // Clear the resultDiv
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+
             // Rest of your code...
 
             // At the end of your function, enable the button and restore its text
             getEntriesButton.disabled = false;
             getEntriesButton.textContent = 'Get Entries';
         
+        
             // Fetch TR800 entries from Realtime Database
             database.ref('tr800')
-                .orderByChild('product')
-                .equalTo(product)
+            .orderByChild('product_destination')
+            .equalTo(product + '_' + destination)
                 .once('value', function(snapshot) {
                     if (snapshot.exists()) {
                         let remaining = at20Quantity;
@@ -306,6 +317,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                         });
                         entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
 
+
                         // Iterate over the sorted entries
                         entries.forEach(function(entry) {
                             let data = entry.data;
@@ -319,11 +331,16 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                             totalRemainingQuantity += data.remainingQuantity; // Add this line
 
                             // Check if there is enough quantity and the destination matches
-                            if (data.destination === destination && data.remainingQuantity > 0) {
+                            if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
                                 let subtract = Math.min(data.remainingQuantity, remaining);
 
                                 data.remainingQuantity -= subtract;
                                 remaining -= subtract;
+
+                                // If the remaining quantity is zero, mark the entry as cleared
+                                if (data.remainingQuantity === 0) {
+                                    data.status = 'cleared';
+                                }
 
                                 // Add a new row to the table
                                 resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
@@ -339,7 +356,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                             }
                             else {
                                 // Add a new row to the table
-                                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match</td></tr>`;
+                                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
                             }
                         });
 
@@ -430,6 +447,14 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                         });
                     });
 
+                    // show filter container
+                    document.querySelector('.filter-container').style.display = 'flex';
+                    
+                    // hide the filter container on button click
+                    document.getElementById('getEntriesButton').addEventListener('click', function() {
+                        document.querySelector('.filter-container').style.display = 'none';
+                    });
+
                     // Iterate over the sorted entries
                     entries.forEach(function(entry) {
                         let data = entry.data;
@@ -449,7 +474,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                     resultDiv.innerHTML = '';
                     resultDiv.appendChild(resultTable);
                 } else {
-                    // Display a message when there are no entries
+                    // Display a message when there are no entries, or balance is zero
                     const resultDiv = document.getElementById('result');
                     resultDiv.innerHTML = 'No entries available.';
                 }
