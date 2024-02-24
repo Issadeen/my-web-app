@@ -271,7 +271,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
             const at20QuantityInput = document.getElementById('at20Quantity');
 
             const truckNumber = truckNumberInput.value;
-            const destination = destinationInput.value;
+            const destination = destinationInput.value.toLowerCase(); // Convert to lower case
             const product = productInput.value;
             const at20Quantity = parseFloat(at20QuantityInput.value);
 
@@ -348,8 +348,11 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                                 // Update Realtime Database and save the Promise
                                 updates.push(entry.ref.update(data));
 
+                                // Replace any "/" characters with "-" in the truck number
+                                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
+
                                 // Save the truck number and subtracted quantity
-                                updates.push(database.ref('truckEntries/' + truckNumber).push({
+                                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
                                     entryNumber: data.number,
                                     subtractedQuantity: subtract
                                 }));
@@ -465,7 +468,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                         // Add a new row to the table
                         let row = document.createElement('tr');
                         row.className = `${data.product.replace(/\s+/g, '').toLowerCase()} ${data.destination.replace(/\s+/g, '').toLowerCase()}`; // Add class based on product and destination
-                        row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantities.map(t => `${t.truckNumber}: ${t.subtractedQuantity}`).join(', ')}</td>`;
+                        row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantities.map((t, i) => `${i + 1}. ${t.truckNumber}: ${t.subtractedQuantity}<br>`).join('')}</td>`;
                         resultTable.appendChild(row);
                     });
 
