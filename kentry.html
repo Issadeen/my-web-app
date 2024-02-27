@@ -554,17 +554,18 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
                     // Add the remaining quantity to the total for the product and destination
                     let key = `${data.product} - ${data.destination}`;
                     if (!summary[key]) {
-                        summary[key] = 0;
+                        summary[key] = {remainingQuantity: 0, estimatedTrucks: 0};
                     }
-                    summary[key] += data.remainingQuantity;
+                    summary[key].remainingQuantity += data.remainingQuantity;
+                    summary[key].estimatedTrucks = data.product.toLowerCase() === 'ago' ? summary[key].remainingQuantity / 36000 : summary[key].remainingQuantity / 40000;
                 });
 
                 // Display the summary
                 let summaryTable = document.createElement('table');
                 summaryTable.id = 'resultTable'; // Add this line
-                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th></tr>';
+                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Trucks</th></tr>';
                 for (let key in summary) {
-                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key]}</td></tr>`;
+                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity}</td><td>${Math.ceil(summary[key].estimatedTrucks)}</td></tr>`;
                 }
                 const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = '';
