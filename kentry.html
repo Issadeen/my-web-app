@@ -321,7 +321,7 @@ database.ref('tr800')
 
 
         // Iterate over the sorted entries
-        entries.forEach(function(entry) {
+        entries.some(function(entry) { // Change forEach to some
             let data = entry.data;
 
             // Check if data.remainingQuantity is a number
@@ -358,6 +358,11 @@ database.ref('tr800')
                     entryNumber: data.number,
                     subtractedQuantity: subtract
                 }));
+
+                // If remaining is zero, stop the iteration
+                if (remaining === 0) {
+                    return true; // Stop the iteration
+                }
             }
             else {
                 // Add a new row to the table
@@ -563,9 +568,9 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
                 // Display the summary
                 let summaryTable = document.createElement('table');
                 summaryTable.id = 'resultTable'; // Add this line
-                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Trucks</th></tr>';
+                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Truck No</th></tr>';
                 for (let key in summary) {
-                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity}</td><td>${Math.ceil(summary[key].estimatedTrucks)}</td></tr>`;
+                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity.toFixed(2)}</td><td>${summary[key].estimatedTrucks.toFixed(2)}</td></tr>`;
                 }
                 const resultDiv = document.getElementById('result');
                 resultDiv.innerHTML = '';
@@ -577,6 +582,13 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
             }
         });
     });
+
+    let downloadPdfButton = document.getElementById('downloadPdfButton');
+
+    // Remove any existing event listeners
+    let newDownloadPdfButton = downloadPdfButton.cloneNode(true);
+    downloadPdfButton.parentNode.replaceChild(newDownloadPdfButton, downloadPdfButton);
+    downloadPdfButton = newDownloadPdfButton;
 
     document.getElementById('downloadPdfButton').addEventListener('click', function(event) {
     event.preventDefault(); // Prevent form submission
