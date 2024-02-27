@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
 </head>
 <style>
 :root {
@@ -185,7 +187,7 @@ body.dark-theme input.theme-input {
             <button id="getEntriesButton" type="button" onclick="getEntries()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Entries</button>
             <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
             <button type="button" id="summaryButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Quantity Summary</button>
-            
+            <button id="downloadPdfButton">Download as PDF</button>
         </form>
 
         <!-- Add these inputs to your HTML file -->
@@ -294,107 +296,156 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
             getEntriesButton.textContent = 'Get Entries';
         
         
-            // Fetch TR800 entries from Realtime Database
-            database.ref('tr800')
-            .orderByChild('product_destination')
-            .equalTo(product + '_' + destination)
-                .once('value', function(snapshot) {
-                    if (snapshot.exists()) {
-                        let remaining = at20Quantity;
-                        let totalRemainingQuantity = 0; // Add this line
+           // Fetch TR800 entries from Realtime Database
+database.ref('tr800')
+.orderByChild('product_destination')
+.equalTo(product + '_' + destination)
+.once('value', function(snapshot) {
+    if (snapshot.exists()) {
+        let remaining = at20Quantity;
+        let totalRemainingQuantity = 0; // Add this line
 
-                        // Create a new table
-                        let resultTable = document.createElement('table');
-                        resultTable.style.borderCollapse = 'collapse';
-                        resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Truck Number</th><th>Destination</th><th>Given Quantity</th><th>Destination</th></tr>';
+        // Create a new table
+        let resultTable = document.createElement('table');
+        resultTable.style.borderCollapse = 'collapse';
+        resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Truck Number</th><th>Destination</th><th>Given Quantity</th><th>Destination</th></tr>';
 
-                        let updates = [];
+        let updates = [];
 
-                        // Convert the snapshot to an array and sort it by timestamp
-                        let entries = [];
-                        snapshot.forEach(function(childSnapshot) {
-                            entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
-                        });
-                        entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
+        // Convert the snapshot to an array and sort it by timestamp
+        let entries = [];
+        snapshot.forEach(function(childSnapshot) {
+            entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
+        });
+        entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
 
 
-                        // Iterate over the sorted entries
-                        entries.forEach(function(entry) {
-                            let data = entry.data;
+        // Iterate over the sorted entries
+        entries.forEach(function(entry) {
+            let data = entry.data;
 
-                            // Check if data.remainingQuantity is a number
-                            if (isNaN(data.remainingQuantity)) {
-                                console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
-                                return;
-                            }
+            // Check if data.remainingQuantity is a number
+            if (isNaN(data.remainingQuantity)) {
+                console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
+                return;
+            }
 
-                            totalRemainingQuantity += data.remainingQuantity; // Add this line
+            totalRemainingQuantity += data.remainingQuantity; // Add this line
 
-                            // Check if there is enough quantity and the destination matches
-                            if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
-                                let subtract = Math.min(data.remainingQuantity, remaining);
+            // Check if there is enough quantity and the destination matches
+            if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
+                let subtract = Math.min(data.remainingQuantity, remaining);
 
-                                data.remainingQuantity -= subtract;
-                                remaining -= subtract;
+                data.remainingQuantity -= subtract;
+                remaining -= subtract;
 
-                                // If the remaining quantity is zero, mark the entry as cleared
-                                if (data.remainingQuantity === 0) {
-                                    data.status = 'cleared';
-                                }
+                // If the remaining quantity is zero, mark the entry as cleared
+                if (data.remainingQuantity === 0) {
+                    data.status = 'cleared';
+                }
 
-                                // Add a new row to the table
-                                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
+                // Add a new row to the table
+                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
 
-                                // Update Realtime Database and save the Promise
-                                updates.push(entry.ref.update(data));
+                // Update Realtime Database and save the Promise
+                updates.push(entry.ref.update(data));
 
-                                // Replace any "/" characters with "-" in the truck number
-                                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
+                // Replace any "/" characters with "-" in the truck number
+                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
 
-                                // Save the truck number and subtracted quantity
-                                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
-                                    entryNumber: data.number,
-                                    subtractedQuantity: subtract
-                                }));
-                            }
-                            else {
-                                // Add a new row to the table
-                                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
-                            }
-                        });
+                // Save the truck number and subtracted quantity
+                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
+                    entryNumber: data.number,
+                    subtractedQuantity: subtract
+                }));
+            }
+            else {
+                // Add a new row to the table
+                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
+            }
+        });
 
-                        // Wait for all updates to complete
-                        Promise.all(updates).then(() => {
-                            // Check if all the quantity was allocated
-                            if (remaining > 0) {
-                                // Ask the user if they want to use the remaining entries
-                                if (confirm(`Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}. Do you want to use the remaining entries?`)) {
-                                    // If the user clicked "OK", use the remaining entries
-                                    // TODO: Add your code here to use the remaining entries
-                                } else {
-                                    // If the user clicked "Cancel", do not use the remaining entries
-                                    resultTable.innerHTML += `<tr><td colspan="7">Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}</td></tr>`;
-                                }
-                            }
+// Wait for all updates to complete
+Promise.all(updates).then(() => {
+                // Clear the updates array
+                updates = [];
+    // Check if all the quantity was allocated
+    if (remaining > 0) {
+        // Ask the user if they want to use the remaining entries
+        let amountLacking = at20Quantity - totalRemainingQuantity;
+if (confirm(`There are only ${totalRemainingQuantity} entries available, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`))
+ {
+            // If the user clicked "OK", use the remaining entries
+            let remainingEntries = entries.filter(entry => entry.data.remainingQuantity > 0 && entry.data.status !== 'cleared');
+            
+            remainingEntries.forEach(function(entry) {
+                let data = entry.data;
+                let subtract = Math.min(data.remainingQuantity, remaining);
 
-                            // Display the table
-                            const resultDiv = document.getElementById('result');
-                            resultDiv.innerHTML = '';
-                            resultDiv.appendChild(resultTable);
+                data.remainingQuantity -= subtract;
+                remaining -= subtract;
 
-                            // Clear the form
-                            truckNumberInput.value = '';
-                            destinationInput.value = '';
-                            productInput.value = '';
-                            at20QuantityInput.value = '';
-                        });
-                    } else {
-                        // Display a message when there are no entries
-                        const resultDiv = document.getElementById('result');
-                        resultDiv.innerHTML = 'No entries available.';
-                    }
-                });
+                // If the remaining quantity is zero, mark the entry as cleared
+                if (data.remainingQuantity === 0) {
+                    data.status = 'cleared';
+                }
+
+                // Add a new row to the table
+                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
+
+                // Update Realtime Database and save the Promise
+                updates.push(entry.ref.update(data));
+
+                // Replace any "/" characters with "-" in the truck number
+                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
+
+                // Save the truck number and subtracted quantity
+                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
+                    entryNumber: data.number,
+                    subtractedQuantity: subtract
+                }));
+            });
+
+            // Wait for all updates to complete
+            Promise.all(updates).then(() => {
+                // Your existing code to update the database and the table...
+
+                // Display the table
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(resultTable);
+            });
+        } else {
+            // If the user clicked "Cancel", do not use the remaining entries
+            // Clear the form
+            truckNumberInput.value = '';
+            destinationInput.value = '';
+            productInput.value = '';
+            at20QuantityInput.value = '';
+
+
+
+            // Display the message
+            resultDiv.innerHTML = `<tr><td colspan="7">Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}</td></tr>`;
         }
+    }
+    else {
+        // Your existing code to update the database and the table...
+
+        // Display the table
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '';
+        resultDiv.appendChild(resultTable);
+    }
+}).catch(error => {
+    // Handle any errors
+    console.error(error);
+});
+
+    }
+});
+}
+
         function filterTable(inputId, columnIndex) {
             // Declare variables
             let input, filter, table, tr, td, i, txtValue;
@@ -418,7 +469,7 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
         }
 
      
-            function getAllEntries() {
+        function getAllEntries() {
     // Fetch all TR800 entries and truck entries from Realtime Database
     Promise.all([
         database.ref('tr800').once('value'),
@@ -431,100 +482,223 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
             resultTable.style.borderCollapse = 'collapse';
             resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Product</th><th>Destination</th><th>Utilized Trucks and Quantities</th></tr>';
 
-                    // Convert the tr800Snapshot to an array and sort it by timestamp
-                    let entries = [];
-                    tr800Snapshot.forEach(function(childSnapshot) {
-                        entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
-                    });
-                    entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
+            // Convert the tr800Snapshot to an array and sort it by timestamp
+            let entries = [];
+            tr800Snapshot.forEach(function(childSnapshot) {
+                entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
+            });
+            entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
 
-                    // Convert the truckEntriesSnapshot to a map of entry numbers to trucks and quantities
-                    let truckEntries = {};
-                    truckEntriesSnapshot.forEach(function(truckSnapshot) {
-                        truckSnapshot.forEach(function(entrySnapshot) {
-                            let data = entrySnapshot.val();
-                            if (!truckEntries[data.entryNumber]) {
-                                truckEntries[data.entryNumber] = [];
-                            }
-                            truckEntries[data.entryNumber].push({ truckNumber: truckSnapshot.key, subtractedQuantity: data.subtractedQuantity });
-                        });
-                    });
+            // Convert the truckEntriesSnapshot to a map of entry numbers to trucks and quantities
+            let truckEntries = {};
+            truckEntriesSnapshot.forEach(function(truckSnapshot) {
+                truckSnapshot.forEach(function(entrySnapshot) {
+                    let data = entrySnapshot.val();
+                    if (!truckEntries[data.entryNumber]) {
+                        truckEntries[data.entryNumber] = [];
+                    }
+                    truckEntries[data.entryNumber].push({ truckNumber: truckSnapshot.key, subtractedQuantity: data.subtractedQuantity });
+                });
+            });
 
-                    // show filter container
-                    document.querySelector('.filter-container').style.display = 'flex';
-                    
-                    // hide the filter container on button click
-                    document.getElementById('getEntriesButton').addEventListener('click', function() {
-                        document.querySelector('.filter-container').style.display = 'none';
-                    });
+            // show filter container
+            document.querySelector('.filter-container').style.display = 'flex';
+            
+            // hide the filter container on button click
+            document.getElementById('getEntriesButton').addEventListener('click', function() {
+                document.querySelector('.filter-container').style.display = 'none';
+            });
 
-                    // Iterate over the sorted entries
-                    entries.forEach(function(entry) {
-                        let data = entry.data;
+            // Iterate over the sorted entries
+            entries.forEach(function(entry) {
+                let data = entry.data;
 
-                        // Get the utilized trucks and quantities for this entry
-                        let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
+                // Get the utilized trucks and quantities for this entry
+                let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
 
-                        // Add a new row to the table
-                        let row = document.createElement('tr');
-                        row.className = `${data.product.replace(/\s+/g, '').toLowerCase()} ${data.destination.replace(/\s+/g, '').toLowerCase()}`; // Add class based on product and destination
-                        row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantities.map((t, i) => `${i + 1}. ${t.truckNumber}: ${t.subtractedQuantity}<br>`).join('')}</td>`;
-                        resultTable.appendChild(row);
-                    });
+                // Add a new row to the table
+                let row = document.createElement('tr');
+                row.className = `${data.product.replace(/\s+/g, '').toLowerCase()} ${data.destination.replace(/\s+/g, '').toLowerCase()}`; // Add class based on product and destination
+                row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantities.map((t, i) => `${i + 1}. ${t.truckNumber}: ${t.subtractedQuantity}<br>`).join('')}</td>`;
+                resultTable.appendChild(row);
+            });
 
-                    // Display the table
-                    const resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = '';
-                    resultDiv.appendChild(resultTable);
-                } else {
-                    // Display a message when there are no entries, or balance is zero
-                    const resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = 'No entries available.';
+            // Display the table
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            resultDiv.appendChild(resultTable);
+        } else {
+            // Display a message when there are no entries, or balance is zero
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'No entries available.';
+        }
+    });
+
+    document.getElementById('summaryButton').addEventListener('click', function() {
+        // Fetch TR800 entries from Realtime Database
+        database.ref('tr800').once('value', function(snapshot) {
+            if (snapshot.exists()) {
+                // Create a map to store the total remaining quantity for each product and destination
+                let summary = {};
+
+                // Iterate over the entries
+                snapshot.forEach(function(childSnapshot) {
+                    let data = childSnapshot.val();
+
+                    // Check if data.remainingQuantity is a number
+                    if (isNaN(data.remainingQuantity)) {
+                        console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
+                        return;
+                    }
+
+                    // Add the remaining quantity to the total for the product and destination
+                    let key = `${data.product} - ${data.destination}`;
+                    if (!summary[key]) {
+                        summary[key] = 0;
+                    }
+                    summary[key] += data.remainingQuantity;
+                });
+
+                // Display the summary
+                let summaryTable = document.createElement('table');
+                summaryTable.id = 'resultTable'; // Add this line
+                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th></tr>';
+                for (let key in summary) {
+                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key]}</td></tr>`;
                 }
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '';
+                resultDiv.appendChild(summaryTable);
+            } else {
+                // Display a message when there are no entries
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = 'No entries available.';
+            }
+        });
+    });
+
+    document.getElementById('downloadPdfButton').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Fetch all TR800 entries and truck entries from Realtime Database
+    Promise.all([
+        database.ref('tr800').once('value'),
+        database.ref('truckEntries').once('value') // Fetch the truck entries data
+    ]).then(function([tr800Snapshot, truckEntriesSnapshot]) {
+        let allEntriesData = [];
+
+        // Process TR800 entries for all entries table
+        if (tr800Snapshot.exists() && truckEntriesSnapshot.exists()) {
+            // Convert TR800 snapshot to array
+            let entries = [];
+            tr800Snapshot.forEach(function(childSnapshot) {
+                entries.push(childSnapshot.val());
+            });
+
+            // Convert the truckEntriesSnapshot to a map of entry numbers to trucks and quantities
+            let truckEntries = {};
+            truckEntriesSnapshot.forEach(function(truckSnapshot) {
+                truckSnapshot.forEach(function(entrySnapshot) {
+                    let data = entrySnapshot.val();
+                    if (!truckEntries[data.entryNumber]) {
+                        truckEntries[data.entryNumber] = [];
+                    }
+                    truckEntries[data.entryNumber].push({ truckNumber: truckSnapshot.key, subtractedQuantity: data.subtractedQuantity });
+                });
+            });
+
+            // Push headers
+            allEntriesData.push(['Mother Entry', 'Initial Quantity', 'Remaining Quantity', 'Product', 'Destination', 'Utilized Trucks and Quantities']);
+
+            // Push rows
+            entries.forEach(function(entry) {
+                let utilizedTrucksAndQuantities = truckEntries[entry.number] || [];
+                let row = [
+                    entry.number,
+                    entry.initialQuantity,
+                    entry.remainingQuantity,
+                    entry.product,
+                    entry.destination,
+                    utilizedTrucksAndQuantities.map((t, i) => `${i + 1}. ${t.truckNumber}: ${t.subtractedQuantity}`).join('\n')
+                ];
+                allEntriesData.push(row);
             });
         }
 
-        document.getElementById('summaryButton').addEventListener('click', function() {
-            // Fetch TR800 entries from Realtime Database
-            database.ref('tr800').once('value', function(snapshot) {
-                if (snapshot.exists()) {
-                    // Create a map to store the total remaining quantity for each product and destination
-                    let summary = {};
+        // Continue with your existing code...
 
-                    // Iterate over the entries
-                    snapshot.forEach(function(childSnapshot) {
-                        let data = childSnapshot.val();
+        // Process TR800 entries for summary table
+        if (tr800Snapshot.exists()) {
+            // Create a map to store the total remaining quantity for each product and destination
+            let summary = {};
 
-                        // Check if data.remainingQuantity is a number
-                        if (isNaN(data.remainingQuantity)) {
-                            console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
-                            return;
-                        }
+            // Iterate over the entries
+            tr800Snapshot.forEach(function(childSnapshot) {
+                let data = childSnapshot.val();
 
-                        // Add the remaining quantity to the total for the product and destination
-                        let key = `${data.product} - ${data.destination}`;
-                        if (!summary[key]) {
-                            summary[key] = 0;
-                        }
-                        summary[key] += data.remainingQuantity;
-                    });
-
-                    // Display the summary
-                    let summaryTable = document.createElement('table');
-                    summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th></tr>';
-                    for (let key in summary) {
-                        summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key]}</td></tr>`;
-                    }
-                    const resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = '';
-                    resultDiv.appendChild(summaryTable);
-                } else {
-                    // Display a message when there are no entries
-                    const resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = 'No entries available.';
+                // Check if data.remainingQuantity is a number
+                if (isNaN(data.remainingQuantity)) {
+                    console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
+                    return;
                 }
+
+                // Add the remaining quantity to the total for the product and destination
+                let key = `${data.product} - ${data.destination}`;
+                if (!summary[key]) {
+                    summary[key] = 0;
+                }
+                summary[key] += data.remainingQuantity;
             });
-        });
+
+            // Process the summary data for the PDF
+            let summaryData = [['Product - Destination', 'Remaining Quantity']];
+            for (let key in summary) {
+                summaryData.push([key, summary[key]]);
+            }
+
+            // Create a PDF
+            let docDefinition = {
+                content: [
+                    {
+                        text: 'All Entries',
+                        bold: true,
+                        fontSize: 14,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        table: {
+                            headerRows: 1,
+                            body: allEntriesData
+                        }
+                    },
+                    {
+                        text: 'Summary',
+                        bold: true,
+                        fontSize: 14,
+                        margin: [0, 20, 0, 10]
+                    },
+                    {
+                        table: {
+                            headerRows: 1,
+                            body: summaryData
+                        }
+                    }
+                ],
+                pageSize: 'A4',
+                pageOrientation: 'landscape'
+            };
+
+            pdfMake.createPdf(docDefinition).download('result.pdf');
+        } else {
+            // Display a message when there are no entries
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'No entries available.';
+        }
+    });
+});
+}
+
+
     </script>
 </body>
 </html>
