@@ -187,7 +187,7 @@ body.dark-theme input.theme-input {
             <button id="getEntriesButton" type="button" onclick="getEntries()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Entries</button>
             <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
             <button type="button" id="summaryButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Quantity Summary</button>
-            <button id="downloadPdfButton">Download as PDF</button>
+            <button type="button" id="downloadPdfButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Download PDF</button>
         </form>
 
         <!-- Add these inputs to your HTML file -->
@@ -442,6 +442,12 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
         resultDiv.innerHTML = '';
         resultDiv.appendChild(resultTable);
     }
+// Clear the form
+truckNumberInput.value = '';
+destinationInput.value = '';
+productInput.value = '';
+at20QuantityInput.value = '';
+    
 }).catch(error => {
     // Handle any errors
     console.error(error);
@@ -450,6 +456,7 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
     }
 });
 }
+
 
         function filterTable(inputId, columnIndex) {
             // Declare variables
@@ -473,7 +480,6 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
             }
         }
 
-     
         function getAllEntries() {
     // Fetch all TR800 entries and truck entries from Realtime Database
     Promise.all([
@@ -638,7 +644,7 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
             });
         }
 
-        // Continue with your existing code...
+        // Continue with existing code...
 
         // Process TR800 entries for summary table
         if (tr800Snapshot.exists()) {
