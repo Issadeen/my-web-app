@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
@@ -14,24 +14,107 @@
         html {
             scroll-behavior: smooth;
         } 
-        
+
+        #watermark {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            font-size: 12px;
+            color: #000;
+            padding: 4px;
+            opacity: 0.5;
+        }
+
+        .dot-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dot {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #07239e; /* Initial color */
+            border-radius: 50%;
+            animation: dot 2s infinite linear;
+        }
+
+        @keyframes dot {
+            0% { 
+                transform: translate(0, -20px); 
+                background-color: #07239e; /* Color at 0% */
+            }
+            25% { 
+                transform: translate(20px, 0); 
+                background-color: #ff0000; /* Color at 25% */
+            }
+            50% { 
+                transform: translate(0, 20px); 
+                background-color: #00ff00; /* Color at 50% */
+            }
+            75% { 
+                transform: translate(-20px, 0); 
+                background-color: #0000ff; /* Color at 75% */
+            }
+            100% { 
+                transform: translate(0, -20px); 
+                background-color: #07239e; /* Color at 100% */
+            }
+        }
+
+        #loading-animation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* This makes the loading animation take up the full height of the viewport */
+        }
+
+        #loading-animation b {
+            font-size: 1.5em; /* Adjust this value to increase or decrease the size of the text */
+        }
+
+
+        @keyframes bounceAndSpin {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            40% {
+                transform: translateY(-30px) rotate(0deg);
+            }
+            60% {
+                transform: translateY(-15px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(0) rotate(360deg);
+            }
+        }
         </style>
 
     </head>
     <body class="bg-gray-800 text-white">
         <button id="toggle-button" class="bg-blue-500 text-white px-2 py-1 rounded-lg">Toggle Color</button>
         <div id="data-cards-container" class="mt-4"></div>
+        <!-- Loading animation -->
+        <div id="loading-animation">
+            <div class="dot-container">
+                <span class="dot"></span>
+                <b>الحمد لله</b>
+            </div>
+        </div>
+
+        <!-- Data container -->
+        <div id="data-cards-container" class="mt-4"></div>
 
         <script>
 
             // Initialize Firebase
             var firebaseConfig = {
-            apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
-            authDomain: "my-1-wb.firebaseapp.com",
-            projectId: "my-1-wb",
-            storageBucket: "my-1-wb.appspot.com",
-            messagingSenderId: "865633557898",
-            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+                apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+                authDomain: "my-1-wb.firebaseapp.com",
+                projectId: "my-1-wb",
+                storageBucket: "my-1-wb.appspot.com",
+                messagingSenderId: "865633557898",
+                appId: "1:865633557898:web:5e8a848b08d7475054bc73"
             };
             firebase.initializeApp(firebaseConfig);
             var database = firebase.database();
@@ -53,6 +136,28 @@
                         clearTimeout(timeout);
                         timeout = setTimeout(logout, 300000); // 300000ms = 5 minutes
                     }
+
+                    // Start data retrieval
+                    document.getElementById('loading-animation').style.visibility = 'visible';
+
+
+
+                    // Retrieve data from Firebase and create data cards
+                    var dataCardsContainer = document.getElementById("data-cards-container");
+                    dataCardsContainer.classList.add("flex", "flex-wrap", "justify-around", "items-stretch", "md:flex-row", "sm:flex-col");
+
+                    // Replace this with your actual Firebase data retrieval code
+                    database.ref('your-firebase-data-path').once('value', function(snapshot) {
+                        // Use the data to create data cards
+
+                        // Finish data retrieval
+                        document.getElementById('loading-animation').style.display = 'none';
+                    }, function(error) {
+                        console.error('Error:', error);
+
+                        // Finish data retrieval
+                        document.getElementById('loading-animation').style.display = 'none';
+                    });
                 } else {
                     // No user is signed in, redirect to login page
                     window.location.href = "index.html";
@@ -99,6 +204,7 @@ if (savedTheme === 'light') {
 } else {
     searchInput.classList.add("w-2/3", "mb-4", "p-2", "rounded-lg", "bg-gray-800", "text-white", "border-2", "border-green-500");
 }
+
 // Create arrow icon
 var arrowIcon = document.createElement("i");
 arrowIcon.classList.add("fa", "fa-arrow-up"); // Change these classes to match your icon library
@@ -109,7 +215,8 @@ arrowIcon.style.bottom = "20px"; // Set the bottom property of the arrow icon
 arrowIcon.style.right = "20px"; // Set the right property of the arrow icon
 arrowIcon.style.fontSize = "24px"; // Set the size of the arrow icon
 arrowIcon.style.color = "#000"; // Set the color of the arrow icon
-
+arrowIcon.style.zIndex = "9999"; // Make the arrow icon always be on top of other elements
+arrowIcon.style.animation = "bounceAndSpin 3s infinite linear";
 // Add hover effect
 arrowIcon.addEventListener("mouseover", function() {
     arrowIcon.style.color = "#f00"; // Change the color of the arrow icon on hover
@@ -117,6 +224,12 @@ arrowIcon.addEventListener("mouseover", function() {
 arrowIcon.addEventListener("mouseout", function() {
     arrowIcon.style.color = "#000"; // Change the color of the arrow icon back when mouse is out
 });
+
+// Append arrow icon to body
+document.body.appendChild(arrowIcon);
+
+// Append arrow icon to body
+document.body.appendChild(arrowIcon);
 
 // Center search input and arrow icon
 var searchContainer = document.createElement("div");
