@@ -188,115 +188,123 @@ body.dark-theme input.theme-input {
             <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
             <button type="button" id="summaryButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Quantity Summary</button>
             <button type="button" id="downloadPdfButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Download PDF</button>
+            
         </form>
 
-        <!-- Add these inputs to your HTML file -->
-        <div class="filter-container">
-            <input type="text" id="entryFilter2" class="theme-input" onkeyup="filterTable('entryFilter2', 0)" placeholder="Filter by Entry">
-            <input type="text" id="productFilter2" class="theme-input" onkeyup="filterTable('productFilter2', 3)" placeholder="Filter by Product">
-            <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination"> </div>
-        <!-- Display retrieved mother entry and quantity -->
-        <div id="result" class="mt-4"></div>
+<button id="undoButton" style="display: none;">Undo Changes</button>
 
-    </div>
+<!-- Add these inputs to your HTML file -->
+<div class="filter-container">
+    <input type="text" id="entryFilter2" class="theme-input" onkeyup="filterTable('entryFilter2', 0)" placeholder="Filter by Entry">
+    <input type="text" id="productFilter2" class="theme-input" onkeyup="filterTable('productFilter2', 3)" placeholder="Filter by Product">
+    <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination"> 
+</div>
+<!-- Display retrieved mother entry and quantity -->
+<div id="result" class="mt-4"></div>
 
-    <script>
-       // Theme switcher
-document.getElementById('themeSwitcher').addEventListener('click', function() {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-        });
-
-        // Apply saved theme on page load
-        window.addEventListener('load', function() {
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            } else {
-                document.body.classList.remove('dark-theme');
-            }
-        });
-                // Initialize Firebase
+<script>
+    // Initialize Firebase
     var firebaseConfig = {
-            apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
-            authDomain: "my-1-wb.firebaseapp.com",
-            projectId: "my-1-wb",
-            storageBucket: "my-1-wb.appspot.com",
-            messagingSenderId: "865633557898",
-            appId: "1:865633557898:web:5e8a848b08d7475054bc73"
-        };
-        firebase.initializeApp(firebaseConfig);
+        apiKey: "AIzaSyDklv5Sgwiy84_fCOqiQRCiuTBVRZ_2EvY",
+        authDomain: "my-1-wb.firebaseapp.com",
+        projectId: "my-1-wb",
+        storageBucket: "my-1-wb.appspot.com",
+        messagingSenderId: "865633557898",
+        appId: "1:865633557898:web:5e8a848b08d7475054bc73"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-        // Get a reference to the database service
-        var database = firebase.database();
+    // Get a reference to the database service
+    var database = firebase.database();
 
-        function addTR800() {
-            const tr800Number = document.getElementById('tr800Number');
-            const tr800Quantity = parseFloat(document.getElementById('tr800Quantity').value);
-            const tr800Product = document.getElementById('tr800Product').value;
-            const tr800Destination = document.getElementById('tr800Destination').value;
+    // Define originalData in the global scope
+    var originalData = {};
 
-            // Generate a new child location using a unique key
-            var tr800DataRef = database.ref('tr800').push();
+    // Add an event listener to the undo button
+    document.getElementById('undoButton').addEventListener('click', function(event) {
+        event.preventDefault();
+        undoChanges();
+    });
 
-            // Set the TR800 data for that location
-            tr800DataRef.set({
-                number: tr800Number.value,
-                initialQuantity: tr800Quantity,
-                remainingQuantity: tr800Quantity,
-                product: tr800Product.value,
-                destination: tr800Destination.value,
-                product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
-                timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
-            }).then(() => {
-                // Display a confirmation message
-                alert('TR800 entry added successfully.');
+    // Theme switcher
+    document.getElementById('themeSwitcher').addEventListener('click', function() {
+        document.body.classList.toggle('dark-theme');
+        localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    });
 
-                // Clear the form
-                tr800Number.value = '';
-                tr800Quantity.value = '';
-                tr800Product.value = '';
-                tr800Destination.value = '';
-            }).catch((error) => {
-                // Handle any errors
-                console.error('Error adding TR800 entry: ', error);
-            });
+    // Apply saved theme on page load
+    window.addEventListener('load', function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
         }
+    });
 
-        function getEntries() {
-            const getEntriesButton = document.getElementById('getEntriesButton');
-            getEntriesButton.disabled = true;
-            getEntriesButton.textContent = 'Getting entries...';
+    function addTR800() {
+        const tr800Number = document.getElementById('tr800Number');
+        const tr800Quantity = parseFloat(document.getElementById('tr800Quantity').value);
+        const tr800Product = document.getElementById('tr800Product').value;
+        const tr800Destination = document.getElementById('tr800Destination').value;
 
-            const truckNumberInput = document.getElementById('truckNumber');
-            const destinationInput = document.getElementById('destination');
-            const productInput = document.getElementById('product');
-            const at20QuantityInput = document.getElementById('at20Quantity');
+        // Generate a new child location using a unique key
+        var tr800DataRef = database.ref('tr800').push();
 
-            const truckNumber = truckNumberInput.value;
-            const destination = destinationInput.value.toLowerCase(); // Convert to lower case
-            const product = productInput.value;
-            const at20Quantity = parseFloat(at20QuantityInput.value);
+        // Set the TR800 data for that location
+        tr800DataRef.set({
+            number: tr800Number.value,
+            initialQuantity: tr800Quantity,
+            remainingQuantity: tr800Quantity,
+            product: tr800Product.value,
+            destination: tr800Destination.value,
+            product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
+            timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
+        }).then(() => {
+            // Display a confirmation message
+            alert('TR800 entry added successfully.');
 
-            // Check if all fields are filled
-            if (!truckNumber || !destination || !product || isNaN(at20Quantity)) {
-                alert('Please fill all fields.');
-                getEntriesButton.disabled = false;
-                getEntriesButton.textContent = 'Get Entries';
-                return;
-            }
+            // Clear the form
+            tr800Number.value = '';
+            tr800Quantity.value = '';
+            tr800Product.value = '';
+            tr800Destination.value = '';
+        }).catch((error) => {
+            // Handle any errors
+            console.error('Error adding TR800 entry: ', error);
+        });
+    }
 
-            // Clear the resultDiv
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '';
+    function getEntries() {
+    const getEntriesButton = document.getElementById('getEntriesButton');
+    getEntriesButton.disabled = true;
+    getEntriesButton.textContent = 'Getting entries...';
 
-            // Rest of your code...
+    // Show the "Undo Changes" button
+    document.getElementById('undoButton').style.display = 'block';
 
-            // At the end of your function, enable the button and restore its text
+        const truckNumberInput = document.getElementById('truckNumber');
+        const destinationInput = document.getElementById('destination');
+        const productInput = document.getElementById('product');
+        const at20QuantityInput = document.getElementById('at20Quantity');
+
+        const truckNumber = truckNumberInput.value;
+        const destination = destinationInput.value.toLowerCase(); // Convert to lower case
+        const product = productInput.value;
+        const at20Quantity = parseFloat(at20QuantityInput.value);
+
+        // Check if all fields are filled
+        if (!truckNumber || !destination || !product || isNaN(at20Quantity)) {
+            alert('Please fill all fields.');
             getEntriesButton.disabled = false;
             getEntriesButton.textContent = 'Get Entries';
-        
-        
-           // Fetch TR800 entries from Realtime Database
+            return;
+        }
+
+        // Clear the resultDiv
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '';
+
+// Fetch TR800 entries from Realtime Database
 database.ref('tr800')
 .orderByChild('product_destination')
 .equalTo(product + '_' + destination)
@@ -319,7 +327,6 @@ database.ref('tr800')
         });
         entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
 
-
         // Iterate over the sorted entries
         entries.some(function(entry) { // Change forEach to some
             let data = entry.data;
@@ -335,6 +342,9 @@ database.ref('tr800')
             // Check if there is enough quantity and the destination matches
             if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
                 let subtract = Math.min(data.remainingQuantity, remaining);
+
+                // Store the original data before updating it
+                originalData[entry.ref.key] = {...data, truckNumber: truckNumber}; // Store truckNumber
 
                 data.remainingQuantity -= subtract;
                 remaining -= subtract;
@@ -447,7 +457,10 @@ truckNumberInput.value = '';
 destinationInput.value = '';
 productInput.value = '';
 at20QuantityInput.value = '';
-    
+
+}).then(() => {
+    // Update the UI to indicate that the entries have been fetched
+    document.getElementById('getEntriesButton').textContent = 'Get entries';
 }).catch(error => {
     // Handle any errors
     console.error(error);
@@ -455,8 +468,49 @@ at20QuantityInput.value = '';
 
     }
 });
-}
+    }
 
+    function undoChanges() {
+        const workId = prompt('Please enter your work ID:');
+        if (workId) {
+            firebase.database().ref('users').once('value', function(snapshot) {
+                let workIdExists = false;
+                snapshot.forEach(function(userSnapshot) {
+                    if (userSnapshot.val().workId === workId) {
+                        workIdExists = true;
+                        return true; // Stop looping through the users
+                    }
+                });
+                if (workIdExists) {
+                    console.log('undoChanges called');
+                    console.log('originalData:', originalData);
+
+                    // Iterate over the original data and restore it in the database
+                    for (let key in originalData) {
+                        console.log('Restoring data for key:', key);
+                        let data = originalData[key];
+
+                        // Delete the truck entry from the database
+                        let sanitizedTruckNumber = data.truckNumber.replace(/\//g, '-');
+                        database.ref('truckEntries/' + sanitizedTruckNumber).remove();
+
+                        // Remove truckNumber from data before restoring it
+                        delete data.truckNumber;
+                        database.ref('tr800/' + key).set(data);
+                    }
+
+                    // Clear the original data
+                    originalData = {};
+
+                    // Remove the table and display a success message
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = 'Changes undone successfully';
+                } else {
+                    alert('Invalid work ID: ' + workId);
+                }
+            });
+        }
+    }
 
         function filterTable(inputId, columnIndex) {
             // Declare variables
