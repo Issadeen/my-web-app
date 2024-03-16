@@ -6,6 +6,7 @@
     <title>Truck Entry System</title>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
@@ -174,6 +175,10 @@ body.dark-theme input.theme-input {
         <div class="top-bar">
             <h1 class="text-3xl font-bold">Truck Entry System</h1>
             <button onclick="window.location.href='mentry.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add TR800 Entry</button>
+            <!-- Add home button with Font Awesome icon -->
+            <button onclick="window.location.href='dashboard.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-home"></i>
+            </button>
             <button id="themeSwitcher">Switch Theme</button>
         </div>
 
@@ -241,38 +246,7 @@ body.dark-theme input.theme-input {
         }
     });
 
-    function addTR800() {
-        const tr800Number = document.getElementById('tr800Number');
-        const tr800Quantity = parseFloat(document.getElementById('tr800Quantity').value);
-        const tr800Product = document.getElementById('tr800Product').value;
-        const tr800Destination = document.getElementById('tr800Destination').value;
 
-        // Generate a new child location using a unique key
-        var tr800DataRef = database.ref('tr800').push();
-
-        // Set the TR800 data for that location
-        tr800DataRef.set({
-            number: tr800Number.value,
-            initialQuantity: tr800Quantity,
-            remainingQuantity: tr800Quantity,
-            product: tr800Product.value,
-            destination: tr800Destination.value,
-            product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
-            timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
-        }).then(() => {
-            // Display a confirmation message
-            alert('TR800 entry added successfully.');
-
-            // Clear the form
-            tr800Number.value = '';
-            tr800Quantity.value = '';
-            tr800Product.value = '';
-            tr800Destination.value = '';
-        }).catch((error) => {
-            // Handle any errors
-            console.error('Error adding TR800 entry: ', error);
-        });
-    }
 
     function getEntries() {
     const getEntriesButton = document.getElementById('getEntriesButton');
@@ -599,6 +573,7 @@ at20QuantityInput.value = '';
         }
     });
 
+    // for the pdf..
     let downloadPdfButton = document.getElementById('downloadPdfButton');
 
     // Remove any existing event listeners
