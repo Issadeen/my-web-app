@@ -168,6 +168,10 @@ body.dark-theme input.theme-input {
   .theme-input {
     margin: 0 10px 0 0; /* This adds a 10px space to the right of each input box */
 }
+.highlight {
+    background-color: rgb(5, 128, 244); /* Change as per your preference */
+}
+
 </style>
 
 <!-- Your HTML code -->
@@ -504,8 +508,13 @@ at20QuantityInput.value = '';
                     txtValue = td.textContent || td.innerText;
                     if (txtValue.toUpperCase().indexOf(filter) > -1) {
                         tr[i].style.display = "";
+                        // Create a new HTML string for the cell that wraps the matched truck number in a span with the 'highlight' class
+                        let html = txtValue.replace(new RegExp(filter, 'gi'), match => `<span class="highlight">${match}</span>`);
+                        td.innerHTML = html;
                     } else {
                         tr[i].style.display = "none";
+                        // Remove the 'highlight' class from the cell
+                        td.innerHTML = txtValue;
                     }
                 }
             }
