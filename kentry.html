@@ -165,7 +165,9 @@ body.dark-theme input.theme-input {
     .filter-container {
     display: none;
   }
-
+  .theme-input {
+    margin: 0 10px 0 0; /* This adds a 10px space to the right of each input box */
+}
 </style>
 
 <!-- Your HTML code -->
@@ -202,7 +204,8 @@ body.dark-theme input.theme-input {
 <div class="filter-container">
     <input type="text" id="entryFilter2" class="theme-input" onkeyup="filterTable('entryFilter2', 0)" placeholder="Filter by Entry">
     <input type="text" id="productFilter2" class="theme-input" onkeyup="filterTable('productFilter2', 3)" placeholder="Filter by Product">
-    <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination"> 
+    <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination">
+    <input type="text" id="truckFilter2" class="theme-input" onkeyup="filterTable('truckFilter2', 5)" placeholder="Filter by Truck Number">
 </div>
 <!-- Display retrieved mother entry and quantity -->
 <div id="result" class="mt-4"></div>
