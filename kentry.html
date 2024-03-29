@@ -192,8 +192,8 @@ body.dark-theme input.theme-input {
         <form id="truckForm" class="bg-white p-4 rounded shadow mt-4">
             <!-- Input fields: truck number, destination, product, AT20 quantity -->
             <input type="text" id="truckNumber" placeholder="Truck Number" class="w-full mb-2 p-2 border rounded">
-            <input type="text" id="destination" placeholder="Destination" class="w-full mb-2 p-2 border rounded">
-            <input type="text" id="product" placeholder="Product" class="w-full mb-2 p-2 border rounded">
+            <input type="text" id="destination" placeholder="Destination" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
+            <input type="text" id="product" placeholder="Product" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
             <input type="number" id="at20Quantity" placeholder="AT20 Quantity" class="w-full mb-2 p-2 border rounded">
             <button id="getEntriesButton" type="button" onclick="getEntries()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Entries</button>
             <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
@@ -361,13 +361,13 @@ database.ref('tr800')
             }
         });
 
-// Wait for all updates to complete
-Promise.all(updates).then(() => {
+      // Wait for all updates to complete
+        Promise.all(updates).then(() => {
                 // Clear the updates array
                 updates = [];
-    // Check if all the quantity was allocated
-    if (remaining > 0) {
-        // Ask the user if they want to use the remaining entries
+     // Check if all the quantity was allocated
+         if (remaining > 0) {
+ // Ask the user if they want to use the remaining entries
         let amountLacking = at20Quantity - totalRemainingQuantity;
 if (confirm(`There are only ${totalRemainingQuantity} entries available, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`))
  {
@@ -433,6 +433,15 @@ if (confirm(`There are only ${totalRemainingQuantity} entries available, which i
         resultDiv.innerHTML = '';
         resultDiv.appendChild(resultTable);
     }
+    // After all updates are complete
+    Promise.all(updates).then(() => {
+        // Enable the button
+        getEntriesButton.disabled = false;
+        getEntriesButton.textContent = 'Get Entries';
+    }).catch(error => {
+        // Handle any errors
+        console.error(error);
+    });
 // Clear the form
 truckNumberInput.value = '';
 destinationInput.value = '';
@@ -506,7 +515,11 @@ at20QuantityInput.value = '';
                 td = tr[i].getElementsByTagName("td")[columnIndex];
                 if (td) {
                     txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    if (filter === '') {
+                        // If the filter is empty, display all rows and remove the 'highlight' class from all cells
+                        tr[i].style.display = "";
+                        td.innerHTML = txtValue;
+                    } else if (txtValue.toUpperCase().indexOf(filter) > -1) {
                         tr[i].style.display = "";
                         // Create a new HTML string for the cell that wraps the matched truck number in a span with the 'highlight' class
                         let html = txtValue.replace(new RegExp(filter, 'gi'), match => `<span class="highlight">${match}</span>`);
@@ -579,10 +592,14 @@ at20QuantityInput.value = '';
             resultDiv.innerHTML = '';
             resultDiv.appendChild(resultTable);
         } else {
-            // Display a message when there are no entries, or balance is zero
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'No entries available.';
-        }
+        // Display a message to the user indicating that the entry does not exist
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'No entries found for the given product and destination.';
+        
+        // Reset the button text and enable the button
+        getEntriesButton.textContent = 'Get Entries';
+        getEntriesButton.disabled = false;
+    }
     });
 
     // for the pdf..
@@ -661,15 +678,20 @@ at20QuantityInput.value = '';
                 // Add the remaining quantity to the total for the product and destination
                 let key = `${data.product} - ${data.destination}`;
                 if (!summary[key]) {
-                    summary[key] = 0;
+                    summary[key] = {remainingQuantity: 0, estimatedTrucks: 0, motherEntries: []};
                 }
-                summary[key] += data.remainingQuantity;
+                summary[key].remainingQuantity += data.remainingQuantity;
+                summary[key].estimatedTrucks = data.product.toLowerCase() === 'ago' ? summary[key].remainingQuantity / 36000 : summary[key].remainingQuantity / 40000;
+                // Add the mother entry only if the remaining quantity is greater than zero
+                if (data.remainingQuantity > 0) {
+                    summary[key].motherEntries.push({number: data.number, remainingQuantity: data.remainingQuantity});
+                }
             });
 
             // Process the summary data for the PDF
-            let summaryData = [['Product - Destination', 'Remaining Quantity']];
+            let summaryData = [['Product - Destination', 'Remaining Quantity', 'Estimated Trucks', 'Mother Entries']];
             for (let key in summary) {
-                summaryData.push([key, summary[key]]);
+                summaryData.push([key, summary[key].remainingQuantity, summary[key].estimatedTrucks, summary[key].motherEntries.map(entry => `${entry.number} (${entry.remainingQuantity})`).join(', ')]);
             }
 
             // Create a PDF
@@ -715,49 +737,52 @@ at20QuantityInput.value = '';
 }
 //to get the summary of the remaining quantity.
 document.getElementById('summaryButton').addEventListener('click', function() {
-        // Fetch TR800 entries from Realtime Database
-        database.ref('tr800').once('value', function(snapshot) {
-            if (snapshot.exists()) {
-                // Create a map to store the total remaining quantity for each product and destination
-                let summary = {};
+    // Fetch TR800 entries from Realtime Database
+    database.ref('tr800').once('value', function(snapshot) {
+        if (snapshot.exists()) {
+            // Create a map to store the total remaining quantity and mother entries for each product and destination
+            let summary = {};
 
-                // Iterate over the entries
-                snapshot.forEach(function(childSnapshot) {
-                    let data = childSnapshot.val();
+            // Iterate over the entries
+            snapshot.forEach(function(childSnapshot) {
+                let data = childSnapshot.val();
 
-                    // Check if data.remainingQuantity is a number
-                    if (isNaN(data.remainingQuantity)) {
-                        console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
-                        return;
-                    }
-
-                    // Add the remaining quantity to the total for the product and destination
-                    let key = `${data.product} - ${data.destination}`;
-                    if (!summary[key]) {
-                        summary[key] = {remainingQuantity: 0, estimatedTrucks: 0};
-                    }
-                    summary[key].remainingQuantity += data.remainingQuantity;
-                    summary[key].estimatedTrucks = data.product.toLowerCase() === 'ago' ? summary[key].remainingQuantity / 36000 : summary[key].remainingQuantity / 40000;
-                });
-
-                // Display the summary
-                let summaryTable = document.createElement('table');
-                summaryTable.id = 'resultTable'; // Add this line
-                summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Truck No</th></tr>';
-                for (let key in summary) {
-                    summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity.toFixed(2)}</td><td>${summary[key].estimatedTrucks.toFixed(2)}</td></tr>`;
+                // Check if data.remainingQuantity is a number
+                if (isNaN(data.remainingQuantity)) {
+                    console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
+                    return;
                 }
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = '';
-                resultDiv.appendChild(summaryTable);
-            } else {
-                // Display a message when there are no entries
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = 'No entries available.';
-            }
-        });
-    });
 
+                // Add the remaining quantity and mother entry to the total for the product and destination
+                let key = `${data.product} - ${data.destination}`;
+                if (!summary[key]) {
+                    summary[key] = {remainingQuantity: 0, estimatedTrucks: 0, motherEntries: []};
+                }
+                summary[key].remainingQuantity += data.remainingQuantity;
+                summary[key].estimatedTrucks = data.product.toLowerCase() === 'ago' ? summary[key].remainingQuantity / 36000 : summary[key].remainingQuantity / 40000;
+                // Add the mother entry and its remaining quantity only if the remaining quantity is greater than zero
+                if (data.remainingQuantity > 0) {
+                    summary[key].motherEntries.push({number: data.number, remainingQuantity: data.remainingQuantity});
+                }
+            });
+
+            // Display the summary
+            let summaryTable = document.createElement('table');
+            summaryTable.id = 'resultTable'; // Add this line
+            summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Truck No</th><th>Mother Entries</th></tr>';
+            for (let key in summary) {
+                summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity.toFixed(2)}</td><td>${summary[key].estimatedTrucks.toFixed(2)}</td><td>${summary[key].motherEntries.map(entry => `${entry.number} (${entry.remainingQuantity})`).join(', ')}</td></tr>`;
+            }
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            resultDiv.appendChild(summaryTable);
+        } else {
+            // Display a message when there are no entries
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'No entries available.';
+        }
+    });
+});
     </script>
 </body>
 </html>
