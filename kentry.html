@@ -247,7 +247,6 @@ body.dark-theme input.theme-input {
     });
 
 
-
     function getEntries() {
     const getEntriesButton = document.getElementById('getEntriesButton');
     getEntriesButton.disabled = true;
@@ -256,344 +255,209 @@ body.dark-theme input.theme-input {
     // Show the "Undo Changes" button
     document.getElementById('undoButton').style.display = 'block';
 
-        const truckNumberInput = document.getElementById('truckNumber');
-        const destinationInput = document.getElementById('destination');
-        const productInput = document.getElementById('product');
-        const at20QuantityInput = document.getElementById('at20Quantity');
+    const truckNumberInput = document.getElementById('truckNumber');
+    const destinationInput = document.getElementById('destination');
+    const productInput = document.getElementById('product');
+    const at20QuantityInput = document.getElementById('at20Quantity');
 
-        const truckNumber = truckNumberInput.value;
-        const destination = destinationInput.value.toLowerCase(); // Convert to lower case
-        const product = productInput.value;
-        const at20Quantity = parseFloat(at20QuantityInput.value);
+    const truckNumber = truckNumberInput.value;
+    const destination = destinationInput.value.toLowerCase(); // Convert to lower case
+    const product = productInput.value;
+    const at20Quantity = parseFloat(at20QuantityInput.value);
 
-        // Check if all fields are filled
-        if (!truckNumber || !destination || !product || isNaN(at20Quantity)) {
-            alert('Please fill all fields.');
-            getEntriesButton.disabled = false;
-            getEntriesButton.textContent = 'Get Entries';
-            return;
-        }
-
-        // Clear the resultDiv
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = '';
-
-// Fetch TR800 entries from Realtime Database
-database.ref('tr800')
-.orderByChild('product_destination')
-.equalTo(product + '_' + destination)
-.once('value', function(snapshot) {
-    if (snapshot.exists()) {
-        let remaining = at20Quantity;
-        let totalRemainingQuantity = 0; // Add this line
-
-        // Create a new table
-        let resultTable = document.createElement('table');
-        resultTable.style.borderCollapse = 'collapse';
-        resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Truck Number</th><th>Destination</th><th>Given Quantity</th><th>Destination</th></tr>';
-
-        let updates = [];
-
-        // Convert the snapshot to an array and sort it by timestamp
-        let entries = [];
-        snapshot.forEach(function(childSnapshot) {
-            entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
-        });
-        entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
-
-        // Iterate over the sorted entries
-        entries.some(function(entry) { // Change forEach to some
-            let data = entry.data;
-
-            // Check if data.remainingQuantity is a number
-            if (isNaN(data.remainingQuantity)) {
-                console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
-                return;
-            }
-
-            totalRemainingQuantity += data.remainingQuantity; // Add this line
-
-            // Check if there is enough quantity and the destination matches
-            if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
-                let subtract = Math.min(data.remainingQuantity, remaining);
-
-                // Store the original data before updating it
-                originalData[entry.ref.key] = {...data, truckNumber: truckNumber}; // Store truckNumber
-
-                data.remainingQuantity -= subtract;
-                remaining -= subtract;
-
-                // If the remaining quantity is zero, mark the entry as cleared
-                if (data.remainingQuantity === 0) {
-                    data.status = 'cleared';
-                }
-
-                // Add a new row to the table
-                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
-
-                // Update Realtime Database and save the Promise
-                updates.push(entry.ref.update(data));
-
-                // Replace any "/" characters with "-" in the truck number
-                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
-
-                // Save the truck number and subtracted quantity
-                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
-                    entryNumber: data.number,
-                    subtractedQuantity: subtract
-                }));
-
-                // If remaining is zero, stop the iteration
-                if (remaining === 0) {
-                    return true; // Stop the iteration
-                }
-            }
-            else {
-                // Add a new row to the table
-                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
-            }
-        });
-
-      // Wait for all updates to complete
-        Promise.all(updates).then(() => {
-                // Clear the updates array
-                updates = [];
-     // Check if all the quantity was allocated
-         if (remaining > 0) {
- // Ask the user if they want to use the remaining entries
-        let amountLacking = at20Quantity - totalRemainingQuantity;
-if (confirm(`There are only ${totalRemainingQuantity} entries available, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`))
- {
-            // If the user clicked "OK", use the remaining entries
-            let remainingEntries = entries.filter(entry => entry.data.remainingQuantity > 0 && entry.data.status !== 'cleared');
-            
-            remainingEntries.forEach(function(entry) {
-                let data = entry.data;
-                let subtract = Math.min(data.remainingQuantity, remaining);
-
-                data.remainingQuantity -= subtract;
-                remaining -= subtract;
-
-                // If the remaining quantity is zero, mark the entry as cleared
-                if (data.remainingQuantity === 0) {
-                    data.status = 'cleared';
-                }
-
-                // Add a new row to the table
-                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
-
-                // Update Realtime Database and save the Promise
-                updates.push(entry.ref.update(data));
-
-                // Replace any "/" characters with "-" in the truck number
-                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
-
-                // Save the truck number and subtracted quantity
-                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
-                    entryNumber: data.number,
-                    subtractedQuantity: subtract
-                }));
-            });
-
-            // Wait for all updates to complete
-            Promise.all(updates).then(() => {
-                // Your existing code to update the database and the table...
-
-                // Display the table
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = '';
-                resultDiv.appendChild(resultTable);
-            });
-        } else {
-            // If the user clicked "Cancel", do not use the remaining entries
-            // Clear the form
-            truckNumberInput.value = '';
-            destinationInput.value = '';
-            productInput.value = '';
-            at20QuantityInput.value = '';
-
-
-
-            // Display the message
-            resultDiv.innerHTML = `<tr><td colspan="7">Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}</td></tr>`;
-        }
-    }
-    else {
-        // Your existing code to update the database and the table...
-
-        // Display the table
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = '';
-        resultDiv.appendChild(resultTable);
-    }
-    // After all updates are complete
-    Promise.all(updates).then(() => {
-        // Enable the button
+    // Check if all fields are filled
+    if (!truckNumber || !destination || !product || isNaN(at20Quantity)) {
+        alert('Please fill all fields.');
         getEntriesButton.disabled = false;
         getEntriesButton.textContent = 'Get Entries';
-    }).catch(error => {
-        // Handle any errors
-        console.error(error);
-    });
-// Clear the form
-truckNumberInput.value = '';
-destinationInput.value = '';
-productInput.value = '';
-at20QuantityInput.value = '';
-
-}).then(() => {
-    // Update the UI to indicate that the entries have been fetched
-    document.getElementById('getEntriesButton').textContent = 'Get entries';
-}).catch(error => {
-    // Handle any errors
-    console.error(error);
-});
-
-    }
-});
+        return;
     }
 
-    function undoChanges() {
-        const workId = prompt('Please enter your work ID:');
-        if (workId) {
-            firebase.database().ref('users').once('value', function(snapshot) {
-                let workIdExists = false;
-                snapshot.forEach(function(userSnapshot) {
-                    if (userSnapshot.val().workId === workId) {
-                        workIdExists = true;
-                        return true; // Stop looping through the users
-                    }
+    // Clear the resultDiv
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
+
+    // Fetch TR800 entries from Realtime Database
+    database.ref('tr800')
+        .orderByChild('product_destination')
+        .equalTo(product + '_' + destination)
+        .once('value')
+        .then(function(snapshot) {
+            if (snapshot.exists()) {
+                let remaining = at20Quantity;
+                let totalRemainingQuantity = 0; // Add this line
+
+                // Create a new table
+                let resultTable = document.createElement('table');
+                resultTable.style.borderCollapse = 'collapse';
+                resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Truck Number</th><th>Destination</th><th>Given Quantity</th><th>Destination</th></tr>';
+
+                let updates = [];
+
+                // Convert the snapshot to an array and sort it by timestamp
+                let entries = [];
+                snapshot.forEach(function(childSnapshot) {
+                    entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
                 });
-                if (workIdExists) {
-                    console.log('undoChanges called');
-                    console.log('originalData:', originalData);
+                entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
 
-                    // Iterate over the original data and restore it in the database
-                    for (let key in originalData) {
-                        console.log('Restoring data for key:', key);
-                        let data = originalData[key];
+                // Iterate over the sorted entries
+                entries.some(function(entry) { // Change forEach to some
+                    let data = entry.data;
 
-                        // Delete the truck entry from the database
-                        let sanitizedTruckNumber = data.truckNumber.replace(/\//g, '-');
-                        database.ref('truckEntries/' + sanitizedTruckNumber).remove();
-
-                        // Remove truckNumber from data before restoring it
-                        delete data.truckNumber;
-                        database.ref('tr800/' + key).set(data);
+                    // Check if data.remainingQuantity is a number
+                    if (isNaN(data.remainingQuantity)) {
+                        console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
+                        return;
                     }
 
-                    // Clear the original data
-                    originalData = {};
+                    totalRemainingQuantity += data.remainingQuantity; // Add this line
 
-                    // Remove the table and display a success message
-                    const resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = 'Changes undone successfully';
-                } else {
-                    alert('Invalid work ID: ' + workId);
-                }
-            });
-        }
-    }
+                    // Check if there is enough quantity and the destination matches
+                    if (data.destination.trim().toLowerCase() === destination.trim().toLowerCase() && data.remainingQuantity > 0 && data.status !== 'cleared') {
+                        let subtract = Math.min(data.remainingQuantity, remaining);
 
-        function filterTable(inputId, columnIndex) {
-            // Declare variables
-            let input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById(inputId);
-            filter = input.value.toUpperCase();
-            table = document.getElementById("resultTable");
-            tr = table.getElementsByTagName("tr");
+                        // Store the original data before updating it
+                        originalData[entry.ref.key] = { ...data, truckNumber: truckNumber }; // Store truckNumber
 
-            // Loop through all table rows, and hide those who don't match the search query
-            for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[columnIndex];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (filter === '') {
-                        // If the filter is empty, display all rows and remove the 'highlight' class from all cells
-                        tr[i].style.display = "";
-                        td.innerHTML = txtValue;
-                    } else if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                        // Create a new HTML string for the cell that wraps the matched truck number in a span with the 'highlight' class
-                        let html = txtValue.replace(new RegExp(filter, 'gi'), match => `<span class="highlight">${match}</span>`);
-                        td.innerHTML = html;
+                        data.remainingQuantity -= subtract;
+                        remaining -= subtract;
+
+                        // If the remaining quantity is zero, mark the entry as cleared
+                        if (data.remainingQuantity === 0) {
+                            data.status = 'cleared';
+                        }
+
+                        // Add a new row to the table
+                        resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
+
+                        // Update Realtime Database and save the Promise
+                        updates.push(entry.ref.update(data));
+
+                        // Replace any "/" characters with "-" in the truck number
+                        let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
+
+                        // Save the truck number and subtracted quantity
+                        updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
+                            entryNumber: data.number,
+                            subtractedQuantity: subtract
+                        }));
+
+                        // If remaining is zero, stop the iteration
+                        if (remaining === 0) {
+                            return true; // Stop the iteration
+                        }
                     } else {
-                        tr[i].style.display = "none";
-                        // Remove the 'highlight' class from the cell
-                        td.innerHTML = txtValue;
+                        // Add a new row to the table
+                        resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
                     }
-                }
-            }
-        }
-
-        function getAllEntries() {
-    // Fetch all TR800 entries and truck entries from Realtime Database
-    Promise.all([
-        database.ref('tr800').once('value'),
-        database.ref('truckEntries').once('value')
-    ]).then(function([tr800Snapshot, truckEntriesSnapshot]) {
-        if (tr800Snapshot.exists()) {
-            // Create a new table
-            let resultTable = document.createElement('table');
-            resultTable.id = 'resultTable'; // Add this line
-            resultTable.style.borderCollapse = 'collapse';
-            resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Product</th><th>Destination</th><th>Utilized Trucks and Quantities</th></tr>';
-
-            // Convert the tr800Snapshot to an array and sort it by timestamp
-            let entries = [];
-            tr800Snapshot.forEach(function(childSnapshot) {
-                entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
-            });
-            entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
-
-            // Convert the truckEntriesSnapshot to a map of entry numbers to trucks and quantities
-            let truckEntries = {};
-            truckEntriesSnapshot.forEach(function(truckSnapshot) {
-                truckSnapshot.forEach(function(entrySnapshot) {
-                    let data = entrySnapshot.val();
-                    if (!truckEntries[data.entryNumber]) {
-                        truckEntries[data.entryNumber] = [];
-                    }
-                    truckEntries[data.entryNumber].push({ truckNumber: truckSnapshot.key, subtractedQuantity: data.subtractedQuantity });
                 });
-            });
 
-            // show filter container
-            document.querySelector('.filter-container').style.display = 'flex';
-            
-            // hide the filter container on button click
-            document.getElementById('getEntriesButton').addEventListener('click', function() {
-                document.querySelector('.filter-container').style.display = 'none';
-            });
+                // Wait for all updates to complete
+                Promise.all(updates).then(() => {
+                    // Clear the updates array
+                    updates = [];
+                    // Check if all the quantity was allocated
+                    if (remaining > 0) {
+                        // Ask the user if they want to use the remaining entries
+                        let amountLacking = at20Quantity - totalRemainingQuantity;
+                        if (confirm(`There are only ${totalRemainingQuantity} entries available, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`)) {
+                            // If the user clicked "OK", use the remaining entries
+                            let remainingEntries = entries.filter(entry => entry.data.remainingQuantity > 0 && entry.data.status !== 'cleared');
 
-            // Iterate over the sorted entries
-            entries.forEach(function(entry) {
-                let data = entry.data;
+                            remainingEntries.forEach(function(entry) {
+                                let data = entry.data;
+                                let subtract = Math.min(data.remainingQuantity, remaining);
 
-                // Get the utilized trucks and quantities for this entry
-                let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
+                                data.remainingQuantity -= subtract;
+                                remaining -= subtract;
 
-                // Add a new row to the table
-                let row = document.createElement('tr');
-                row.className = `${data.product.replace(/\s+/g, '').toLowerCase()} ${data.destination.replace(/\s+/g, '').toLowerCase()}`; // Add class based on product and destination
-                row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantities.map((t, i) => `${i + 1}. ${t.truckNumber}: ${t.subtractedQuantity}<br>`).join('')}</td>`;
-                resultTable.appendChild(row);
-            });
+                                // If the remaining quantity is zero, mark the entry as cleared
+                                if (data.remainingQuantity === 0) {
+                                    data.status = 'cleared';
+                                }
 
-            // Display the table
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '';
-            resultDiv.appendChild(resultTable);
-        } else {
-        // Display a message to the user indicating that the entry does not exist
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = 'No entries found for the given product and destination.';
-        
-        // Reset the button text and enable the button
-        getEntriesButton.textContent = 'Get Entries';
-        getEntriesButton.disabled = false;
-    }
-    });
+                                // Add a new row to the table
+                                resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${truckNumber}</td><td>${data.destination}</td><td>${subtract}</td><td>${destination}</td></tr>`;
+
+                                // Update Realtime Database and save the Promise
+                                updates.push(entry.ref.update(data));
+
+                                // Replace any "/" characters with "-" in the truck number
+                                let sanitizedTruckNumber = truckNumber.replace(/\//g, '-');
+
+                                // Save the truck number and subtracted quantity
+                                updates.push(database.ref('truckEntries/' + sanitizedTruckNumber).push({
+                                    entryNumber: data.number,
+                                    subtractedQuantity: subtract
+                                }));
+                            });
+
+                            // Wait for all updates to complete
+                            Promise.all(updates).then(() => {
+                                // Your existing code to update the database and the table...
+
+                                // Display the table
+                                const resultDiv = document.getElementById('result');
+                                resultDiv.innerHTML = '';
+                                resultDiv.appendChild(resultTable);
+                            });
+                        } else {
+                            // If the user clicked "Cancel", do not use the remaining entries
+                            // Clear the form
+                            truckNumberInput.value = '';
+                            destinationInput.value = '';
+                            productInput.value = '';
+                            at20QuantityInput.value = '';
+
+                            // Display the message
+                            resultDiv.innerHTML = `<tr><td colspan="7">Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}</td></tr>`;
+                        }
+                    } else {
+                        // Your existing code to update the database and the table...
+
+                        // Display the table
+                        const resultDiv = document.getElementById('result');
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(resultTable);
+                    }
+                    // After all updates are complete
+                    Promise.all(updates).then(() => {
+                        // Enable the button
+                        getEntriesButton.disabled = false;
+                        getEntriesButton.textContent = 'Get Entries';
+                    }).catch(error => {
+                        // Handle any errors
+                        console.error(error);
+                    });
+                    // Clear the form
+                    truckNumberInput.value = '';
+                    destinationInput.value = '';
+                    productInput.value = '';
+                    at20QuantityInput.value = '';
+                }).then(() => {
+                    // Update the UI to indicate that the entries have been fetched
+                    document.getElementById('getEntriesButton').textContent = 'Get entries';
+                }).catch(error => {
+                    // Handle any errors
+                    console.error(error);
+                });
+            } else {
+                // Display a message to the user indicating that the entry does not exist
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = 'No entries found for the given product and destination.';
+                
+                // Reset the button text and enable the button
+                getEntriesButton.textContent = 'Get Entries';
+                getEntriesButton.disabled = false;
+            }
+        })
+        .catch(error => {
+            // Handle any errors
+            console.error(error);
+        });
+}
+
 
     // for the pdf..
     let downloadPdfButton = document.getElementById('downloadPdfButton');
@@ -754,7 +618,159 @@ at20QuantityInput.value = '';
         }
     });
 });
+
+// Define getAllEntries function
+function getAllEntries() {
+    // Fetch all TR800 entries and truck entries from Realtime Database
+    Promise.all([
+        database.ref('tr800').once('value'),
+        database.ref('truckEntries').once('value')
+    ]).then(function([tr800Snapshot, truckEntriesSnapshot]) {
+        if (tr800Snapshot.exists()) {
+            // Create a new table
+            let resultTable = document.createElement('table');
+            resultTable.id = 'resultTable'; // Add this line
+            resultTable.style.borderCollapse = 'collapse';
+            resultTable.innerHTML = '<tr><th>Mother Entry</th><th>Initial Quantity</th><th>Remaining Quantity</th><th>Product</th><th>Destination</th><th>Utilized Trucks and Quantities</th></tr>';
+
+            // Convert the tr800Snapshot to an array and sort it by timestamp
+            let entries = [];
+            tr800Snapshot.forEach(function(childSnapshot) {
+                entries.push({ ref: childSnapshot.ref, data: childSnapshot.val() });
+            });
+            entries.sort((a, b) => a.data.timestamp - b.data.timestamp);
+
+            // Convert the truckEntriesSnapshot to a map of entry numbers to trucks and quantities
+            let truckEntries = {};
+            truckEntriesSnapshot.forEach(function(truckSnapshot) {
+                truckSnapshot.forEach(function(entrySnapshot) {
+                    let data = entrySnapshot.val();
+                    if (!truckEntries[data.entryNumber]) {
+                        truckEntries[data.entryNumber] = [];
+                    }
+                    truckEntries[data.entryNumber].push({ truckNumber: truckSnapshot.key, subtractedQuantity: data.subtractedQuantity });
+                });
+            });
+
+            // show filter container
+            document.querySelector('.filter-container').style.display = 'flex';
+
+            // hide the filter container on button click
+            document.getElementById('getEntriesButton').addEventListener('click', function() {
+                document.querySelector('.filter-container').style.display = 'none';
+            });
+
+            // Iterate over the sorted entries
+            entries.forEach(function(entry) {
+                let data = entry.data;
+
+                // Get the utilized trucks and quantities for this entry
+                let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
+
+                // Format utilized trucks and quantities
+                let utilizedTrucksAndQuantitiesStr = utilizedTrucksAndQuantities.map((t, i) => `{${t.truckNumber}: ${t.subtractedQuantity}}`).join('<br>');
+
+                // Add a new row to the table
+                let row = document.createElement('tr');
+                row.className = `${data.product.replace(/\s+/g, '').toLowerCase()} ${data.destination.replace(/\s+/g, '').toLowerCase()}`; // Add class based on product and destination
+                row.innerHTML = `<td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td>${data.product}</td><td>${data.destination}</td><td>${utilizedTrucksAndQuantitiesStr}</td>`;
+                resultTable.appendChild(row);
+            });
+
+            // Display the table
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            resultDiv.appendChild(resultTable);
+        } else {
+            // Display a message to the user indicating that the entry does not exist
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'No entries found for the given product and destination.';
+
+            // Reset the button text and enable the button
+            getEntriesButton.textContent = 'Get Entries';
+            getEntriesButton.disabled = false;
+        }
+    }).catch(error => {
+        // Handle any errors
+        console.error(error);
+    });
 }
+
+
+// Define undoChanges function
+function undoChanges() {
+    const workId = prompt('Please enter your work ID:');
+    if (workId) {
+        firebase.database().ref('users').once('value', function(snapshot) {
+            let workIdExists = false;
+            snapshot.forEach(function(userSnapshot) {
+                if (userSnapshot.val().workId === workId) {
+                    workIdExists = true;
+                    return true; // Stop looping through the users
+                }
+            });
+            if (workIdExists) {
+                console.log('undoChanges called');
+                console.log('originalData:', originalData);
+
+                // Iterate over the original data and restore it in the database
+                for (let key in originalData) {
+                    console.log('Restoring data for key:', key);
+                    let data = originalData[key];
+
+                    // Delete the truck entry from the database
+                    let sanitizedTruckNumber = data.truckNumber.replace(/\//g, '-');
+                    database.ref('truckEntries/' + sanitizedTruckNumber).remove();
+
+                    // Remove truckNumber from data before restoring it
+                    delete data.truckNumber;
+                    database.ref('tr800/' + key).set(data);
+                }
+
+                // Clear the original data
+                originalData = {};
+
+                // Remove the table and display a success message
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = 'Changes undone successfully';
+            } else {
+                alert('Invalid work ID: ' + workId);
+            }
+        });
+    }
+}
+// Define filterTable function
+function filterTable(inputId, columnIndex) {
+    // Declare variables
+    let input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById(inputId);
+    filter = input.value.toUpperCase();
+    table = document.getElementById("resultTable");
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those that don't match the search query
+    for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[columnIndex];
+        if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (filter === '') {
+                // If the filter is empty, display all rows and remove the 'highlight' class from all cells
+                tr[i].style.display = "";
+                td.innerHTML = txtValue;
+            } else if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+                // Create a new HTML string for the cell that wraps the matched truck number in a span with the 'highlight' class
+                let html = txtValue.replace(new RegExp(filter, 'gi'), match => `<span class="highlight">${match}</span>`);
+                td.innerHTML = html;
+            } else {
+                tr[i].style.display = "none";
+                // Remove the 'highlight' class from the cell
+                td.innerHTML = txtValue;
+            }
+        }
+    }
+}
+
 //to get the summary of the remaining quantity.
 document.getElementById('summaryButton').addEventListener('click', function() {
     // Fetch TR800 entries from Realtime Database
