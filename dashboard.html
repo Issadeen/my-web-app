@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+  <script src="config.js"></script>
+  <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+  
+  <style>
+    :root {
+      --bg-color: #060607;
+      --text-color: #fff;
+      --primary-color: #2d3748;
+      --secondary-color: #a0aec0; 
+    }
+
+    .dark-theme-body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .light-theme-body {
+      background-color: #fff;
+      color: #333;
+    }
+
+    .dark-theme .bg-primary {
+      background-color: var(--primary-color);
+    }
+
+    .light-theme .bg-primary {
+       background-color: #f3f3f3;
+    }
+    @media (max-width: 640px) {
+
+.welcome-container {
+  margin-top: 30vh; 
+}
+
+.dashboard-container {
+  margin-top: 10vh;
+}
+.light-theme .dashboard-container a {
+      background-color: #fff;
+      color: #333;
+      border: 2px solid blue; /* Blue outer ring */
+      box-shadow: 0 0 10px blue; /* Blue box shadow */
+    }
+}
+    /* More theme styles */
+
+    .light-hover:hover {
+      background-color: #fff; /* Or whatever color you want on hover in light theme */
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: white; }
+    }
+
+    .animate {
+      overflow: hidden;
+      border-right: .15em solid white; /* The typewriter cursor */
+      white-space: nowrap;
+      margin: 0 auto;
+      animation: 
+        typing 5s steps(40, end),
+        blink-caret .75s step-end infinite;
+    }
+
+    .dashboard-container a {
+      border: 2px solid var(--primary-color); /* Primary color outer ring */
+      box-shadow: 0 0 10px var(--primary-color); /* Primary color box shadow */
+    }
+
+    .dark-hover:hover {
+      background-color: var(--primary-color); /* Or whatever color you want on hover in dark theme */
+    }
+
+    .blinking-cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      from, to { visibility: visible; }
+      50% { visibility: hidden; }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .show {
+      display: block;
+    }
+
+    .light-theme .dashboard-container a {
+      background-color: #fff;
+      color: #333;
+      border: 2px solid blue; /* Blue outer ring */
+      box-shadow: 0 0 10px blue; /* Blue box shadow */
+    }
+
+    .light-theme .dashboard-container a:hover {
+      background-color: #fff; /* Or whatever color you want on hover in light theme */
+    }
+
+    .dark-theme .dashboard-container a {
+      background-color: var(--primary-color);
+      color: #fff;
+      border: 2px solid var(--primary-color); /* Primary color outer ring */
+      box-shadow: 0 0 10px var(--primary-color); /* Primary color box shadow */
+    }
+
+    .dark-theme .dashboard-container a:hover {
+      background-color: var(--primary-color); /* Or whatever color you want on hover in dark theme */
+    }
+
+    .light-theme .dashboard-container a {
+      background-color: #fff;
+      color: #333;
+      border: 2px solid blue; /* Blue outer ring */
+      box-shadow: 0 0 10px blue; /* Blue box shadow */
+    }
+
+    .light-theme .dashboard-container a:hover {
+      background-color: #fff; /* Or whatever color you want on hover in light theme */
+    }
+        
+    #user-menu {
+      display: none;
+    }
+
+    #user-menu:not(.hidden) {
+      display: block;
+    }
+
+    
+  </style>
+
+</head>
+
+<body>
+
+    <div class="flex flex-col h-screen">
+        <div class="flex items-center justify-between bg-gray-800 p-4">
+          <div class="flex items-center">
+            <h1 class="text-lg font-medium mr-4 animate" style="color: white;">Issaerium-23</h1>
+          </div>
+          <div class="flex items-center">
+            <button id="themeToggleBtn" type="button" class="bg-gray-700 text-white px-4 py-2 rounded-lg mr-2" title="Toggle Theme">
+              <i class="fas fa-moon"></i>
+            </button>
+            <button type="button" class="bg-gray-700 text-white px-4 py-2 rounded-lg mr-2" title="Notification">
+              <i class="fas fa-bell"></i>
+            </button>
+            <div class="flex items-center">
+
+              <div class="relative">
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-lg" id="user-button"> Menu <i class="fas fa-caret-down ml-2"></i></button>
+                <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg hidden" id="user-menu">
+                  <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Profile</a>
+                  <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Settings</a>
+                  <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-gray-700">Logout</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center">
+        <div class="welcome-container mb-18">
+          <h1 class="text-4xl font-bold mb-4" id="welcome-title">Welcome to your <span id="issaerium"></span> dashboard</h1>
+          <p class="text-lg" id="welcome-message">Here you can manage your : trucks, work details, and wallet.</p>
+                  </div>
+
+              <div class="flex-1 p-7">
+                
+                <!-- Dashboard content -->
+
+                <div class="dashboard-container">
+                  <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <a href="truckdetails.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Truck Details">
+                      <div class="text-6xl mb-4"><i class="fas fa-truck"></i></div>
+                      <div class="text-2xl font-medium mb-4">Truck Details</div>
+                      <div class="text-lg text-center">View and manage truck information.</div>
+                    </a>
+                    <a href="workdetails.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Work Details">
+                      <div class="text-6xl mb-4"><i class="fas fa-clipboard-list"></i></div>
+                      <div class="text-2xl font-medium mb-4">Work Details</div>
+                      <div class="text-lg text-center">Track and review work assignments.</div>
+                    </a>
+                    <a href="newtrucks.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="New Trucks">
+                      <div class="text-6xl mb-4"><i class="fas fa-plus"></i></div>
+                      <div class="text-2xl font-medium mb-4">New Trucks</div>
+                      <div class="text-lg text-center">Add and register new trucks.</div>
+                    </a>
+                    <a href="wallet.html" class="bg-gray-800 hover:bg-gray-700 text-white rounded-lg p-6 flex flex-col items-center justify-center" data-name="Wallet">
+                      <div class="text-6xl mb-4"><i class="fas fa-wallet"></i></div>
+                      <div class="text-2xl font-medium mb-4">Wallet</div>
+                      <div class="text-lg text-center">Manage your wallet and transactions.</div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+           </div>
+
+          </div>
+
+            </div>
+
+            <script>
+              const toggleTheme = () => {
+                const body = document.body;
+                const isDark = body.classList.contains('dark-theme-body');
+
+                if (isDark) {
+                  body.classList.remove('dark-theme-body');
+                  body.classList.add('light-theme-body');
+                  localStorage.setItem('theme', 'light');
+
+                  document.documentElement.style.setProperty('--bg-color', '#fff');
+                  document.documentElement.style.setProperty('--text-color', '#333');
+
+                  const dataCards = document.querySelectorAll('.dashboard-container a');
+                  dataCards.forEach(card => {
+                    card.classList.remove('bg-gray-800', 'dark-hover');
+                    card.classList.add('bg-primary', 'light-hover');
+                    card.style.borderColor = 'blue'; // Blue outer ring
+                    card.style.boxShadow = '0 0 10px blue'; // Blue box shadow
+                    card.style.color = 'black'; // Black font
+                  });
+
+                } else {
+                  body.classList.remove('light-theme-body');
+                  body.classList.add('dark-theme-body');
+                  localStorage.setItem('theme', 'dark');
+
+                  document.documentElement.style.setProperty('--bg-color', '#1a202c');
+                  document.documentElement.style.setProperty('--text-color', '#fff');
+
+                  const dataCards = document.querySelectorAll('.dashboard-container a');
+                  dataCards.forEach(card => {
+                    card.classList.remove('bg-primary', 'light-hover');
+                    card.classList.add('bg-gray-800', 'dark-hover');
+                    card.style.borderColor = ''; // Remove outer ring
+                    card.style.boxShadow = ''; // Remove box shadow
+                    card.style.color = 'white'; // White font
+                  });
+                }
+              }
+
+              // When the page loads, check the saved theme and set it
+              window.onload = () => {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'light') {
+                  toggleTheme();
+                }
+              }
+              
+              themeToggleBtn.addEventListener('click', toggleTheme);
+            </script>
+           <script>
+              document.addEventListener('DOMContentLoaded', (event) => {
+                var menuContainer = document.querySelector(".relative");
+                var userMenu = document.getElementById("user-menu");
+
+                menuContainer.addEventListener("click", function () {
+                  userMenu.classList.toggle("hidden");
+                });
+              });
+
+              document.addEventListener('click', (event) => {
+                const userMenu = document.querySelector('#user-menu');
+                const userButton = document.querySelector('#user-button');
+
+                if (!userMenu.contains(event.target) && event.target !== userButton && !userMenu.classList.contains('hidden')) {
+                  userMenu.classList.add('hidden');
+                }
+              });
+              
+          firebase.initializeApp(firebaseConfig);
+
+          const welcomeTitle = document.getElementById('welcome-title');
+          const issaerium = document.getElementById('issaerium');
+
+          let i = 0;
+          const intervalId = setInterval(() => {
+            if (i < 'Issaerium 23'.length) {
+              issaerium.innerText += 'Issaerium 23'[i];
+              i++;
+            } else {
+              clearInterval(intervalId);
+            }
+          }, 120);
+
+          const welcomeMessage = document.getElementById('welcome-message');
+          const buttons = document.querySelectorAll('.dashboard-container a');
+
+          buttons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+              const name = button.dataset.name;
+              welcomeMessage.innerText = name;
+            });
+            
+            button.addEventListener('mouseleave', () => {
+              welcomeMessage.innerText = 'Here you can manage your : trucks, work details, and wallet.';
+            });
+          }); 
+
+          const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+          const settingsButton = document.querySelector('#user-menu a:nth-child(2)');
+          const logoutButton = document.querySelector('#user-menu a:nth-child(3)');
+
+          document.addEventListener('DOMContentLoaded', () => {
+            const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+            const userMenu = document.querySelector('#user-menu');
+
+            profileButton.addEventListener('click', () => {
+              // Perform action for Profile button
+            });
+
+            const settingsButton = document.querySelector('#user-menu a:nth-child(2)');
+            const logoutButton = document.querySelector('#user-menu a:nth-child(3)');
+
+            settingsButton.addEventListener('click', () => {
+              window.location.href = 'settings.html';
+            });
+
+          logoutButton.addEventListener('click', () => {
+            // Clear session data
+            sessionStorage.clear();
+
+            // Redirect to login page
+            window.location.href = 'index.html';
+
+
+          });
+          });
+
+          document.addEventListener('click', (event) => {
+            const userMenu = document.querySelector('#user-menu');
+            const profileButton = document.querySelector('#user-menu a:nth-child(1)');
+
+            if (!userMenu.contains(event.target) && event.target !== profileButton && userMenu.classList.contains('show')) {
+              // Hide user menu
+              userMenu.classList.remove('show');
+
+            }
+
+            // Toggle visibility of user-menu when user-button is clicked
+          document.getElementById('user-button').addEventListener('click', function() {
+            var userMenu = document.getElementById('user-menu');
+            if (userMenu.classList.contains('hidden')) {
+              userMenu.classList.remove('hidden');
+            } else {
+              userMenu.classList.add('hidden');
+            }
+          });
+
+          // Hide user-menu when clicking outside of it
+          document.addEventListener('click', function(event) {
+            var userMenu = document.getElementById('user-menu');
+            var userButton = document.getElementById('user-button');
+            if (!userMenu.contains(event.target) && event.target !== userButton && !userMenu.classList.contains('hidden')) {
+              userMenu.classList.add('hidden');
+            }
+          });
+
+          });
+
+          let logoutTimer;
+
+          function resetLogoutTimer() {
+            // Clear any existing timer
+            clearTimeout(logoutTimer);
+
+            // Set a new timer for 5 minutes
+            logoutTimer = setTimeout(() => {
+              // Clear session data
+              sessionStorage.clear();
+
+              // Redirect to login page
+              window.location.href = 'index.html';
+            }, 5 * 60 * 1000); // 5 minutes in milliseconds
+          }
+
+          // Call resetLogoutTimer whenever the user performs any activity
+          document.addEventListener('mousemove', resetLogoutTimer);
+          document.addEventListener('keypress', resetLogoutTimer);
+          </script>
+
+          <script>
+              // Disable caching of the dashboard page
+              window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                  window.location.reload();
+                }
+              });
+            
+              // Check if user is logged in
+              firebase.auth().onAuthStateChanged((user) => {
+                if (!user) {
+                  // Redirect to login page
+                  window.location.href = 'index.html';
+                }
+              });
+            
+            
+            
+            
+          // Define the messages to display
+          const messages = ['trucks', 'work details', 'wallet'];
+
+          // Set the initial message index, delay, and counter
+          let messageIndex = 0;
+          let counter = 0;
+          const delay = 1000; // 1 second
+
+          // Add a blinking cursor to the welcome message
+          welcomeMessage.insertAdjacentHTML('beforeend', '<span class="blinking-cursor">|</span>');
+
+          // Update the welcome message after 3 seconds
+          setTimeout(() => {
+            // Set an interval to update the welcome message
+            const animationInterval = setInterval(() => {
+              // Get the current message
+              const message = messages[messageIndex];
+
+              // Animate the typing of the message
+              let i = 0;
+              const typeInterval = setInterval(() => {
+                welcomeMessage.firstChild.textContent = `Here you can manage your: ${message.slice(0, i)}`;
+                i++;
+                if (i > message.length) {
+                  clearInterval(typeInterval);
+
+                  // Wait a bit before animating the deletion of the message
+                  setTimeout(() => {
+                    // Animate the deletion of the message
+                    let j = message.length;
+                    const deleteInterval = setInterval(() => {
+                      welcomeMessage.firstChild.textContent = `Here you can manage your: ${message.slice(0, j)}`;
+                      j--;
+                      if (j < 0) {
+                        clearInterval(deleteInterval);
+                      }
+                    }, delay / message.length);
+                  }, delay);
+                }
+              }, delay / message.length);
+
+              // Increment the message index and counter
+              messageIndex = (messageIndex + 1) % messages.length;
+              counter++;
+
+              // Stop the animation after it has played twice
+              if (counter >= messages.length * 2) {
+                clearInterval(animationInterval);
+              }
+            }, delay * 3);
+          }, 3000); // 3 seconds
+
+          // Add CSS styles for blinking cursor
+          const style = document.createElement('style');
+          style.textContent = `
+          .blinking-cursor {
+            animation: blink 1s step-end infinite;
+          }
+
+          @keyframes blink {
+            from, to { visibility: visible; }
+            50% { visibility: hidden; }
+          }
+          `;
+          document.head.appendChild(style);
+
+          </script>
+
+            <script>
+              if (!navigator.onLine) {
+                  alert("You are currently offline. Please check your internet connection.");
+              }
+            </script>
+            
+          <script>
+              
+          // Detect dark mode preference
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+          document.addEventListener('DOMContentLoaded', () => {
+            // Set initial theme 
+            if (isDarkMode) {
+              document.body.classList.add('dark-theme-body');
+              document.documentElement.style.setProperty('--bg-color', '#1a202c');
+            } else {
+              document.body.classList.add('light-theme-body');
+              document.documentElement.style.setProperty('--bg-color', '#fff');  
+            }
+
+            // Define the toggleTheme function
+            function toggleTheme(e) {
+              if (e.matches) { // If dark mode is preferred
+                document.body.classList.replace('light-theme-body', 'dark-theme-body');
+                document.documentElement.style.setProperty('--bg-color', '#1a202c');
+              } else {   
+                document.body.classList.replace('dark-theme-body', 'light-theme-body');
+                document.documentElement.style.setProperty('--bg-color', '#fff');
+              }
+            }
+
+            // Listen for dark mode changes 
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', toggleTheme);
+
+            // Toggle on button click
+            themeToggleBtn.addEventListener('click', () => {
+              // Toggle the isDarkMode variable
+              isDarkMode = !isDarkMode;
+              // Call the toggleTheme function
+              toggleTheme({ matches: isDarkMode });
+            });
+          });
+
+          </script>
+          </body>
+
+          </html>

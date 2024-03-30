@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Mother Entries</title>
+    <script src="config.js"></script>
+    <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<style>
+    :root {
+        --light-background: #f8f9fa;
+        --light-text: #333;
+        --dark-background: #333;
+        --dark-text: #f8f9fa;
+    }
+
+    body.light-theme {
+        background-color: var(--light-background);
+        color: var(--light-text);
+        
+    }
+
+    body.dark-theme {
+        background-color: var(--dark-background);
+        color: var(--dark-text);
+    }
+
+    body.light-theme .top-bar,
+    body.light-theme form {
+        background-color: var(--light-background);
+        color: var(--light-text);
+    }
+
+    body.dark-theme .top-bar,
+    body.dark-theme form {
+        background-color: var(--dark-background);
+        color: var(--dark-text);
+    }
+
+    body.light-theme input.theme-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--light-background);
+    color: var(--light-text);
+}
+
+body.dark-theme input.theme-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--dark-background);
+    color: var(--dark-text);
+}
+</style>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <!-- Top bar -->
+        <div class="top-bar flex">
+            <h1 class="text-3xl font-bold">Add Mother Entries (TR800)</h1>
+            <button id="themeSwitcher" class="ml-auto">Switch Theme</button>
+        </div>
+        <!-- Form for adding TR800 entries -->
+        <form id="tr800Form" class="bg-white p-4 rounded shadow">
+            <!-- Input fields for TR800 details -->
+            <input type="text" id="tr800Number" class="theme-input w-full mb-2 p-2 border rounded" placeholder="TR800 Number">
+            <input type="number" id="tr800Quantity" class="theme-input w-full mb-2 p-2 border rounded" placeholder="TR800 Quantity">
+            <input type="text" id="tr800Product" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Product">
+            <input type="text" id="tr800Destination" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Destination">
+            <button type="button" onclick="addTR800()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add TR800</button>
+            <button type="button" onclick="window.location.href='kentry.html'" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Back</button>
+        </form>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
+        var database = firebase.database();
+       
+        function addTR800() {
+    const tr800Number = document.getElementById('tr800Number');
+    const tr800Quantity = document.getElementById('tr800Quantity');
+    const tr800Product = document.getElementById('tr800Product');
+    const tr800Destination = document.getElementById('tr800Destination');
+
+    // Store the string value of tr800Quantity
+    const tr800QuantityValue = tr800Quantity.value;
+
+    // Parse tr800QuantityValue to a float
+    const tr800QuantityFloat = parseFloat(tr800QuantityValue);
+
+    // Check if all fields are filled
+    if (!tr800Number.value || !tr800Quantity.value || !tr800Product.value || !tr800Destination.value) {
+      alert('Please fill all fields.');
+      return;
+    }
+
+    // Check if an entry with the same TR800 number already exists
+    var tr800Ref = database.ref('tr800');
+    tr800Ref.orderByChild('number').equalTo(tr800Number.value).once('value', snapshot => {
+      if (snapshot.exists()) {
+        alert('An entry with this TR800 number already exists.');
+      } else {
+        // Generate a new child location using a unique key
+        var tr800DataRef = tr800Ref.push();
+
+        // Set the TR800 data for that location
+        tr800DataRef.set({
+          number: tr800Number.value,
+          initialQuantity: tr800QuantityFloat,
+          remainingQuantity: tr800QuantityFloat, // Set remainingQuantity to the same value as initialQuantity
+          product: tr800Product.value,
+          destination: tr800Destination.value,
+          product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
+          timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
+        }).then(() => {
+          // Display a confirmation message
+          alert('TR800 entry added successfully.');
+
+          // Clear the form
+          tr800Number.value = '';
+          tr800Quantity.value = '';
+          tr800Product.value = '';
+          tr800Destination.value = '';
+        }).catch((error) => {
+          // Handle any errors
+          console.error('Error adding TR800 entry: ', error);
+        });
+      }
+    });
+  }
+// Theme switcher
+document.getElementById('themeSwitcher').addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // Apply saved theme on page load
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        });
+    </script>
+</body>
+</html>

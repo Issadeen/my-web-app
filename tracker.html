@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .dark-theme {
+            background-color: #1a202c;
+            color: #a0aec0;
+        }
+
+        body {
+            transition: background-color 0.5s ease;
+        }
+
+        body.dark-theme {
+            background-color: #1a202c;
+        }
+
+        body.dark-theme #topBar {
+            background-color: #2d3748;
+        }
+
+        body.dark-theme #themeToggle {
+            background-color: #4a5568;
+        }
+
+        #topBar {
+            background-color: #edf2f7;
+        }
+
+        #themeToggle {
+            background-color: #e2e8f0;
+        }
+
+        #themeToggle:hover {
+            background-color: #cbd5e0;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        #expenseForm {
+            display: none;
+        }
+
+        #expenses {
+            max-width: 600px;
+        }
+
+        body .title {
+            color: #000; /* Black color */
+        }
+
+        body.dark-theme .title {
+            color: #fff; /* White color */
+        }
+
+        #showFormButton {
+            margin-bottom: 20px; /* Adjust as needed */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .button {
+            flex: 1;
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px; /* Adjust as needed */
+        }
+
+        #cancelButton {
+            background-color: #f56565; /* Red */
+            color: white;
+        }
+
+        button[type="submit"] {
+            background-color: #48bb78; /* Green */
+            color: white;
+        }
+
+        .expense-card {
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            margin-bottom: auto;
+        }
+
+    </style>
+</head>
+<body class="p-6">
+    <div id="topBar" class="w-full p-4 text-white flex justify-between items-center">
+        <h1 class="title">Expense</h1>
+        <button id="download-btn" class="your-button-classes" style="float: left;">
+            <i class="fas fa-download"></i>
+        </button>
+        <button id="themeToggle" class="p-2 text-white">
+            <i id="themeIcon" class="fas fa-sun"></i>
+        </button>
+    </div>
+    <div class="mt-4">
+    <button id="showFormButton" class="p-2 bg-green-500 text-white w-full">Add New Expense</button>
+    <form id="expenseForm" class="mb-4">
+        <input id="expenseName" type="text" placeholder="Expense Name" class="p-2 border mb-2 w-full">
+        <input id="expenseAmount" type="number" placeholder="Amount" class="p-2 border mb-2 w-full">
+        <input id="expenseDate" type="date" class="p-2 border mb-2 w-full">
+        <input id="expenseStatement" type="file" class="p-2 border mb-2 w-full">
+        <input id="mpesaStatement" type="file" class="p-2 border mb-2 w-full">
+        <div class="button-container">
+            <button type="button" id="cancelButton" class="button">Cancel</button>
+            <button type="submit" class="button">Add Expense</button>
+        </div>
+    </form>
+    </div>
+    <div id="expenses" class="space-y-2"></div>
+    <script src="config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+    <script>
+
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(app);
+        const storage = firebase.storage();
+
+        // Get elements
+        const expenseForm = document.getElementById('expenseForm');
+        const expenseNameInput = document.getElementById('expenseName');
+        const expenseAmountInput = document.getElementById('expenseAmount');
+        const expensesDiv = document.getElementById('expenses');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // Show expense form
+        document.getElementById('showFormButton').addEventListener('click', function() {
+            document.getElementById('expenseForm').style.display = 'block';
+            this.style.display = 'none'; // Hide the "Add New Expense" button
+        });
+
+        // Hide expense form
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            document.getElementById('expenseForm').style.display = 'none';
+            document.getElementById('showFormButton').style.display = 'block'; // Show the "Add New Expense" button
+        });
+
+    
+        // Handle form submission
+        expenseForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            // Get the submit button
+            var submitButton = document.querySelector('#expenseForm button[type="submit"]');
+
+            // Save the original button text
+            var originalButtonText = submitButton.textContent;
+
+            // Change the button text to "Adding expenses"
+            submitButton.textContent = 'Adding expenses';
+
+            // Disable the button to prevent double clicking
+            submitButton.disabled = true;
+
+            // Get expense name, amount, date and files
+            const name = expenseNameInput.value;
+            const amount = expenseAmountInput.value;
+            const date = document.getElementById('expenseDate').value;
+            const file = document.getElementById('expenseStatement').files[0];
+            const mpesaFile = document.getElementById('mpesaStatement').files[0];
+
+            // check if any of the fields is empty
+            if (name === '' || amount === '' || date === '' || !file || !mpesaFile) {
+                alert('Please fill in all the fields');
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+                return;
+            }
+
+            // Create storage references
+            const storageRef = storage.ref();
+            const fileRef = storageRef.child('statements/' + file.name);
+            const mpesaFileRef = storageRef.child('statements/' + mpesaFile.name);
+
+            // Upload the files
+            await fileRef.put(file);
+            await mpesaFileRef.put(mpesaFile);
+
+            // Get the download URLs
+            const fileURL = await fileRef.getDownloadURL();
+            const mpesaFileURL = await mpesaFileRef.getDownloadURL();
+
+            // Add new expense
+            await saveExpense({ name, amount, date, statement: fileURL, mpesaStatement: mpesaFileURL });
+
+            // Get updated expenses
+            const expenses = await getExpenses();
+
+            // Clear inputs
+            expenseNameInput.value = '';
+            expenseAmountInput.value = '';
+            document.getElementById('expenseDate').value = '';
+            document.getElementById('expenseStatement').value = '';
+            document.getElementById('mpesaStatement').value = '';
+
+            // Update UI
+            updateExpensesUI(expenses);
+
+            // After the data has been uploaded, change the button text back to the original text
+            // and enable the button
+            submitButton.textContent = originalButtonText;
+            submitButton.disabled = false;
+        });
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            document.getElementById('themeIcon').className = 'fas fa-moon text-gray-300';
+        }
+
+        // Toggle theme
+        themeToggle.addEventListener('click', function () {
+            document.body.classList.toggle('dark-theme');
+            const themeIcon = document.getElementById('themeIcon');
+            if (document.body.classList.contains('dark-theme')) {
+                themeIcon.className = 'fas fa-moon text-gray-300';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.className = 'fas fa-sun text-gray-800';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Save expenses to Firebase
+        async function saveExpense(expense) {
+            await db.ref('/expenses').push(expense);
+        }
+
+        // Get expenses from Firebase
+        async function getExpenses() {
+            const snapshot = await db.ref('/expenses').once('value');
+            return snapshot.val() ? Object.entries(snapshot.val()).map(([key, val]) => ({ key, ...val })) : [];
+        }
+
+        function updateExpensesUI(expenses) {
+            expensesDiv.innerHTML = expenses.map(expense => `
+                <div class="expense-card p-4 border">
+                    <h2 class="text-xl">${expense.name}</h2>
+                    <p>Amount: ${expense.amount}</p>
+                    <p>Date: ${expense.date}</p>
+                    <p>Statement: <a href="${expense.statement}" target="_blank">View</a></p>
+                    <p>Mpesa Statement: <a href="${expense.mpesaStatement}" target="_blank">View</a></p>
+                    <button onclick="deleteExpense('${expense.key}', '${expense.statement}', '${expense.mpesaStatement}')">Delete</button>
+                </div>
+            `).join('<div style="margin-bottom: 30px;"></div>');
+        }
+
+        // Delete expense from Firebase
+        async function deleteExpense(key, statementUrl, mpesaStatementUrl) {
+            let user = firebase.auth().currentUser;
+            if (user) {
+                // Get the user's work ID from Realtime Database
+                let snapshot = await firebase.database().ref('users/' + user.uid).once('value');
+                if (snapshot.exists()) {
+                    let workId = snapshot.val().workId;
+                    let enteredWorkId = prompt("Enter your work ID to delete an expense:");
+                    if (workId === enteredWorkId) {
+                        // Delete the expense data
+                        await db.ref('/expenses/' + key).remove();
+
+                        // Delete the statement files
+                        const statementRef = storage.refFromURL(statementUrl);
+                        const mpesaStatementRef = storage.refFromURL(mpesaStatementUrl);
+                        await statementRef.delete();
+                        await mpesaStatementRef.delete();
+
+                        // Reload the expenses
+                        const expenses = await getExpenses();
+                        updateExpensesUI(expenses);
+                    } else {
+                        alert("Incorrect work ID.");
+                    }
+                }
+            } else {
+                alert("You need to be logged in to delete an expense.");
+            }
+        }
+
+        // Listen for changes in expenses on page load
+        window.addEventListener('load', function () {
+            db.ref('/expenses').on('value', function(snapshot) {
+                const expenses = snapshot.val() ? Object.entries(snapshot.val()).map(([key, val]) => ({ key, ...val })) : [];
+                updateExpensesUI(expenses);
+            });
+        });
+
+        // Download all expenses
+        document.getElementById('download-btn').addEventListener('click', async function () {
+            // Get expenses
+            const expenses = await getExpenses();
+
+            // Create a new zip file
+            const zip = new JSZip();
+
+            // Add files to the zip file
+            for (let i = 0; i < expenses.length; i++) {
+                const expense = expenses[i];
+
+                // Get the file extension for both files
+                const url1 = new URL(expense.statement);
+                const statementExtension = url1.pathname.split('.').pop();
+
+                const url2 = new URL(expense.mpesaStatement);
+                const mpesaStatementExtension = url2.pathname.split('.').pop();
+
+                // Fetch the file data for both files
+                const response1 = await fetch(expense.statement);
+                const data1 = await response1.blob();
+
+                const response2 = await fetch(expense.mpesaStatement);
+                const data2 = await response2.blob();
+
+                // Add the files with their original extension
+                zip.file(expense.name + '_statement.' + statementExtension, data1);
+                zip.file(expense.name + '_mpesaStatement.' + mpesaStatementExtension, data2);
+            }
+
+            // Generate the zip file asynchronously
+            zip.generateAsync({ type: 'blob' }).then(function (content) {
+                // Download the zip file
+                saveAs(content, 'expenses.zip');
+            });
+        });
+
+    </script>
+    </body>
+    </html>

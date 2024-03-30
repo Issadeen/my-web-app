@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+< lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Cursor Head</title>
+    <!-- Include Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <!-- Your Three.js code will go here -->
+    <script>
+// Set up Three.js scene
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Create the robot head (load your 3D model here)
+const robotHead = new THREE.Mesh(/* Load your 3D model here */);
+scene.add(robotHead);
+
+// Listen for mouse movement
+document.addEventListener('mousemove', (event) => {
+    const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Convert mouse coordinates to 3D world coordinates
+    const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
+    vector.unproject(camera);
+    const dir = vector.sub(camera.position).normalize();
+    const distance = -camera.position.z / dir.z;
+    const cursorPosition = camera.position.clone().add(dir.multiplyScalar(distance));
+
+    // Update robot head position
+    robotHead.position.copy(cursorPosition);
+});
+
+// Set up camera position
+camera.position.z = 10;
+
+// Render loop
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
+```

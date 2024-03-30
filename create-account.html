@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+  <script src="config.js"></script>
+</head>
+<style>
+  input[type="text"], input[type="email"], input[type="password"] {
+    color: white;
+}
+
+    body {
+      opacity: 1;
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }
+
+    .light-theme {
+      background-color: white;
+      color: black;
+    }
+
+    .light-theme .form-bg {
+      background-color: #f5f5f5;
+    }
+
+    .light-theme .form-input {
+      color: black;
+    }
+
+    .dark-theme {
+      background-color: #1a202c;
+      color: white;
+    }
+
+    .dark-theme .form-bg {
+      background-color: #2d3748;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+    }
+    
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+
+  </style>
+
+<body class="bg-gray-900 text-white dark-theme">
+  <input type="checkbox" id="theme-toggle" class="theme-toggle" />
+  <label for="theme-toggle" class="theme-toggle px-4 py-2 rounded-lg bg-yellow-500 text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-600">Toggle Theme</label>
+  <div class="container mx-auto px-4 py-8 theme-container" style="padding-top: 100px;">
+    <div class="max-w-md mx-auto bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+      <div class="px-6 py-4">
+        <h1 class="text-2xl font-bold mb-2">Create Account</h1>
+        <form>
+          <div class="mb-4">
+            <label class="block text-gray-400 font-bold mb-2" for="work-id">Work ID:</label>
+            <input class="appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-800" id="work-id" type="text" name="work-id" required>
+            <div id="work-id-error"></div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-400 font-bold mb-2" for="email">Email:</label>
+            <input class="appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-800" id="email" type="email" name="email" required>
+            <div id="email-error"></div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-400 font-bold mb-2" for="password">Password:</label>
+            <div class="relative">
+              <input class="appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline pr-10 bg-gray-800" id="password" type="password" name="password" required>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <i class="password-toggle-icon far fa-eye-slash cursor-pointer" data-fa-suppress></i>
+              </div>
+            </div>
+            <div id="password-error"></div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-400 font-bold mb-2" for="confirm-password">Confirm Password:</label>
+            <div class="relative">
+              <input class="appearance-none border rounded w-full py-2 px-3 text-gray-900 leading-tight focus:outline-none focus:shadow-outline pr-10 bg-gray-800" id="confirm-password" type="password" name="confirm-password" required>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <i class="password-toggle-icon far fa-eye-slash cursor-pointer" data-fa-suppress></i>
+              </div>
+            </div>
+            <div id="confirm-password-error"></div>
+          </div>
+          <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Account</button>
+        </form>
+        <button class="back-button mt-4" onclick="window.location.href='index.html'">Back</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-firestore.js"></script>
+
+
+
+  <script>
+
+    const emailInput = document.getElementById("email");
+    const emailError = document.getElementById("email-error");
+    const passwordInput = document.getElementById("password");
+    const passwordError = document.getElementById("password-error");
+    const confirmPasswordInput = document.getElementById("confirm-password");
+    const confirmPasswordError = document.getElementById("confirm-password-error");
+    const workIdInput = document.getElementById("work-id");
+
+    function validateWorkId(workId) {
+      const regex = /^[A-Za-z0-9]+$/;
+      return regex.test(workId);
+    }
+
+    function validateEmail(email) {
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return regex.test(email);
+    }
+
+    function validatePassword(password) {
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return regex.test(password);
+    }
+
+    // Select all password toggle icons
+    const passwordToggleIcons = document.querySelectorAll(".password-toggle-icon");
+
+    // Add click event listener to each icon
+    passwordToggleIcons.forEach(icon => {
+      icon.addEventListener("click", (event) => {
+        // Get the associated input field
+        const passwordInput = event.target.parentNode.previousElementSibling;
+
+        // Toggle the type attribute
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+
+        // Toggle the icon
+        if (type === "password") {
+          event.target.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+          event.target.classList.replace("fa-eye-slash", "fa-eye");
+        }
+      });
+    });
+
+    workIdInput.addEventListener("input", () => {
+      const workId = workIdInput.value;
+      if (!validateWorkId(workId)) {
+        workIdError.textContent = "Work ID can only contain letters and numbers";
+        workIdError.style.color = "red";
+      } else {
+        workIdError.textContent = "";
+      }
+    });
+
+    emailInput.addEventListener("input", () => {
+      const email = emailInput.value;
+      if (!validateEmail(email)) {
+        emailError.textContent = "Invalid email address";
+        emailError.style.color = "red";
+      } else {
+        emailError.textContent = "";
+      }
+    });
+
+    passwordInput.addEventListener("input", () => {
+      const password = passwordInput.value;
+      if (!validatePassword(password)) {
+        passwordError.textContent = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character";
+        passwordError.style.color = "red";
+      } else {
+        passwordError.textContent = "";
+      }
+    });
+
+    confirmPasswordInput.addEventListener("input", () => {
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+      if (password !== confirmPassword) {
+        confirmPasswordError.textContent = "Passwords do not match";
+        confirmPasswordError.style.color = "red";
+      } else {
+        confirmPasswordError.textContent = "";
+      }
+    });
+  </script>
+    <script>
+      
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script>
+      // Get a reference to the database service
+      var database = firebase.database();
+
+      // Get references to the Work ID input field and error message element
+      const workIdError = document.getElementById("work-id-error");
+
+      // Function to validate the Work ID
+      function validateWorkId(workId) {
+        // Check if the Work ID starts with "IA00"
+        if (!workId.startsWith("IA00")) {
+          return false;
+        }
+
+        // Extract the numeric part of the Work ID
+        const numericPart = parseInt(workId.substring(4));
+
+        // Check if the numeric part is less than 10
+        return numericPart < 10;
+      }
+
+      // Add an event listener for the input event on the Work ID input field
+      workIdInput.addEventListener("input", () => {
+        const workId = workIdInput.value;
+        if (!validateWorkId(workId)) {
+          workIdError.textContent = "Invalid Work ID";
+          workIdError.style.color = "red";
+        } else {
+          workIdError.textContent = "";
+        }
+      });
+
+      // Get a reference to the create account form
+      const createAccountForm = document.querySelector('form');
+
+      createAccountForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const email = createAccountForm.email.value;
+        const password = createAccountForm.password.value;
+        const workId = createAccountForm['work-id'].value; // Get the workId from the form
+
+        // Check if the work ID is valid
+        if (!validateWorkId(workId)) {
+          workIdError.textContent = "Invalid Work ID";
+          workIdError.style.color = "red";
+          return;
+        }
+
+        // Check if the work ID already exists in the database
+        firebase.database().ref('users').orderByChild('workId').equalTo(workId).once('value')
+          .then(snapshot => {
+            if (snapshot.exists()) {
+              workIdError.textContent = "Work ID already exists";
+              workIdError.style.color = "red";
+              throw new Error("Work ID already exists");
+            }
+          })
+          .then(() => {
+            // Create a new user
+            return firebase.auth().createUserWithEmailAndPassword(email, password);
+          })
+          .then((userCredential) => {
+            // User created
+            var user = userCredential.user;
+
+            // Store the work ID and email in Realtime Database
+            return firebase.database().ref('users/' + user.uid).set({
+              email: email,
+              workId: workId
+            
+          })
+          .then(() => {
+            // Data successfully written!
+            console.log("Data successfully written!");
+          
+ 
+
+        // Clear the form
+        createAccountForm.reset();
+
+        // Navigate to index.html
+        window.location.href = "index.html";
+      })
+    })
+        .catch((error) => {
+            // Handle errors here
+            console.error("Error:", error.message);
+            // Display error message to the user
+            const emailError = document.getElementById("email-error");
+            emailError.textContent = error.message;
+            emailError.style.color = "red";
+          
+      });
+  });
+    </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const themeToggle = document.getElementById('theme-toggle');
+
+    // Check if the user prefers a dark theme
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.body.classList.remove('light-theme');
+      document.body.classList.add('dark-theme');
+    }
+
+    themeToggle.addEventListener('change', () => {
+      if (document.body.classList.contains('dark-theme')) {
+        document.body.classList.remove('dark-theme');
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+        document.body.classList.add('dark-theme');
+      }
+    });
+  });
+
+  
+</script>
+
+</body>
+</html>

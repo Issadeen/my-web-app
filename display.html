@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Display</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+  
+    #top-bar {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px;
+      border-bottom: 1px solid #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #toggle-button {
+      padding: 10px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #content {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 50px); /* Subtract the height of the top bar */
+      margin: 10px;
+    }
+
+    #owners-card {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      overflow: auto;
+      max-height: 200px; /* Adjust this value as needed */
+    }
+
+    #data {
+      flex-grow: 1;
+      overflow: auto;
+      height: calc(100vh - 250px); /* Adjust this value as needed */
+    }
+
+    table {
+      width: 100%;
+    }
+
+  :root {
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --card-background-color: #fff;
+    --border-color: #ddd;
+    --button-background-color: #bbb;
+    --header-background-color: #007BFF;
+    --header-text-color: white;
+    --even-row-background-color: #f9f9f9;
+    --table-background-color: white;
+    --table-text-color: black;
+    --table-border-color: #ddd;
+    --table-header-background-color: #007BFF;
+    --table-header-text-color: white;
+  }
+
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+  }
+
+  #owners-card, #toggle-button {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  #top-bar, #content, #owners-card {
+    padding: 20px;
+  }
+
+  table {
+    margin: 20px 0;
+  }
+
+  .theme-dark {
+    --background-color: #282c34;
+    --text-color: white;
+    --card-background-color: #3b4049;
+    --border-color: #888;
+    --button-background-color: #6c757d;
+    --header-background-color: #007BFF;
+    --header-text-color: white;
+    --even-row-background-color: #f2f2f2;
+    /* ...other variables... */
+    --table-background-color: #3b4049;
+    --table-text-color: white;
+    --table-border-color: #888;
+  }
+
+ 
+
+  th, td {
+    border: 1px solid var(--border-color);
+  }
+
+
+  #top-bar {
+    background-color: var(--header-background-color);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #button-group {
+    display: flex;
+    gap: 10px; /* adjust this value as needed */
+ }
+
+  #data-display {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  #data-entry-link, #download-button, #toggle-button {
+    background-color: var(--button-background-color);
+    color: var(--header-text-color);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+  }
+
+  #data-entry-link:hover, #download-button:hover, #toggle-button:hover {
+    background-color: darken(var(--button-background-color), 10%);
+  }
+
+  .fas {
+    margin-right: 5px;
+  }
+ 
+
+  #toggle-button {
+    background-color: var(--button-background-color);
+    order: 2;
+  }
+
+  #data-display {
+    order: 1;
+  }
+
+  th {
+    background-color: var(--header-background-color);
+    color: var(--header-text-color);
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--even-row-background-color);
+  }
+.selected-owner {
+  background-color: green;
+}
+
+  </style>
+</head>
+<body class="theme-light">
+  <div id="top-bar">
+    <div id="button-group">
+      <a href="dataentry.html" id="data-entry-link" title="Go to Data Entry">Data Entry</a>
+      <button id="download-button">Download PDF</button>
+      <button id="toggle-button">Toggle Theme</button>
+      <button id="editButton" disabled>Edit</button> <!-- Add this line -->
+    </div>
+    <div id="data-display">Data Display</div>
+  </div>
+  <div id="content">
+    <div id="owners-card">
+      <div id="owners"></div>
+    </div>
+    <div id="data"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+
+  <script>
+     // intialize firebase...
+   firebase.initializeApp(firebaseConfig);
+
+    let canEdit;
+
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    // Enable the "Edit" button when the user is signed in
+    const editButton = document.getElementById('editButton');
+    editButton.disabled = false;
+
+    editButton.addEventListener('click', function() {
+      const workId = prompt('Please enter your work ID:');
+      if (workId) {
+        firebase.database().ref('users').once('value', function(snapshot) {
+          let workIdExists = false;
+          snapshot.forEach(function(userSnapshot) {
+            if (userSnapshot.val().workId === workId) {
+              workIdExists = true;
+              return true; // Stop looping through the users
+            }
+          });
+          if (workIdExists) {
+            canEdit = true;
+            // Enable editing for all editable divs
+            const editableDivs = document.querySelectorAll('[contentEditable="false"]');
+            editableDivs.forEach(function(div) {
+              div.contentEditable = 'true';
+            });
+          } else {
+            alert('Invalid work ID: ' + workId);
+          }
+        });
+      }
+    });
+  } else {
+    // Disable the "Edit" button when the Page reloads
+    const editButton = document.getElementById('editButton');
+    editButton.disabled = true;
+  }
+});
+
+    // Rest of your code...
+    const ownersDiv = document.getElementById('owners');
+const dataDiv = document.getElementById('data');
+const ownersSet = new Set();
+
+const columnOrder = ['date', 'deport', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'paymentDate', 'transport', 'balance'];
+
+firebase.database().ref('data').on('value', function(snapshot) {
+  ownersDiv.innerHTML = '';
+  snapshot.forEach(function(childSnapshot) {
+    const owner = childSnapshot.val().owner.toLowerCase();
+    ownersSet.add(owner);
+  });
+
+  // ...
+
+// ...
+
+ownersSet.forEach(function(owner) {
+  const ownerDiv = document.createElement('div');
+  ownerDiv.textContent = owner;
+  ownerDiv.addEventListener('click', function() {
+    // Convert clicked owner name to lowercase
+    const clickedOwner = this.textContent.toLowerCase();
+
+    // Remove tick mark from all owners
+    const ownerDivs = document.querySelectorAll('#owners div');
+    ownerDivs.forEach(o => {
+      o.textContent = o.textContent.replace(' ✔', '');
+    });
+
+    // Remove selected-owner class from all owners
+    ownerDivs.forEach(o => {
+      o.classList.remove('selected-owner');
+    });
+
+    // Add tick mark to clicked owner
+    this.classList.add('selected-owner');
+    this.textContent += ' ✔';
+    dataDiv.innerHTML = '';
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    const headerRow = table.insertRow();
+    for (const column of columnOrder) {
+      const headerCell = document.createElement('th');
+      headerCell.textContent = column;
+      headerCell.style.border = '1px solid #888';
+      headerRow.appendChild(headerCell);
+    }
+
+    let totalBalance = 0;
+    // ...
+
+    // ...
+
+    snapshot.forEach(function(childSnapshot) {
+      const dataOwner = (childSnapshot.val() && childSnapshot.val().owner || '').toLowerCase(); // Additional check
+      if (dataOwner === clickedOwner) {
+        const data = childSnapshot.val();
+        const row = table.insertRow();
+        for (const column of columnOrder) {
+          const cell = row.insertCell();
+          const editableDiv = document.createElement('div');
+          editableDiv.contentEditable = canEdit ? 'true' : 'false'; // Use canEdit here
+          editableDiv.textContent = Number(data[column]) === 0 ? '' : data[column]; // Modified here
+          editableDiv.addEventListener('input', function() {
+            // Update the corresponding data in the Firebase Realtime Database when the content is changed
+            const newValue = this.textContent;
+            firebase.database().ref('data/' + childSnapshot.key + '/' + column).set(newValue);
+
+            // If the payments, amount, transport, or expenses field is edited, recalculate the balance field
+            if (['payments', 'amount', 'transport', 'expenses'].includes(column)) {
+              const payments = Number(row.querySelector('[data-column="payments"] div').textContent) || 0;
+              const amount = Number(row.querySelector('[data-column="amount"] div').textContent) || 0;
+              const transport = Number(row.querySelector('[data-column="transport"] div').textContent) || 0;
+              const expenses = Number(row.querySelector('[data-column="expenses"] div').textContent) || 0;
+              const balance = payments - amount - transport - expenses;
+              firebase.database().ref('data/' + childSnapshot.key + '/balance').set(balance);
+              row.querySelector('[data-column="balance"] div').textContent = balance;
+            }
+
+            // If the price or at20 field is edited, recalculate the amount field
+            if (['price', 'at20'].includes(column)) {
+              const price = Number(row.querySelector('[data-column="price"] div').textContent) || 0;
+              const at20 = Number(row.querySelector('[data-column="at20"] div').textContent) || 0;
+              const amount = price * at20;
+              firebase.database().ref('data/' + childSnapshot.key + '/amount').set(amount);
+              row.querySelector('[data-column="amount"] div').textContent = amount;
+            }
+          });
+          cell.appendChild(editableDiv);
+          cell.dataset.column = column; // Add this line
+          cell.style.border = '1px solid var(--border-color)';
+          if (column === 'balance') {
+            totalBalance += Number(data[column] || 0);
+          }
+        
+        }
+      }
+    });
+
+    // Add total balance row
+    const totalRow = table.insertRow();
+    const totalCell = totalRow.insertCell();
+    totalCell.textContent = 'Total Balance: ' + totalBalance.toFixed(2); // Use toFixed(2) to keep 2 decimal places
+    totalCell.colSpan = columnOrder.length;
+    totalCell.style.textAlign = 'right';
+
+    dataDiv.appendChild(table);
+
+    // Apply CSS variables to table headers
+    const headers = table.getElementsByTagName('th');
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].style.backgroundColor = 'var(--table-header-background-color)';
+      headers[i].style.color = 'var(--table-header-text-color)';
+    }
+  });
+  ownersDiv.appendChild(ownerDiv);
+});
+
+});
+
+
+    document.getElementById('toggle-button').addEventListener('click', function() {
+      const root = document.documentElement;
+      const lightTheme = {
+        '--background-color': '#f0f0f0',
+        '--text-color': 'black',
+        '--card-background-color': 'white',
+        '--border-color': '#888',
+        '--button-background-color': '#6c757d',
+        '--header-background-color': '#007BFF',
+        '--header-text-color': 'white',
+        '--even-row-background-color': '#f2f2f2',
+        '--table-header-background-color': '#007BFF',
+        '--table-header-text-color': 'white'
+      };
+      const darkTheme = {
+        '--background-color': '#282c34',
+        '--text-color': 'white',
+        '--card-background-color': '#3b4049',
+        '--border-color': '#888',
+        '--button-background-color': '#6c757d',
+        '--header-background-color': '#007BFF',
+        '--header-text-color': 'white',
+        '--even-row-background-color': '#3b4049',
+        '--table-header-background-color': '#282c34',
+        '--table-header-text-color': 'white'
+      };
+      const theme = getComputedStyle(root).getPropertyValue('--background-color').trim() === lightTheme['--background-color'] ? darkTheme : lightTheme;
+      Object.keys(theme).forEach(function(key) {
+        root.style.setProperty(key, theme[key]);
+      });
+
+       // Save the current theme to localStorage
+  localStorage.setItem('theme', JSON.stringify(theme));
+});
+
+// When the page loads, get the saved theme from localStorage and apply it
+window.addEventListener('load', function() {
+  const savedTheme = JSON.parse(localStorage.getItem('theme'));
+  if (savedTheme) {
+    const root = document.documentElement;
+    Object.keys(savedTheme).forEach(function(key) {
+      root.style.setProperty(key, savedTheme[key]);
+    });
+  } else {
+    // If there is no saved theme, default to light theme
+    const root = document.documentElement;
+    const lightTheme = {
+      // ...your light theme properties...
+    };
+    Object.keys(lightTheme).forEach(function(key) {
+      root.style.setProperty(key, lightTheme[key]);
+    });
+  }
+});
+
+document.getElementById('download-button').addEventListener('click', function() {
+  const selectedOwnerDiv = document.querySelector('#owners div.selected-owner');
+  if (selectedOwnerDiv) {
+    const owner = selectedOwnerDiv.textContent.replace(' ✔', '');
+    const table = document.querySelector('#data table');
+    if (table) {
+      var doc = new window.jspdf.jsPDF('landscape');
+      doc.text('Data for ' + owner, 10, 10); // Changed this line
+
+      // Convert HTML table to array
+      const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+      const data = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => 
+        Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
+      );
+
+      // Add table to PDF
+      doc.autoTable({
+        startY: 20,
+        head: [headers],
+        body: data,
+        styles: { 
+          lineColor: [0, 0, 0], // Set the line color to black
+          lineWidth: 0.1 // Set the line width to 0.5
+        },
+        willDrawCell: function(data) {
+          // If this is the last row, change the background color
+          if (data.section === 'body' && data.row.index === data.table.body.length - 1) {
+            data.cell.styles.fillColor = [200, 225, 200]; // Set the background color to light gray
+          }
+        }
+      });
+
+      // Add watermark
+      const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+      const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+      doc.setFontSize(10);
+      doc.setTextColor(200, 200, 200); // Set the text color to light gray
+      doc.text('Reviewed by ia24', pageWidth - 20, pageHeight - 10, null, null, 'right');
+
+
+      doc.save('data.pdf'); // Changed this line
+    } else {
+      alert('No data to download!');
+    }
+  } else {
+    alert('No owner selected!');
+  }
+});
+    
+  </script>
+</body>
+</html>

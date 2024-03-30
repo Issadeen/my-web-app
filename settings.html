@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+    <script src="backbutton.js"></script>
+    <style>
+        body {
+          background-color: #1a202c;
+          color: #fff;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .form-group {
+          margin-bottom: 1rem;
+        }
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-size: 1.125rem;
+        }
+        .form-group input {
+          width: 100%;
+          padding: 0.5rem;
+          background-color: #2d3748;
+          color: #fff;
+          border-radius: 0.375rem;
+        }
+        .form-group button {
+          width: 100%;
+          padding: 0.5rem 1rem;
+          background-color: #4a5568;
+          color: #fff;
+          border-radius: 0.375rem;
+          cursor: pointer;
+        }
+      </style>
+</head>
+<body class="bg-gray-800 text-white">
+    <div class="container mx-auto px-4 py-5">
+        <h1 class="text-4xl font-bold mb-4">Settings</h1>
+        <form id="settings-form" class="bg-gray-700 p-4 rounded-lg">
+            <div class="form-group mb-4">
+                <label for="workId" class="block text-lg">Work ID</label>
+                <input type="text" id="workId" name="workId" class="bg-gray-800 text-white rounded-lg p-2 w-full">
+            </div>
+            <div class="form-group mb-4">
+                <label for="email" class="block text-lg">Email</label>
+                <input type="email" id="email" name="email" class="bg-gray-800 text-white rounded-lg p-2 w-full">
+            </div>
+            <div class="form-group mb-4">
+                <label for="currentPassword" class="block text-lg">Current Password</label>
+                <input type="password" id="currentPassword" name="currentPassword" class="bg-gray-800 text-white rounded-lg p-2 w-full">
+            </div>
+            <div class="form-group mb-4">
+                <label for="password" class="block text-lg">New Password</label>
+                <input type="password" id="password" name="password" class="bg-gray-800 text-white rounded-lg p-2 w-full">
+            </div>
+            <div class="form-group mb-4">
+                <label for="confirmPassword" class="block text-lg">Confirm New Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="bg-gray-800 text-white rounded-lg p-2 w-full">
+            </div>
+            <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-lg w-full">Save Changes</button>
+        </form>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script>
+
+        firebase.initializeApp(firebaseConfig);
+    </script>
+<script>
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            console.log('User is signed in. UID:', user.uid);
+
+            firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    console.log('User document exists. Data:', snapshot.val());
+
+                    let email = user.email;
+                    let workId = snapshot.val().workId;
+
+                    email = email.replace(/(?<=.).+(?=@)/g, (match) => '*'.repeat(match.length));
+                    workId = workId.slice(0, -3) + '***';
+
+                    document.getElementById('email').value = email;
+                    document.getElementById('workId').value = workId;
+                } else {
+                    console.log('No user document found at path:', 'users/' + user.uid);
+                }
+            }).catch((error) => {
+                console.log('Error getting user document:', error);
+            });
+        } else {
+            console.log('No user is signed in.');
+        }
+    });
+
+    // Handle form submission
+    document.getElementById('settings-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        // Get form values
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // Validate current password
+        const credential = firebase.auth.EmailAuthProvider.credential(
+            firebase.auth().currentUser.email, 
+            currentPassword
+        );
+
+        firebase.auth().currentUser.reauthenticateWithCredential(credential).then(() => {
+            // Current password is correct
+
+            // Validate new password
+            if (newPassword === confirmPassword) {
+                // Change password
+                firebase.auth().currentUser.updatePassword(newPassword).then(() => {
+                    console.log('Password changed successfully');
+                }).catch((error) => {
+                    console.log('Error changing password:', error);
+                });
+            } else {
+                console.log('New passwords do not match');
+            }
+        }).catch((error) => {
+            // Incorrect current password
+            console.log('Incorrect current password:', error);
+            alert('Incorrect current password');
+        });
+    });
+</script>
+<body>
+</html>

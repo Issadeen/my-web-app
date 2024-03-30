@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .dark-theme {
+            background-color: #1a202c;
+            color: #a0aec0;
+        }
+
+        
+            body {
+                font-family: Arial, sans-serif;
+            }
+
+            #expense-form {
+                padding: 20px;
+                background-color: #f9f9f9;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            #expense-form form {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #expense-form label {
+                font-weight: bold;
+            }
+
+            #expense-form input[type="text"],
+            #expense-form input[type="number"],
+            #expense-form input[type="date"] {
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            #expense-form input[type="submit"] {
+                padding: 10px 20px;
+                background-color: #007BFF;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            body.dark-theme #expense-form {
+                background-color: #000;
+                color: #fff;
+            }
+
+            body.dark-theme #expense-form input[type="text"],
+            body.dark-theme #expense-form input[type="number"],
+            body.dark-theme #expense-form input[type="date"] {
+                background-color: #333;
+                color: #fff;
+                border-color: #444;
+            }
+
+            #expense-form input[type="submit"]:hover {
+                background-color: #0056b3;
+            }
+            #names-list {
+                flex: 1;
+                overflow: auto;
+                border-right: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f5f5f5;
+            }
+
+            #expenses-table {
+                flex: 2;
+                overflow: auto;
+                padding: 10px;
+            }
+
+            #expenses-table table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            #expenses-table th, #expenses-table td {
+                border: 1px solid #ccc;
+                padding: 10px;
+                text-align: left;
+            }
+
+            #expenses-table th {
+                background-color: #eee;
+            }
+
+            #names-list p {
+        display: block;
+        padding: 10px;
+        margin: 5px;
+        background-color: #007BFF;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        text-align: center;
+    }
+.top-bar {
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    height: 60px; /* Adjust this value as needed */
+}
+
+.content {
+    height: calc(100vh - 100px);
+    margin-top: 20px;
+}
+
+.names-list,
+.expenses-list {
+    overflow: auto;
+    border: 1px solid #ccc;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.names-list {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.expenses-list {
+    flex: 2;
+}
+
+#expenses-table tr {
+    padding: 10px 0;
+}
+
+#expenses-table td {
+    padding: 10px;
+    width: 40.33%;
+}
+
+#add-expense {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+}
+
+#expenses-table td:last-child {
+    text-align: center;
+    cursor: pointer;
+}
+
+body.dark-theme #names-list,
+body.dark-theme .expenses-list {
+    background-color: #333;
+    color: #fff;
+    border-color: #444;
+}
+
+#names-list p.selected {
+    background-color: darkgreen;
+}
+
+body.dark-theme th {
+    color: rgb(8, 7, 7);
+}
+
+#cancel {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+body.dark-theme thead {
+    background-color: #333;
+}
+
+#names-list p {
+    position: relative;
+    overflow: hidden;
+}
+
+.delete-icon {
+    position: absolute;
+    right: -30px; /* Adjust this value as needed */
+    transition: right 0.3s ease;
+}
+
+#names-list p:hover .delete-icon {
+    right: 0;
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-in {
+    animation: slideInFromLeft 0.5s ease-out;
+}
+
+@media (max-width: 600px) {
+    .content {
+        flex-direction: column;
+    }
+
+    .names-list, .expenses-list {
+        width: 100%;
+        margin-bottom: 20px; /* Add some margin to the bottom of the containers */
+    }
+}
+</style>
+    
+</head>
+<body class="light-theme">
+    <div class="p-5">
+        <div class="top-bar flex justify-between items-center mb-5">
+            <h1 class="text-2xl font-bold">Expenses</h1>
+            <div>
+                <i id="theme-toggle" class="fas fa-moon mr-4 cursor-pointer"></i>
+                <button id="add-name" class="py-2 px-4 bg-green-500 text-white rounded">+</button>
+            </div>
+        </div>
+        <div class="content flex">
+            <!-- Users list -->
+            <div id="names-list" class="names-list">
+                <!-- User elements will be added here dynamically -->
+            </div>
+
+            <!-- Expenses list -->
+            <div class="expenses-list">
+                <button id="add-expense" class="hidden">+</button>
+                <button id="copy-table" class="hidden">&#x1F4CB;</button> <!-- This is the HTML entity for the clipboard icon -->
+                <button id="downloadButton" class="hidden">Download PDF</button>
+                <table id="expenses-table" class="hidden">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Amount</td>
+                            <td>Date</td>
+                            <td>&#x1F5D1;</td> <!-- This is the HTML entity for the delete icon -->
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-body">
+                        <!-- Expense elements will be added here dynamically -->
+                    </tbody>
+                </table>
+                <div id="total" class="mt-4 hidden"></div> <!-- Total amount div placed here -->
+                <div id="expense-form" class="hidden">
+                    <form>
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name">
+                        <label for="amount">Amount:</label>
+                        <input type="number" id="amount" name="amount">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date">
+                        <input type="submit" value="Submit">
+                        <input type="button" value="Cancel" id="cancel">
+                    </form>
+                </div>
+            </div>
+    </div>
+</body>
+
+    <script src="config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <!-- Include the libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+
+
+<script>
+
+
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database(app);
+
+var namesList = document.getElementById("names-list");
+var expensesTable = document.getElementById("expenses-table");
+var expensesBody = document.getElementById("expenses-body");
+var addExpenseBtn = document.getElementById("add-expense");
+var expenseForm = document.getElementById("expense-form");
+var addNameBtn = document.getElementById("add-name");
+var themeToggleBtn = document.getElementById("theme-toggle");
+var copyTableButton = document.getElementById('copy-table');
+var downloadButton = document.getElementById('downloadButton');
+var expenses = [];
+
+var selectedName = null;
+var darkTheme = false;
+
+function renderNames(names) {
+    if (!names) {
+        console.log('No names to render');
+        expensesTable.classList.add("hidden");
+        addExpenseBtn.classList.add("hidden");
+        return;
+    }
+    namesList.innerHTML = "";
+    Object.keys(names).forEach((key) => {
+        var name = names[key].name;
+        var p = document.createElement("p");
+        p.innerText = name;
+        p.setAttribute("data-key", key);
+        p.classList.add("animate-slide-in");
+        p.addEventListener("click", () => {
+            selectedName = p.getAttribute("data-key");
+            renderExpensesForCreditor(selectedName);
+            var selected = document.querySelector("#names-list p.selected");
+            if (selected) {
+                selected.classList.remove("selected");
+            }
+            p.classList.add("selected");
+        });
+
+        var deleteIcon = document.createElement("span");
+        deleteIcon.innerHTML = "&#x1F5D1;"; // This is the delete icon
+        deleteIcon.classList.add("delete-icon"); // Add a class to the delete icon for styling
+        deleteIcon.addEventListener("click", function(e) {
+            e.stopPropagation(); // Prevent the click event from bubbling up to the p element
+            var confirmDelete = confirm("Are you sure you want to delete this creditor?");
+            if (confirmDelete) {
+                deleteCreditor(p.getAttribute("data-key"));
+                p.remove(); // This will remove the entire p element
+            }
+
+        });
+
+        
+
+        p.appendChild(deleteIcon);
+        namesList.appendChild(p);
+    });
+}
+
+function deleteRow(rowId) {
+    console.log("deleteRow called with rowId: ", rowId); // Add this line
+    var rowRef = db.ref("creditors/" + rowId);
+    rowRef.remove()
+    .then(() => {
+        console.log("Row successfully deleted!");
+    })
+    .catch((error) => {
+        console.error("Error removing row: ", error);
+    });
+}
+
+function deleteCreditor(creditorId) {
+    var creditorRef = db.ref("creditors/" + creditorId);
+    creditorRef.remove()
+    .then(() => {
+        console.log("Creditor successfully deleted!");
+        // Refresh the page
+        location.reload();
+    })
+    .catch((error) => {
+        console.error("Error removing creditor: ", error);
+    });
+}
+
+
+
+
+function renderExpensesForCreditor(creditorId) {
+    var creditorExpensesRef = db.ref("creditors/" + creditorId + "/expenses");
+    creditorExpensesRef.on("value", (snapshot) => {
+        var expenses = snapshot.val();
+        renderExpenses(expenses);
+    });
+}
+
+function renderExpenses(expenses) {
+    expensesTable.classList.remove("hidden");
+    addExpenseBtn.classList.remove("hidden");
+    copyTableButton.classList.remove("hidden"); // Show the copy button
+    downloadButton.classList.remove("hidden");
+    expenseForm.classList.add("hidden");
+    expensesBody.innerHTML = "";
+    if (expenses) { // Check if expenses is not null or undefined
+        Object.keys(expenses).forEach((key) => {
+            var expense = expenses[key];
+            var tr = document.createElement("tr");
+            var nameTd = document.createElement("td");
+            nameTd.innerText = expense.name;
+            var amountTd = document.createElement("td");
+            amountTd.innerText = expense.amount;
+            var dateTd = document.createElement("td");
+            dateTd.innerText = expense.date;
+            var deleteTd = document.createElement("td");
+            var deleteIcon = document.createElement("span");
+            deleteIcon.innerHTML = "&#x1F5D1;"; // This is the delete icon
+            deleteIcon.addEventListener("click", function() {
+            var confirmDelete = confirm("Are you sure you want to delete this expense?");
+            if (confirmDelete) {
+            deleteExpense(selectedName, key);
+            tr.remove(); // This will remove the entire row
+            }
+            });
+
+            deleteTd.appendChild(deleteIcon);
+            tr.appendChild(nameTd);
+            tr.appendChild(amountTd);
+            tr.appendChild(dateTd);
+            tr.appendChild(deleteTd);
+            expensesBody.appendChild(tr);
+        });
+    }
+}
+
+
+function renderExpenseForm() {
+    expensesTable.classList.add("hidden");
+    addExpenseBtn.classList.add("hidden");
+    copyTableButton.classList.add("hidden"); // Hide the copy button
+    expenseForm.classList.remove("hidden");
+}
+
+var creditorsRef = db.ref("creditors");
+creditorsRef.on("value", (snapshot) => {
+    var names = snapshot.val();
+    renderNames(names);
+});
+
+
+
+function addName(name) {
+    var creditorsRef = db.ref("creditors");
+    var newCreditorRef = creditorsRef.push({ name: name, expenses: {} });
+    renderExpensesForCreditor(newCreditorRef.key);
+}
+
+function addExpense(creditorId, name, amount, date) {
+    var expense = {
+        name: name,
+        amount: amount,
+        date: date,
+    };
+    var creditorExpensesRef = db.ref("creditors/" + creditorId + "/expenses");
+    creditorExpensesRef.push(expense);
+}
+
+copyTableButton.addEventListener('click', function() {
+    var expensesTable = document.getElementById('expenses-table');
+    var copyTable = expensesTable.cloneNode(true); // Create a copy of the table
+
+    // Remove the delete icons from the copy
+    var deleteIcons = copyTable.querySelectorAll('td');
+    deleteIcons.forEach(function(td) {
+        if (td.textContent.trim() === '🗑') {
+            td.parentNode.removeChild(td);
+        }
+    });
+
+    // Add the total amount to the copy
+    var totalElement = document.getElementById('total');
+    var totalRow = document.createElement('tr');
+    var totalData = document.createElement('td');
+    totalData.colSpan = copyTable.rows[0].cells.length; // Span the total amount across all columns
+    totalData.textContent = totalElement.textContent;
+    totalRow.appendChild(totalData);
+    copyTable.appendChild(totalRow);
+
+    // Format the copied table data with pipes
+    var rows = copyTable.rows;
+    var formattedText = '';
+    for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].cells;
+        var rowText = '';
+        for (var j = 0; j < cells.length; j++) {
+            rowText += cells[j].textContent;
+            if (j < cells.length - 1) {
+                rowText += ' | ';
+            }
+        }
+        formattedText += rowText.trim() + '\r\n';
+    }
+
+    // Create a new off-screen div to hold the formatted text
+    var div = document.createElement('div');
+    div.style.position = 'absolute';
+    div.style.left = '-9999px';
+    div.textContent = formattedText;
+    document.body.appendChild(div);
+
+    // Select and copy the formatted text
+    var range = document.createRange();
+    range.selectNode(div);
+    window.getSelection().removeAllRanges(); // clear current selection
+    window.getSelection().addRange(range); // to select text
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges(); // to deselect
+
+    // Remove the off-screen div
+    document.body.removeChild(div);
+
+    // Show a tick briefly
+    copyTableButton.innerHTML = '✔'; // This is the HTML entity for the tick icon
+    setTimeout(function() {
+        copyTableButton.innerHTML = '📋'; // Change back to the clipboard icon after 2 seconds
+    }, 2000);
+});
+
+
+
+
+function renderExpensesForCreditor(creditorId) {
+    var creditorExpensesRef = db.ref("creditors/" + creditorId + "/expenses");
+    creditorExpensesRef.off(); // Remove all event listeners
+
+    // Clear the displayed expenses
+    renderExpenses([]);
+
+    creditorExpensesRef.on("value", (snapshot) => {
+        var expenses = snapshot.val();
+        var total = 0;
+        if (expenses) { // Check if expenses is not null or undefined
+            // Update the expenses array
+            expenses = Object.values(expenses);
+            renderExpenses(expenses);
+            // Calculate the total amount
+            total = expenses.reduce(function(sum, expense) {
+                return sum + parseFloat(expense.amount);
+            }, 0);
+        }
+        console.log(total); // Log the total amount
+        var totalElement = document.getElementById('total');
+        if (expensesTable.classList.contains('hidden')) {
+            totalElement.classList.add('hidden');
+        } else {
+            totalElement.textContent = 'Total: ' + total;
+            totalElement.classList.remove('hidden');
+        }
+    });
+}
+
+
+function deleteExpense(creditorId, expenseId) {
+    var expenseRef = db.ref("creditors/" + creditorId + "/expenses/" + expenseId);
+    expenseRef.remove()
+    .then(() => {
+        console.log("Expense successfully deleted!");
+        // Get the updated expenses
+        var creditorExpensesRef = db.ref("creditors/" + creditorId + "/expenses");
+        creditorExpensesRef.once("value", (snapshot) => {
+            var expenses = snapshot.val();
+            // Update the displayed expenses
+            renderExpenses(expenses);
+        });
+    })
+    .catch((error) => {
+        console.error("Error removing expense: ", error);
+    });
+}
+
+
+
+function toggleTheme() {
+    darkTheme = !darkTheme;
+    if (darkTheme) {
+        document.body.classList.add("dark-theme");
+    } else {
+        document.body.classList.remove("dark-theme");
+    }
+}
+
+renderNames();
+
+addNameBtn.addEventListener("click", () => {
+    var name = prompt("Enter name");
+    addName(name);
+});
+
+addExpenseBtn.addEventListener("click", renderExpenseForm);
+expenseForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    var name = document.getElementById("name").value;
+    var amount = document.getElementById("amount").value;
+    var date = document.getElementById("date").value;
+    addExpense(selectedName, name, amount, date);
+    renderExpensesForCreditor(selectedName);
+});
+document.getElementById('cancel').addEventListener('click', function() {
+    window.location.href = 'expenses.html';
+});
+
+// download pdf
+
+var downloadButton = document.getElementById('downloadButton');
+downloadButton.addEventListener('click', function() {
+    var expensesTable = document.getElementById('expenses-table');
+    var copyTable = expensesTable.cloneNode(true); // Create a copy of the table
+
+    // Remove the delete icons from the copy
+    var deleteIcons = copyTable.querySelectorAll('td');
+    deleteIcons.forEach(function(td) {
+        if (td.textContent.trim() === '🗑') {
+            td.parentNode.removeChild(td);
+        }
+    });
+
+    // Add the total amount to the copy
+    var totalElement = document.getElementById('total');
+    var totalRow = document.createElement('tr');
+    var totalData = document.createElement('td');
+    totalData.colSpan = copyTable.rows[0].cells.length; // Span the total amount across all columns
+    totalData.textContent = totalElement.textContent;
+    totalRow.appendChild(totalData);
+    copyTable.appendChild(totalRow);
+
+    // Create a new jsPDF instance
+    var doc = new window.jspdf.jsPDF();
+
+    // Calculate the center of the page
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+
+
+
+    // Set the title of the PDF
+        var creditorName = "Powered by Issadeen"; // Replace this with the actual creditor's name
+        doc.setFontSize(10); // Set a smaller font size for the title
+        doc.setTextColor(200, 200, 200); // Set a lighter text color (RGB: 200, 200, 200)
+        doc.text(creditorName, 30, pageHeight - 15); // Add the title at the bottom of the page
+    
+
+
+    // Add a diagonal watermark
+    doc.setTextColor(200);
+    doc.setFontSize(20); // Smaller font size
+
+    // Loop to add multiple watermarks
+    for (var x = 0; x <= pageWidth; x += 50) {
+        for (var y = 0; y <= pageHeight; y += 50) {
+            doc.text('Issaerium-23', x, y, { angle: 45 });
+        }
+    }
+
+    // Prepare table data for autoTable
+    var headers = Array.from(copyTable.rows[0].cells).map(cell => cell.textContent);
+    var data = Array.from(copyTable.rows).slice(1).map(row => Array.from(row.cells).map(cell => cell.textContent));
+
+// Add the table to the PDF
+doc.autoTable({
+    head: [headers],
+    body: data,
+    styles: {
+        lineColor: [44, 62, 80], // Set the color of the lines (RGB: 44, 62, 80)
+        lineWidth: 0.75, // Set the width of the lines
+    },
+    didDrawCell: function(data) {
+        if (data.section === 'body' && data.row.index === data.table.body.length - 1) {
+            doc.setFontSize(14); // Set a larger font size for the total
+            doc.setFont('helvetica', 'bold'); // Make the total bold
+            doc.setFillColor(200, 200, 200); // Set the fill color of the cell (RGB: 200, 200, 200)
+        } else {
+            doc.setFontSize(10); // Set a smaller font size for the other rows
+            doc.setFont('helvetica', 'normal'); // Make the other rows normal
+            doc.setFillColor(255, 255, 255); // Set the fill color of the cell (RGB: 255, 255, 255)
+        }
+    }
+});
+
+
+
+// Save the PDF
+doc.save('expenses.pdf');
+
+    // Show a tick briefly
+    downloadButton.innerHTML = '✔'; // This is the HTML entity for the tick icon
+    setTimeout(function() {
+        downloadButton.innerHTML = 'Download PDF'; // Change back to the original text after 2 seconds
+    }, 2000);
+});
+
+
+themeToggleBtn.addEventListener("click", toggleTheme);
+
+// When the theme is switched
+function switchTheme() {
+    var themeToggleIcon = document.getElementById('theme-toggle');
+
+    if (document.body.classList.contains('dark-theme')) {
+        document.body.classList.remove('dark-theme');
+        themeToggleIcon.classList.remove('fa-moon');
+        themeToggleIcon.classList.add('fa-sun');
+        localStorage.setItem('theme', 'light'); // Save the current theme to localStorage
+    } else {
+        document.body.classList.add('dark-theme');
+        themeToggleIcon.classList.remove('fa-sun');
+        themeToggleIcon.classList.add('fa-moon');
+        localStorage.setItem('theme', 'dark'); // Save the current theme to localStorage
+    }
+}
+
+// When the page loads
+window.onload = function() {
+    var savedTheme = localStorage.getItem('theme'); // Get the saved theme from localStorage
+    var themeToggleIcon = document.getElementById('theme-toggle');
+
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        themeToggleIcon.classList.remove('fa-sun');
+        themeToggleIcon.classList.add('fa-moon');
+    } else if (savedTheme === 'light') {
+        document.body.classList.remove('dark-theme');
+        themeToggleIcon.classList.remove('fa-moon');
+        themeToggleIcon.classList.add('fa-sun');
+    } else {
+        // If no theme is saved in localStorage, assume it's light
+        document.body.classList.remove('dark-theme');
+        themeToggleIcon.classList.remove('fa-moon');
+        themeToggleIcon.classList.add('fa-sun');
+    }
+}
+</script>
+
+</body>
+</html>

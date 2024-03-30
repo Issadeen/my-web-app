@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+  <script src="config.js"></script>
+  <style>
+/* base styles for all screen sizes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+button {
+  background-color: #4a5568;
+  border: none;
+  border-radius: 0.25rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #2d3748;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#activity-list li {
+  margin-bottom: 0.5rem;
+}
+
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { visibility: visible; }
+  50% { visibility: hidden; }
+}
+
+:root {
+  --bg-color: #1a202c;
+  --text-color: #fff;
+  --btn-bg-color: #4a5568;
+  --btn-hover-bg-color: #2d3748;
+  --link-bg-color: #4a5568;
+  --link-hover-bg-color: #2d3748;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+body.dark-theme {
+  --bg-color: #fff;
+  --text-color: #1a202c;
+  --btn-bg-color: #2d3748;
+  --btn-hover-bg-color: #4a5568;
+  --link-bg-color: #2d3748;
+  --link-hover-bg-color: #4a5568;
+  --box-bg-color: #f7fafc;
+  --box-text-color: #1a202c;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.container a {
+  background-color: var(--link-bg-color);
+  color: var(--text-color);
+  box-shadow: var(--box-shadow);
+}
+
+.container .rounded-lg {
+  background-color: var(--box-bg-color);
+  color: var(--box-text-color);
+}
+
+.container a:hover {
+  background-color: var(--link-hover-bg-color);
+}
+
+.link {
+  background-color: var(--btn-bg-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  display: block;
+  margin-top: 0.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.link:hover {
+  background-color: var(--btn-hover-bg-color);
+}
+
+  </style>
+</head>
+<body>
+<nav class="flex items-center justify-between bg-gray-800 p-4">
+  <div>
+    <h1 class="text-lg font-bold">Work Details</h1>
+  </div>
+  <div>
+    <button id="themeSwitcher" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Switch Theme</button>
+    <a href="dashboard.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Back</a>
+    <button class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded" id="logout-button">Logout</button>
+  </div>
+</nav>
+  <div class="container mx-auto mt-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Entry Details</h2>
+        <div>View and manage Entries.</div>
+        <a href="mentry.html" class="link">Add Entries</a>
+        <a href="kentry.html" class="link">View and Manage Entries</a>
+      </div>
+      <div class="rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Invoices</h2>
+        <div class="text-gray-400 mb-2">View and manage Ivoices & Expenses.</div>
+        <a href="dataentry.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">add Invoices</a>
+        <a href="display.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Invoices</a>
+      </div>
+      <div class="rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-2">Reports</h2>
+        <div class="text-gray-400 mb-2">View and generate reports.</div>
+        <a href="expenses.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Expenses</a>
+        <a href="tracker.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Tracker</a>
+      </div>
+    </div>
+    <div class="mt-4">
+      <h2 class="text-lg font-bold mb-2">Recent Activity</h2>
+      <ul id="activity-list">
+        <!-- list of recent activity items -->
+      </ul>
+      <div class="text-gray-400 mt-2">Press <span class="blinking-cursor">|</span> to refresh.</div>
+    </div>
+    
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+      // Initialize Firebase
+      
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Function to retrieve the recent activity from Firebase and display it as a list
+      async function displayRecentActivity() {
+        const activityList = document.getElementById('activity-list');
+        activityList.innerHTML = '';
+
+        const querySnapshot = await db.collection('activity').orderBy('timestamp', 'desc').limit(10).get();
+        querySnapshot.forEach((doc) => {
+          const activity = doc.data();
+          const date = activity.timestamp.toDate().toLocaleDateString();
+          const time = activity.timestamp.toDate().toLocaleTimeString();
+          const activityItem = `
+            <li class="text-gray-400 mb-2">${activity.message} - ${date} ${time}</li>
+          `;
+          activityList.innerHTML += activityItem;
+        });
+      }
+
+      // Function to listen for changes to the recent activity in Firebase and update the display accordingly
+      function listenForChanges() {
+        db.collection('activity').orderBy('timestamp', 'desc').limit(1).onSnapshot((querySnapshot) => {
+          displayRecentActivity();
+        });
+      }
+
+      // Function to refresh the recent activity list when the user presses the refresh key
+      function handleRefreshKey(event) {
+        if (event.key === 'r') {
+          displayRecentActivity();
+        }
+      }
+
+      // Add event listener to the logout button
+      const logoutButton = document.getElementById('logout-button');
+      logoutButton.addEventListener('click', () => {
+        // your logout code here
+      });
+
+
+
+    // Theme switcher
+    document.getElementById('themeSwitcher').addEventListener('click', function() {
+      document.body.classList.toggle('dark-theme');
+      localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    });
+
+    // Apply saved theme on page load
+    window.addEventListener('load', function() {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+    });
+
+// Display the recent activity and listen for changes
+displayRecentActivity();
+listenForChanges();
+document.addEventListener('keydown', handleRefreshKey);
+  </script>
+</body>
+</html>
