@@ -699,32 +699,59 @@ at20QuantityInput.value = '';
                 content: [
                     {
                         text: 'All Entries',
-                        bold: true,
-                        fontSize: 14,
-                        margin: [0, 0, 0, 10]
+                        style: 'header'
                     },
                     {
                         table: {
                             headerRows: 1,
                             body: allEntriesData
-                        }
+                        },
+                        layout: 'lightHorizontalLines' // optional layout for table
                     },
                     {
                         text: 'Summary',
-                        bold: true,
-                        fontSize: 14,
-                        margin: [0, 20, 0, 10]
+                        style: 'header'
                     },
                     {
                         table: {
                             headerRows: 1,
                             body: summaryData
-                        }
+                        },
+                        layout: 'lightHorizontalLines' // optional layout for table
                     }
                 ],
+                styles: {
+                    header: {
+                        fontSize: 18,
+                        bold: true,
+                        margin: [0, 20, 0, 10],
+                        color: 'navy',
+                        italics: true
+
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fontSize: 13,
+                        color: 'black',
+                        italics: true
+                    }
+                },
+                defaultStyle: {
+                    // alignment: 'justify'
+                },
                 pageSize: 'A4',
                 pageOrientation: 'landscape'
             };
+
+            // Apply tableHeader style to all table headers
+            docDefinition.content.forEach(function(item) {
+                if (item.table) {
+                    item.table.body[0].forEach(function(cell) {
+                        cell.style = 'tableHeader';
+                    });
+                }
+            });
+            docDefinition.watermark = { text: 'Issaerium-23', color: 'lightgray', opacity: 0.3, bold: true, italics: false };
 
             pdfMake.createPdf(docDefinition).download('result.pdf');
         } else {
