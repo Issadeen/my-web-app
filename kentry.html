@@ -196,11 +196,11 @@ body.dark-theme input.theme-input {
             <input type="text" id="destination" placeholder="Destination" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
             <input type="text" id="product" placeholder="Product" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
             <input type="number" id="at20Quantity" placeholder="AT20 Quantity" class="w-full mb-2 p-2 border rounded">
+            <div id="message" class="mt-2 mb-2"></div>
             <button id="getEntriesButton" type="button" onclick="getEntries()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Entries</button>
             <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
             <button type="button" id="summaryButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Quantity Summary</button>
             <button type="button" id="downloadPdfButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Download PDF</button>
-            
         </form>
 
 <button id="undoButton" style="display: none;">Undo Changes</button>
@@ -220,10 +220,10 @@ body.dark-theme input.theme-input {
    firebase.initializeApp(firebaseConfig);
 
     // Get a reference to the database service
-    var database = firebas.database();
+    var database = firebase.database();
 
     // Define originalData in the global scope
-    var originalData = {};e
+    var originalData = {};
 
     // Add an event listener to the undo button
     document.getElementById('undoButton').addEventListener('click', function(event) {
@@ -246,7 +246,32 @@ body.dark-theme input.theme-input {
         }
     });
 
+// Get the product and AT20 quantity input fields and the message div
+let productInput = document.getElementById('product');
+let at20QuantityInput = document.getElementById('at20Quantity');
+let messageDiv = document.getElementById('message');
 
+// Add an event listener to the AT20 quantity input field
+at20QuantityInput.addEventListener('input', function() {
+    // Clear any previous message
+    messageDiv.innerHTML = '';
+
+    // Get the product and AT20 quantity
+    let product = productInput.value;
+    let at20Quantity = at20QuantityInput.value;
+
+    // Check the product and AT20 quantity
+    if (product === 'ago' && at20Quantity > 36000) {
+        // Display a message for AGO
+        messageDiv.innerHTML = 'Please note: AGO is usually less than 36,000.';
+    } else if (product === 'pms' && at20Quantity < 36000) {
+        // Display a message for PMS
+        messageDiv.innerHTML = 'Please note: PMS is usually more than 36,000.';
+    }
+});
+
+
+// For Allocating the entries...
     function getEntries() {
     const getEntriesButton = document.getElementById('getEntriesButton');
     getEntriesButton.disabled = true;
