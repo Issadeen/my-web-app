@@ -756,8 +756,13 @@ function undoChanges() {
     const workId = prompt('Please enter your work ID:');
     if (workId) {
         firebase.database().ref('users').once('value', function(snapshot) {
-            let workIdExists = snapshot.some(function(userSnapshot) {
-                return userSnapshot.val().workId === workId;
+            let workIdExists = false;
+            snapshot.forEach(function(userSnapshot) {
+                if (userSnapshot.val().workId === workId) {
+                    workIdExists = true;
+                    // Return true to stop looping
+                    return true;
+                }
             });
             if (workIdExists) {
                 console.log('undoChanges called');
