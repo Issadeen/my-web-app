@@ -72,7 +72,7 @@ body.dark-theme input.theme-input {
             <input type="number" id="tr800Quantity" class="theme-input w-full mb-2 p-2 border rounded" placeholder="TR800 Quantity">
             <input type="text" id="tr800Product" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Product">
             <input type="text" id="tr800Destination" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Destination">
-            <button type="button" onclick="addTR800()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add TR800</button>
+            <button type="button" id="addTR800Button" onclick="addTR800()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add TR800</button>
             <button type="button" onclick="window.location.href='kentry.html'" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Back</button>
         </form>
     </div>
@@ -89,6 +89,11 @@ body.dark-theme input.theme-input {
     const tr800Quantity = document.getElementById('tr800Quantity');
     const tr800Product = document.getElementById('tr800Product');
     const tr800Destination = document.getElementById('tr800Destination');
+    const addTR800Button = document.getElementById('addTR800Button');
+
+    // Disable the button and change its text
+    addTR800Button.disabled = true;
+    addTR800Button.textContent = 'Adding TR800...';
 
     // Store the string value of tr800Quantity
     const tr800QuantityValue = tr800Quantity.value;
@@ -99,6 +104,10 @@ body.dark-theme input.theme-input {
     // Check if all fields are filled
     if (!tr800Number.value || !tr800Quantity.value || !tr800Product.value || !tr800Destination.value) {
       alert('Please fill all fields.');
+
+      // Re-enable the button and change its text back
+      addTR800Button.disabled = false;
+      addTR800Button.textContent = 'Add TR800';
       return;
     }
 
@@ -129,7 +138,12 @@ body.dark-theme input.theme-input {
           tr800Quantity.value = '';
           tr800Product.value = '';
           tr800Destination.value = '';
-        }).catch((error) => {
+
+          // Re-enable the button and change its text back
+        addTR800Button.disabled = false;
+        addTR800Button.textContent = 'Add TR800';
+    })
+        .catch((error) => {
           // Handle any errors
           console.error('Error adding TR800 entry: ', error);
         });
