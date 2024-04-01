@@ -220,10 +220,10 @@ body.dark-theme input.theme-input {
    firebase.initializeApp(firebaseConfig);
 
     // Get a reference to the database service
-    var database = firebase.database();
+    var database = firebas.database();
 
     // Define originalData in the global scope
-    var originalData = {};
+    var originalData = {};e
 
     // Add an event listener to the undo button
     document.getElementById('undoButton').addEventListener('click', function(event) {
@@ -361,7 +361,7 @@ body.dark-theme input.theme-input {
                     if (remaining > 0) {
                         // Ask the user if they want to use the remaining entries
                         let amountLacking = at20Quantity - totalRemainingQuantity;
-                        if (confirm(`There are only ${totalRemainingQuantity} entries available, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`)) {
+                        if (confirm(`There is only ${totalRemainingQuantity} m3 left, which is ${amountLacking} less than required for AT20. Do you want to proceed with these entries?`)) {
                             // If the user clicked "OK", use the remaining entries
                             let remainingEntries = entries.filter(entry => entry.data.remainingQuantity > 0 && entry.data.status !== 'cleared');
 
@@ -395,26 +395,29 @@ body.dark-theme input.theme-input {
 
                             // Wait for all updates to complete
                             Promise.all(updates).then(() => {
-                                // Your existing code to update the database and the table...
-
+                                // Clear the updates array
+                                updates = [];
                                 // Display the table
                                 const resultDiv = document.getElementById('result');
                                 resultDiv.innerHTML = '';
                                 resultDiv.appendChild(resultTable);
                             });
                         } else {
-                            // If the user clicked "Cancel", do not use the remaining entries
+                             // If the user clicked "Cancel", do not use the remaining entries
                             // Clear the form
-                            truckNumberInput.value = '';
-                            destinationInput.value = '';
-                            productInput.value = '';
-                            at20QuantityInput.value = '';
+                                  truckNumberInput.value = '';
+                                  destinationInput.value = '';
+                                  productInput.value = '';
+                                  at20QuantityInput.value = '';
+
+                              // Undo the changes
+                                undoChangesWithoutPrompt();
 
                             // Display the message
                             resultDiv.innerHTML = `<tr><td colspan="7">Not enough entries available. Total remaining quantity: ${totalRemainingQuantity}</td></tr>`;
-                        }
+                            }
                     } else {
-                        // Your existing code to update the database and the table...
+                        //  code to update the database and the table...
 
                         // Display the table
                         const resultDiv = document.getElementById('result');
@@ -696,6 +699,32 @@ function getAllEntries() {
     });
 }
 
+// undo without prompt
+function undoChangesWithoutPrompt() {
+    console.log('undoChangesWithoutPrompt called');
+    console.log('originalData:', originalData);
+
+    // Iterate over the original data and restore it in the database
+    for (let key in originalData) {
+        console.log('Restoring data for key:', key);
+        let data = originalData[key];
+
+        // Delete the truck entry from the database
+        let sanitizedTruckNumber = data.truckNumber.replace(/\//g, '-');
+        database.ref('truckEntries/' + sanitizedTruckNumber).remove();
+
+        // Remove truckNumber from data before restoring it
+        delete data.truckNumber;
+        database.ref('tr800/' + key).set(data);
+    }
+
+    // Clear the original data
+    originalData = {};
+
+    // Remove the table and display a success message
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = 'Changes undone successfully';
+}
 
 // Define undoChanges function
 function undoChanges() {
