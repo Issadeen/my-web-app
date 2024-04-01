@@ -331,7 +331,7 @@ at20QuantityInput.addEventListener('input', function() {
                     let data = entry.data;
 
                     // Check if data.remainingQuantity is a number
-                    if (isNaN(data.remainingQuantity)) {
+                    if (typeof data.remainingQuantity !== 'number') {
                         console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
                         return;
                     }
@@ -555,7 +555,7 @@ at20QuantityInput.addEventListener('input', function() {
                 let data = childSnapshot.val();
 
                 // Check if data.remainingQuantity is a number
-                if (isNaN(data.remainingQuantity)) {
+                if (typeof data.remainingQuantity !== 'number') {
                     console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
                     return;
                 }
@@ -756,12 +756,8 @@ function undoChanges() {
     const workId = prompt('Please enter your work ID:');
     if (workId) {
         firebase.database().ref('users').once('value', function(snapshot) {
-            let workIdExists = false;
-            snapshot.forEach(function(userSnapshot) {
-                if (userSnapshot.val().workId === workId) {
-                    workIdExists = true;
-                    return true; // Stop looping through the users
-                }
+            let workIdExists = snapshot.some(function(userSnapshot) {
+                return userSnapshot.val().workId === workId;
             });
             if (workIdExists) {
                 console.log('undoChanges called');
@@ -838,7 +834,7 @@ document.getElementById('summaryButton').addEventListener('click', function() {
                 let data = childSnapshot.val();
 
                 // Check if data.remainingQuantity is a number
-                if (isNaN(data.remainingQuantity)) {
+                if (typeof data.remainingQuantity !== 'number') {
                     console.error(`Invalid remaining quantity for entry ${data.number}: ${data.remainingQuantity}`);
                     return;
                 }
