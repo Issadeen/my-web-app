@@ -1,172 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data Display</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Include other necessary scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
   
-    #top-bar {
-      background-color: #007BFF;
-      color: white;
-      padding: 10px;
-      border-bottom: 1px solid #888;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    #toggle-button {
-      padding: 10px;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #content {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 50px); /* Subtract the height of the top bar */
-      margin: 10px;
-    }
-
-    #owners-card {
-      width: 100%;
-      border: 1px solid var(--border-color);
-      border-radius: 5px;
-      padding: 10px;
-      margin-bottom: 10px;
-      overflow: auto;
-      max-height: 200px; /* Adjust this value as needed */
-    }
-
-    #data {
-      flex-grow: 1;
-      overflow: auto;
-      height: calc(100vh - 250px); /* Adjust this value as needed */
-    }
-
-    table {
-      width: 100%;
-    }
-
-  :root {
-    --background-color: #f5f5f5;
-    --text-color: #333;
-    --card-background-color: #fff;
-    --border-color: #ddd;
-    --button-background-color: #bbb;
-    --header-background-color: #007BFF;
-    --header-text-color: white;
-    --even-row-background-color: #f9f9f9;
-    --table-background-color: white;
-    --table-text-color: black;
-    --table-border-color: #ddd;
-    --table-header-background-color: #007BFF;
-    --table-header-text-color: white;
-  }
-
-  body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Arial', sans-serif;
-  }
-
-  #owners-card, #toggle-button {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-
-  #top-bar, #content, #owners-card {
-    padding: 20px;
-  }
-
-  table {
-    margin: 20px 0;
-  }
-
-  .theme-dark {
-    --background-color: #282c34;
-    --text-color: white;
-    --card-background-color: #3b4049;
-    --border-color: #888;
-    --button-background-color: #6c757d;
-    --header-background-color: #007BFF;
-    --header-text-color: white;
-    --even-row-background-color: #f2f2f2;
-    /* ...other variables... */
-    --table-background-color: #3b4049;
-    --table-text-color: white;
-    --table-border-color: #888;
-  }
-
- 
-
-  th, td {
-    border: 1px solid var(--border-color);
-  }
-
-
   #top-bar {
-    background-color: var(--header-background-color);
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+  background-color: var(--header-background-color);
+  color: var(--header-text-color);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  #button-group {
-    display: flex;
-    gap: 10px; /* adjust this value as needed */
- }
+#toggle-button {
+  padding: 10px;
+  background-color: var(--button-background-color);
+  color: var(--header-text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
-  #data-display {
-    font-size: 24px;
-    font-weight: bold;
-  }
+#content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 50px); /* Subtract the height of the top bar */
+  margin: 10px;
+}
 
-  #data-entry-link, #download-button, #toggle-button {
-    background-color: var(--button-background-color);
-    color: var(--header-text-color);
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    text-decoration: none;
-    font-size: 18px;
-    transition: background-color 0.3s ease;
-  }
+#owners-card {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  overflow: auto;
+  max-height: 200px; /* Adjust this value as needed */
+}
 
-  #data-entry-link:hover, #download-button:hover, #toggle-button:hover {
-    background-color: darken(var(--button-background-color), 10%);
-  }
+#data {
+  flex-grow: 1;
+  overflow: auto;
+  height: calc(100vh - 250px); /* Adjust this value as needed */
+}
 
-  .fas {
-    margin-right: 5px;
-  }
- 
+table {
+  width: 100%;
+}
 
-  #toggle-button {
-    background-color: var(--button-background-color);
-    order: 2;
-  }
+:root {
+  --background-color: #f5f5f5;
+  --text-color: #333;
+  --card-background-color: #fff;
+  --border-color: #ddd;
+  --button-background-color: #bbb;
+  --header-background-color: #007BFF;
+  --header-text-color: white;
+  --even-row-background-color: #f9f9f9;
+  --table-background-color: white;
+  --table-text-color: black;
+  --table-border-color: #ddd;
+  --table-header-background-color: #007BFF;
+  --table-header-text-color: white;
+}
 
-  #data-display {
-    order: 1;
-  }
+.theme-dark {
+  --background-color: #333;
+  --text-color: #f5f5f5;
+  --card-background-color: #444;
+  --border-color: #555;
+  --button-background-color: #666;
+  --header-background-color: #007BFF;
+  --header-text-color: white;
+  --even-row-background-color: #444;
+  --table-background-color: #333;
+  --table-text-color: #f5f5f5;
+  --table-border-color: #555;
+  --table-header-background-color: #007BFF;
+  --table-header-text-color: white;
+}
 
-  th {
-    background-color: var(--header-background-color);
-    color: var(--header-text-color);
-  }
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: 'Arial', sans-serif;
+}
 
-  tr:nth-child(even) {
-    background-color: var(--even-row-background-color);
-  }
+#owners-card, #toggle-button {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#top-bar, #content, #owners-card {
+  padding: 20px;
+}
+
+table {
+  margin: 20px 0;
+}
+
+th, td {
+  border: 1px solid var(--border-color);
+}
+
+#button-group {
+  display: flex;
+  gap: 10px; /* adjust this value as needed */
+}
+
+#data-display {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#data-entry-link, #download-button, #toggle-button {
+  background-color: var(--button-background-color);
+  color: var(--header-text-color);
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+#data-entry-link:hover, #download-button:hover, #toggle-button:hover {
+  background-color: darken(var(--button-background-color), 10%);
+}
+
+.fas {
+  margin-right: 5px;
+}
+
+#toggle-button {
+  order: 2;
+}
+
+#data-display {
+  order: 1;
+}
+
+th {
+  background-color: var(--table-header-background-color);
+  color: var(--table-header-text-color);
+}
+
+tr:nth-child(even) {
+  background-color: var(--even-row-background-color);
+}
+
 .selected-owner {
   background-color: green;
 }
+
 
   </style>
 </head>
@@ -361,61 +356,35 @@ ownersSet.forEach(function(owner) {
 });
 
 
-    document.getElementById('toggle-button').addEventListener('click', function() {
-      const root = document.documentElement;
-      const lightTheme = {
-        '--background-color': '#f0f0f0',
-        '--text-color': 'black',
-        '--card-background-color': 'white',
-        '--border-color': '#888',
-        '--button-background-color': '#6c757d',
-        '--header-background-color': '#007BFF',
-        '--header-text-color': 'white',
-        '--even-row-background-color': '#f2f2f2',
-        '--table-header-background-color': '#007BFF',
-        '--table-header-text-color': 'white'
-      };
-      const darkTheme = {
-        '--background-color': '#282c34',
-        '--text-color': 'white',
-        '--card-background-color': '#3b4049',
-        '--border-color': '#888',
-        '--button-background-color': '#6c757d',
-        '--header-background-color': '#007BFF',
-        '--header-text-color': 'white',
-        '--even-row-background-color': '#3b4049',
-        '--table-header-background-color': '#282c34',
-        '--table-header-text-color': 'white'
-      };
-      const theme = getComputedStyle(root).getPropertyValue('--background-color').trim() === lightTheme['--background-color'] ? darkTheme : lightTheme;
-      Object.keys(theme).forEach(function(key) {
-        root.style.setProperty(key, theme[key]);
-      });
-
-       // Save the current theme to localStorage
-  localStorage.setItem('theme', JSON.stringify(theme));
-});
-
-// When the page loads, get the saved theme from localStorage and apply it
-window.addEventListener('load', function() {
-  const savedTheme = JSON.parse(localStorage.getItem('theme'));
-  if (savedTheme) {
-    const root = document.documentElement;
-    Object.keys(savedTheme).forEach(function(key) {
-      root.style.setProperty(key, savedTheme[key]);
-    });
+// Define the toggleTheme function
+function toggleTheme(e) {
+  if (e.matches || localStorage.getItem('theme') === 'theme-dark') {
+    document.body.classList.replace('theme-light', 'theme-dark');
+    document.documentElement.style.setProperty('--bg-color', '#1a202c');
+    localStorage.setItem('theme', 'theme-dark');
   } else {
-    // If there is no saved theme, default to light theme
-    const root = document.documentElement;
-    const lightTheme = {
-      // ...your light theme properties...
-    };
-    Object.keys(lightTheme).forEach(function(key) {
-      root.style.setProperty(key, lightTheme[key]);
-    });
+    document.body.classList.replace('theme-dark', 'theme-light');
+    document.documentElement.style.setProperty('--bg-color', '#fff');
+    localStorage.setItem('theme', 'theme-light');
   }
+}
+
+// Listen for dark mode changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', toggleTheme);
+
+// Listen for click events on the toggle button
+document.getElementById('toggle-button').addEventListener('click', function() {
+  const e = { matches: document.body.classList.contains('theme-light') };
+  toggleTheme(e);
 });
 
+// Apply saved theme when the page loads
+window.addEventListener('load', function() {
+  const e = { matches: localStorage.getItem('theme') === 'theme-dark' };
+  toggleTheme(e);
+});
+
+// Add event listener to the download button
 document.getElementById('download-button').addEventListener('click', function() {
   const selectedOwnerDiv = document.querySelector('#owners div.selected-owner');
   if (selectedOwnerDiv) {
@@ -423,27 +392,52 @@ document.getElementById('download-button').addEventListener('click', function() 
     const table = document.querySelector('#data table');
     if (table) {
       var doc = new window.jspdf.jsPDF('landscape');
-      doc.text('Data for ' + owner, 10, 10); // Changed this line
+
+      // Set the font size and color for the title
+      doc.setFontSize(22);
+      doc.setTextColor(40);
+      doc.text('Data for ' + owner, 14, 22);
 
       // Convert HTML table to array
-      const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
-      const data = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => 
-        Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
-      );
+const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+let data = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => 
+  Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
+);
+
+// Move the total balance to the last cell of the last row
+if (data.length > 0) {
+  let lastRow = data[data.length - 1];
+  lastRow = new Array(headers.length).fill(''); // Create a new array filled with empty strings
+  lastRow[lastRow.length - 1] = data[data.length - 1][0]; // Set the last cell to the total balance
+  data[data.length - 1] = lastRow; // Replace the last row in the data array
+}
 
       // Add table to PDF
       doc.autoTable({
-        startY: 20,
+        startY: 30,
         head: [headers],
         body: data,
+        theme: 'striped', // Use the 'striped' theme
         styles: { 
-          lineColor: [0, 0, 0], // Set the line color to black
-          lineWidth: 0.1 // Set the line width to 0.5
+          lineColor: [44, 62, 80], // Set the line color to a dark blue-gray
+          lineWidth: 0.5, // Set the line width to 0.5
+          fontSize: 10 // Set the font size to 10
         },
-        willDrawCell: function(data) {
-          // If this is the last row, change the background color
+        headStyles: {
+          fillColor: [52, 152, 219], // Set the header background color to a medium blue
+          textColor: 255, // Set the header text color to white
+          fontStyle: 'bold' // Set the header font style to bold
+        },
+        alternateRowStyles: {
+          fillColor: [235, 235, 235] // Set the background color for alternate rows
+        },
+        didParseCell: function(data) {
+          // If this is the last row, change the background color and align the text to the right
           if (data.section === 'body' && data.row.index === data.table.body.length - 1) {
-            data.cell.styles.fillColor = [200, 225, 200]; // Set the background color to light gray
+            data.cell.styles.fillColor = [76, 175, 80]; // Set the background color to a darker green
+            data.cell.styles.textColor = [255, 255, 255]; // Set the text color to white
+            data.cell.styles.fontStyle = 'bold'; // Set the font style to bold
+            data.cell.styles.halign = 'right'; // Align the text to the right
           }
         }
       });
@@ -455,8 +449,7 @@ document.getElementById('download-button').addEventListener('click', function() 
       doc.setTextColor(200, 200, 200); // Set the text color to light gray
       doc.text('Reviewed by ia24', pageWidth - 20, pageHeight - 10, null, null, 'right');
 
-
-      doc.save('data.pdf'); // Changed this line
+      doc.save('data.pdf');
     } else {
       alert('No data to download!');
     }

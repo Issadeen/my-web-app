@@ -25,40 +25,50 @@
     <div class="container mx-auto px-4 py-8">
         <button id="themeToggle" class="mb-4 px-4 py-2 border rounded-md">Toggle Theme</button>
         <form id="dataForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <style>
+                input:invalid {
+                    border-color: red;
+                }
+                input:valid {
+                    border-color: green;
+                }
+            </style>
+            
             <div>
                 <label for="date" class="block text-sm font-medium">Date:</label>
-                <input type="text" id="date" name="date" placeholder="dd/mm/yyyy" pattern="\d{1,2}/\d{1,2}/\d{4}" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
-            </div><div>
+                <input type="text" id="date" name="date" placeholder="dd/mm/yyyy" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
+            </div>
+            <div>
                 <label for="owner" class="block text-sm font-medium">Owner:</label>
-                <input type="text" id="owner" name="owner" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="owner" name="owner" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="deport" class="block text-sm font-medium">Deport:</label>
-                <input type="text" id="deport" name="deport" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="deport" name="deport" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="truckNo" class="block text-sm font-medium">Truck No:</label>
-                <input type="text" id="truckNo" name="truckNo" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="truckNo" name="truckNo" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="pms" class="block text-sm font-medium">PMS:</label>
-                <input type="text" id="pms" name="pms" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="pms" name="pms" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="ago" class="block text-sm font-medium">AGO:</label>
-                <input type="text" id="ago" name="ago" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="ago" name="ago" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="at20" class="block text-sm font-medium">AT 20:</label>
-                <input type="text" id="at20" name="at20" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="at20" name="at20" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="price" class="block text-sm font-medium">Price:</label>
-                <input type="text" id="price" name="price" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="price" name="price" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="amount" class="block text-sm font-medium">Amount:</label>
-                <input type="text" id="amount" name="amount" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
+                <input type="text" id="amount" name="amount" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);" required>
             </div>
             <div>
                 <label for="expenses" class="block text-sm font-medium">Expenses:</label>
@@ -80,20 +90,76 @@
                 <label for="balance" class="block text-sm font-medium">Balance:</label>
                 <input type="text" id="balance" name="balance" class="mt-1 block w-full py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" style="background-color: var(--input-bg); color: var(--input-text);">
             </div>
+            
             <div>
-                <button type="submit" class="mt-3 w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                <button type="submit" id="submitBtn" class="mt-3 w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
             </div>
             <div>
-                <button onclick="window.history.back();" class="mt-3 w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Back</button>
+                <button type="button" onclick="window.history.back();" class="mt-3 w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Back</button>
             </div>
-        </form>
-    </div>
+            
+            <script>
+                
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
 
-    <script>
-      
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-    </script>
+                // List of all input fields
+                const fields = ['date', 'owner', 'deport', 'truckNo', 'pms', 'ago', 'at20', 'price', 'amount', 'expenses', 'payments', 'paymentDate', 'transport', 'balance'];
+
+                // Regular expression for date validation
+                const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+                // Regular expression for number validation
+                const numberPattern = /^\d*\.?\d*$/;
+
+                const form = document.getElementById('dataForm'); // replace 'yourFormId' with the id of your form
+                form.addEventListener('submit', function(event) {
+                    let isValid = true;
+                    fields.forEach(field => {
+                        const inputField = document.getElementById(field);
+                        if (field === 'date' || field === 'paymentDate') {
+                            // Validate date fields
+                            if (inputField.value.trim() && !datePattern.test(inputField.value)) {
+                                inputField.setCustomValidity(`Please enter a valid ${field} in the format dd/mm/yyyy.`);
+                                isValid = false;
+                            } else {
+                                inputField.setCustomValidity('');
+                            }
+                        } else if (field === 'pms' || field === 'ago') {
+                            // Validate PMS and AGO fields
+                            const counterpartField = field === 'pms' ? 'ago' : 'pms';
+                            if (!inputField.value.trim() && !document.getElementById(counterpartField).value.trim()) {
+                                inputField.setCustomValidity(`Please enter either ${field.toUpperCase()} or ${counterpartField.toUpperCase()}.`);
+                                isValid = false;
+                            } else if (inputField.value.trim() && !numberPattern.test(inputField.value)) {
+                                inputField.setCustomValidity(`Please enter a valid number for ${field.toUpperCase()}.`);
+                                isValid = false;
+                            } else {
+                                inputField.setCustomValidity('');
+                            }
+                        } else if (field === 'expenses' || field === 'payments' || field === 'transport') {
+                            // Validate expenses, payments, and transport fields if not empty
+                            if (inputField.value.trim() && !numberPattern.test(inputField.value)) {
+                                inputField.setCustomValidity(`Please enter a valid number for ${field.toUpperCase()}.`);
+                                isValid = false;
+                            } else {
+                                inputField.setCustomValidity('');
+                            }
+                        } else if (field !== 'amount' && field !== 'balance' && field !== 'owner' && field !== 'deport' && field !== 'truckNo') {
+                            // Validate other fields
+                            if (!inputField.value.trim()) {
+                                inputField.setCustomValidity(`Please enter a valid ${field}.`);
+                                isValid = false;
+                            } else {
+                                inputField.setCustomValidity('');
+                            }
+                        }
+                    });
+                    if (!isValid) {
+                        event.preventDefault();
+                    }
+                });
+            </script>
+            
 
     <script>
         document.getElementById('themeToggle').addEventListener('click', function() {
