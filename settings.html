@@ -39,6 +39,46 @@
           border-radius: 0.375rem;
           cursor: pointer;
         }
+
+ /* The Modal (background) */
+ .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+        /* The Close Button */
+        .close {
+          color: #aaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
       </style>
 </head>
 <body class="bg-gray-800 text-white">
@@ -69,22 +109,34 @@
         </form>
     </div>
 
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+
+      <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
     <script>
 
-        firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
     </script>
 <script>
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-            console.log('User is signed in. UID:', user.uid);
+            console.log('User is signed in.');
 
             firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
-                    console.log('User document exists. Data:', snapshot.val());
+                    console.log('User document exists.');
 
                     let email = user.email;
                     let workId = snapshot.val().workId;
@@ -95,7 +147,7 @@
                     document.getElementById('email').value = email;
                     document.getElementById('workId').value = workId;
                 } else {
-                    console.log('No user document found at path:', 'users/' + user.uid);
+                    console.log('No user document found.');
                 }
             }).catch((error) => {
                 console.log('Error getting user document:', error);
@@ -140,6 +192,24 @@
             alert('Incorrect current password');
         });
     });
+
+    // Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the close button
+var close = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the close button, close the modal
+close.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
 </script>
 <body>
 </html>
