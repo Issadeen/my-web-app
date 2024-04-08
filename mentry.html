@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Mother Entries</title>
-    <script src="config.js"></script>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
 </head>
 <style>
     :root {
@@ -56,6 +59,46 @@ body.dark-theme input.theme-input {
     background-color: var(--dark-background);
     color: var(--dark-text);
 }
+
+ /* The Modal (background) */
+ .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+        /* The Close Button */
+        .close {
+          color: #aaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+        }
+
 </style>
 
 <body class="bg-gray-100">
@@ -75,11 +118,25 @@ body.dark-theme input.theme-input {
             <button type="button" id="addTR800Button" onclick="addTR800()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add TR800</button>
             <button type="button" onclick="window.location.href='kentry.html'" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Back</button>
         </form>
+
+        <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
+
+
     </div>
 
     <script>
-        // Initialize Firebase
+            // Initialize Firebase
+       
+            if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
+    }
 
         // Get a reference to the database service
         var database = firebase.database();
@@ -164,6 +221,25 @@ document.getElementById('themeSwitcher').addEventListener('click', function() {
                 document.body.classList.remove('dark-theme');
             }
         });
+
+
+        // Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the close button
+var close = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the close button, close the modal
+close.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
     </script>
 </body>
 </html>
