@@ -6,10 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data Display</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
+  <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
   <!-- Include other necessary scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
   <style>
   
   #top-bar {
@@ -162,6 +168,82 @@ tr:nth-child(even) {
   background-color: green;
 }
 
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: var(--bg-primary); /* Fallback color */
+  background-color: rgba(var(--bg-primary), 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+/* The Close Button */
+.close {
+  color: var(--input-text);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+body.light-theme .modal {
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        body.dark-theme .modal {
+            background-color: rgba(255,255,255,0.4); /* White w/ opacity */
+        }
+
+        body.light-theme .modal-content {
+            background-color: var(--light-background);
+            color: var(--light-text);
+            border: 1px solid var(--light-secondary);
+        }
+
+        body.dark-theme .modal-content {
+            background-color: var(--dark-background);
+            color: var(--dark-text);
+            border: 1px solid var(--dark-secondary);
+        }
+
+        body.light-theme .close {
+            color: var(--light-secondary);
+        }
+
+        body.light-theme .close:hover,
+        body.light-theme .close:focus {
+            color: var(--light-primary);
+        }
+
+        body.dark-theme .close {
+            color: var(--dark-secondary);
+        }
+
+        body.dark-theme .close:hover,
+        body.dark-theme .close:focus {
+            color: var(--dark-primary);
+        }
 
   </style>
 </head>
@@ -172,6 +254,9 @@ tr:nth-child(even) {
       <button id="download-button">Download PDF</button>
       <button id="toggle-button">Toggle Theme</button>
       <button id="editButton" disabled>Edit</button> <!-- Add this line -->
+      <button onclick="window.location.href='dashboard.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <i class="fas fa-home"></i>
+    </button>
     </div>
     <div id="data-display">Data Display</div>
   </div>
@@ -182,17 +267,35 @@ tr:nth-child(even) {
     <div id="data"></div>
   </div>
 
-  <script src="config.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
+
+
 
   <script>
-     // intialize firebase...
-   firebase.initializeApp(firebaseConfig);
+    // Get the modal
+    var modal = document.getElementById("myModal");
+    
+    // Get the close button
+    var close = document.getElementsByClassName("close")[0];
+    
+    // When the user clicks on the close button, close the modal
+    close.onclick = function() {
+      modal.style.display = "none";
+    }
+    
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
 
     let canEdit;
 
@@ -205,16 +308,8 @@ firebase.auth().onAuthStateChanged(function(user) {
     editButton.addEventListener('click', function() {
       const workId = prompt('Please enter your work ID:');
       if (workId) {
-        firebase.database().ref('users').once('value', function(snapshot) {
-          let workIdExists = false;
-          snapshot.forEach(function(userSnapshot) {
-            if (userSnapshot.val().workId === workId) {
-              workIdExists = true;
-              return true; // Stop looping through the users
-            }
-          });
-          if (workIdExists) {
-            canEdit = true;
+        firebase.database().ref('users/' + user.uid).once('value', function(snapshot) {
+          if (snapshot.val().workId === workId) {
             // Enable editing for all editable divs
             const editableDivs = document.querySelectorAll('[contentEditable="false"]');
             editableDivs.forEach(function(div) {
