@@ -5,9 +5,11 @@
         <title>Truck Details</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+        <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
         <script src="config.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+        <script src="auth.js"></script>
         <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
         <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
 
@@ -89,6 +91,44 @@
                 transform: translateY(0) rotate(360deg);
             }
         }
+ /* The Modal (background) */
+ .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+        /* The Close Button */
+        .close {
+          color: #aaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+        }
         </style>
 
     </head>
@@ -106,296 +146,270 @@
         <!-- Data container -->
         <div id="data-cards-container" class="mt-4"></div>
 
+                     <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
+
         <script>
-
-
-            firebase.initializeApp(firebaseConfig);
-            var database = firebase.database();
-
-            // Check if user is logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in, set timeout to log out user after 5 minutes of inactivity
-                    var timeout;
-                    window.onload = resetTimer;
-                    document.onmousemove = resetTimer;
-                    document.onkeypress = resetTimer;
-
-                    function logout() {
-                        firebase.auth().signOut();
-                    }
-
-                    function resetTimer() {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(logout, 300000); // 300000ms = 5 minutes
-                    }
-
-                    // Start data retrieval
-                    document.getElementById('loading-animation').style.visibility = 'visible';
-
-
-
-                    // Retrieve data from Firebase and create data cards
-                    var dataCardsContainer = document.getElementById("data-cards-container");
-                    dataCardsContainer.classList.add("flex", "flex-wrap", "justify-around", "items-stretch", "md:flex-row", "sm:flex-col");
-
-                    // Replace this with your actual Firebase data retrieval code
-                    database.ref('your-firebase-data-path').once('value', function(snapshot) {
-                        // Use the data to create data cards
-
-                        // Finish data retrieval
-                        document.getElementById('loading-animation').style.display = 'none';
-                    }, function(error) {
-                        console.error('Error:', error);
-
-                        // Finish data retrieval
-                        document.getElementById('loading-animation').style.display = 'none';
-                    });
-                } else {
-                    // No user is signed in, redirect to login page
-                    window.location.href = "index.html";
-                }
-            });
-            
-            // Retrieve data from Firebase and create data cards
-            var dataCardsContainer = document.getElementById("data-cards-container");
-            dataCardsContainer.classList.add("flex", "flex-wrap", "justify-around", "items-stretch", "md:flex-row", "sm:flex-col");
-
-            // Create top bar
-            var topBar = document.createElement("div");
-            topBar.classList.add("w-full", "flex", "justify-between", "items-center", "p-4", "bg-gray-800", "text-white", "mb-4", "shadow");
-            var title = document.createElement("h1");
-            title.textContent = "Truck Details";
-            topBar.appendChild(title);
-
-            // Get existing toggle button and append it to the top bar
-            var toggleButton = document.getElementById("toggle-button");
-            topBar.appendChild(toggleButton);
-
-            // Create back button
-            var backButton = document.createElement("button");
-            backButton.classList.add("p-2", "rounded-lg", "bg-blue-500", "text-white");
-            backButton.textContent = "Back";
-            backButton.addEventListener("click", function () {
-                window.location.href = "dashboard.html";
-            });
-            topBar.appendChild(backButton);
-
-            document.body.insertBefore(topBar, dataCardsContainer);
-// Check the saved theme
-const savedTheme = localStorage.getItem('theme') || 'dark';
-
-// Add search input
-var searchInput = document.createElement("input");
-searchInput.setAttribute("type", "text");
-searchInput.setAttribute("id", "searchBox");
-searchInput.setAttribute("placeholder", "Search by truck no...");
-
-// Add classes based on the saved theme
-if (savedTheme === 'light') {
-    searchInput.classList.add("w-2/3", "mb-4", "p-2", "rounded-lg", "bg-white", "text-black", "border-2", "border-green-500");
-} else {
-    searchInput.classList.add("w-2/3", "mb-4", "p-2", "rounded-lg", "bg-gray-800", "text-white", "border-2", "border-green-500");
-}
-
-// Create arrow icon
-var arrowIcon = document.createElement("i");
-arrowIcon.classList.add("fa", "fa-arrow-up"); // Change these classes to match your icon library
-arrowIcon.setAttribute("id", "arrow-icon");
-arrowIcon.style.display = "none"; // Initially hide the arrow icon
-arrowIcon.style.position = "fixed"; // Position the arrow icon as fixed
-arrowIcon.style.bottom = "20px"; // Set the bottom property of the arrow icon
-arrowIcon.style.right = "20px"; // Set the right property of the arrow icon
-arrowIcon.style.fontSize = "24px"; // Set the size of the arrow icon
-arrowIcon.style.color = "#000"; // Set the color of the arrow icon
-arrowIcon.style.zIndex = "9999"; // Make the arrow icon always be on top of other elements
-arrowIcon.style.animation = "bounceAndSpin 3s infinite linear";
-// Add hover effect
-arrowIcon.addEventListener("mouseover", function() {
-    arrowIcon.style.color = "#f00"; // Change the color of the arrow icon on hover
-});
-arrowIcon.addEventListener("mouseout", function() {
-    arrowIcon.style.color = "#000"; // Change the color of the arrow icon back when mouse is out
-});
-
-// Append arrow icon to body
-document.body.appendChild(arrowIcon);
-
-// Append arrow icon to body
-document.body.appendChild(arrowIcon);
-
-// Center search input and arrow icon
-var searchContainer = document.createElement("div");
-searchContainer.classList.add("flex", "justify-center");
-searchContainer.setAttribute("id", "searchContainer");
-searchContainer.appendChild(arrowIcon);
-searchContainer.appendChild(searchInput);
-
-// Add event listeners to arrow icon
-["click", "touchend"].forEach(function(evt) {
-    arrowIcon.addEventListener(evt, function (event) {
-        // Scroll to the top of the page when arrow icon is clicked or tapped
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Prevent default action and stop event propagation
-        event.preventDefault();
-        event.stopPropagation();
-    });
-});
-
-
-window.addEventListener("scroll", function () {
-    // Show arrow icon and hide search box when user scrolls beyond a certain point
-    if (window.scrollY > 100) { // Change 100 to the desired scroll position
-        arrowIcon.style.display = "";
-        searchInput.style.display = "none";
-    } else {
-        arrowIcon.style.display = "none";
-        searchInput.style.display = "";
+            // Initialize Firebase
+       
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
     }
-});
-
-            document.body.insertBefore(searchContainer, dataCardsContainer);
-
-            // Retrieve data from Firebase and create data cards
-            dataCardsContainer.classList.add("grid", "grid-cols-1", "md:grid-cols-3", "gap-4", "justify-center");
-
-            // Check the saved theme
-
-
-            var dataRef = database.ref("trucks");
-            dataRef.on("child_added", function (childSnapshot) {
-            var childData = childSnapshot.val();
-            var dataCard = document.createElement("div");
-
-            // Add classes based on the saved theme
-            if (savedTheme === 'light') {
-            dataCard.classList.add("data-card", "w-full", "max-w-xs", "bg-white", "text-black", "rounded-lg", "shadow-lg", "p-4", "mb-4", "mx-2", "shadow-2xl", "border-2", "border-green-500", "transform", "transition", "duration-500", "hover:scale-105");
-              } else {
-            dataCard.classList.add("data-card", "w-full", "max-w-xs", "bg-gray-800", "text-white", "rounded-lg", "shadow-lg", "p-4", "mb-4", "mx-2", "shadow-2xl", "border-2", "border-green-500", "transform", "transition", "duration-500", "hover:scale-105");
-            }
-                var ago_comp_5 = childData.ago_comp_5 ? childData.ago_comp_5 : '';
-                var pms_5 = childData.pms_5 ? childData.pms_5 : '';
-
-                var ago_comp_6 = childData.ago_comp_5 ? childData.ago_comp_6 : '';
-                var pms_6 = childData.pms_5 ? childData.pms_6 : '';
-                
-                // Function to check if a value is undefined
-                function checkUndefined(value) {
-                    return value === undefined ? '' : value;
-                }
-
-                // Calculate the total of AGO and PMS
-                var totalAgo = (Number(childData.ago_comp_1) || 0) + (Number(childData.ago_comp_2) || 0) + (Number(childData.ago_comp_3) || 0) + (Number(childData.ago_comp_4) || 0) + (Number(childData.ago_comp_5) || 0) + (Number(childData.ago_comp_6) || 0);
-                var totalPms = (Number(childData.pms_1) || 0) + (Number(childData.pms_2) || 0) + (Number(childData.pms_3) || 0) + (Number(childData.pms_4) || 0) + (Number(childData.pms_5) || 0) + (Number(childData.pms_6) || 0);
-
-                dataCard.innerHTML = `
-                    <h2 class="text-lg font-medium">${childData.truck_no}</h2>
-                    <p>Driver: ${childData.driver}</p>
-                    <p>Transporter: ${childData.transporter}</p>
-                    <p>AGO Comp: ${checkUndefined(childData.ago_comp_1)}, ${checkUndefined(childData.ago_comp_2)}, ${checkUndefined(childData.ago_comp_3)}, ${checkUndefined(childData.ago_comp_4)}, ${checkUndefined(childData.ago_comp_5)},${checkUndefined(childData.ago_comp_6)} (Total: ${totalAgo})</p>
-                    <p>PMS: ${checkUndefined(childData.pms_1)}, ${checkUndefined(childData.pms_2)}, ${checkUndefined(childData.pms_3)}, ${checkUndefined(childData.pms_4)}, ${checkUndefined(childData.pms_5)},${checkUndefined(childData.pms_6)}  (Total: ${totalPms})</p>
-                `;
-                dataCard.setAttribute("data-truck-no", childData.truck_no);
-            
-                
-            
-
-            // Create copy button with copy icon
-            var copyButton = document.createElement("button");
-            copyButton.classList.add("mr-2","p-2", "rounded-lg", "bg-blue-500", "text-white", "mt-4");
-            var copyIcon = document.createElement("i");
-            copyIcon.classList.add("fa", "fa-copy"); // Change these classes to match your icon library
-            copyButton.appendChild(copyIcon);
-            copyButton.addEventListener("click", function () {
-                // Create arrays of the compartments
-                var agoComps = [childData.ago_comp_1, childData.ago_comp_2, childData.ago_comp_3, childData.ago_comp_4, childData.ago_comp_5, childData.ago_comp_6];
-                var pmsComps = [childData.pms_1, childData.pms_2, childData.pms_3, childData.pms_4, childData.pms_5, childData.pms_6];
-
-                // Filter out the undefined compartments and join them with commas
-                var agoCompsString = agoComps.filter(comp => comp !== undefined).join(', ');
-                var pmsCompsString = pmsComps.filter(comp => comp !== undefined).join(', ');
-
-                // Calculate the total of AGO and PMS
-                var totalAgo = agoComps.reduce((total, comp) => total + (Number(comp) || 0), 0);
-                var totalPms = pmsComps.reduce((total, comp) => total + (Number(comp) || 0), 0);
-
-                var dataToCopy = `Truck No: ${childData.truck_no}\nDriver: ${childData.driver}\nTransporter: ${childData.transporter}\nAGO Comps: ${agoCompsString} (Total: ${totalAgo})\nPMS: ${pmsCompsString} (Total: ${totalPms})`;
-                navigator.clipboard.writeText(dataToCopy);
-                // Change icon to tick
-                copyIcon.classList.remove("fa-copy");
-                copyIcon.classList.add("fa-check");
-                // Change icon back to copy after a delay
-                setTimeout(function () {
-                    copyIcon.classList.remove("fa-check");
-                    copyIcon.classList.add("fa-copy");
-                }, 2000); // 2000ms = 2 seconds
-            });
-            dataCard.appendChild(copyButton);
-
-            // Create edit button with edit icon
-            var editButton = document.createElement("button");
-            editButton.classList.add("mr-2","p-2", "rounded-lg", "bg-green-500", "text-white", "mt-4");
-            var editIcon = document.createElement("i");
-            editIcon.classList.add("fa", "fa-edit"); // Change these classes to match your icon library
-            editButton.appendChild(editIcon);
-            editButton.addEventListener("click", function () {
-            firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-            // Get the user's work ID from Realtime Database
-            firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    let workId = snapshot.val().workId;
-                    let enteredWorkId = prompt("Enter your work ID to edit a truck:");
-                    if (workId === enteredWorkId) {
-                        // Redirect to edit page with truck ID in URL
-                        window.location.href = "edittruck.html?id=" + childSnapshot.key;
-                    } else {
-                        alert("Incorrect work ID.");
-                    }
-                }
-             });
-             } else {
-            alert("You need to be logged in to edit a truck.");
-            }
+    var database = firebase.database();
+    
+    // Start data retrieval
+    document.getElementById('loading-animation').style.visibility = 'visible';
+    
+    // Retrieve data from Firebase and create data cards
+    var dataCardsContainer = document.getElementById("data-cards-container");
+    dataCardsContainer.classList.add("flex", "flex-wrap", "justify-around", "items-stretch", "md:flex-row", "sm:flex-col");
+    
+    // Replace this with your actual Firebase data retrieval code
+    database.ref('your-firebase-data-path').once('value', function(snapshot) {
+        // Use the data to create data cards
+    
+        // Finish data retrieval
+        document.getElementById('loading-animation').style.display = 'none';
+    }, function(error) {
+        console.error('Error:', error);
+    
+        // Finish data retrieval
+        document.getElementById('loading-animation').style.display = 'none';
+    });
+    
+    // Create top bar
+    var topBar = document.createElement("div");
+    topBar.classList.add("w-full", "flex", "justify-between", "items-center", "p-4", "bg-gray-800", "text-white", "mb-4", "shadow");
+    var title = document.createElement("h1");
+    title.textContent = "Truck Details";
+    topBar.appendChild(title);
+    
+    // Get existing toggle button and append it to the top bar
+    var toggleButton = document.getElementById("toggle-button");
+    topBar.appendChild(toggleButton);
+    
+    // Create back button
+    var backButton = document.createElement("button");
+    backButton.classList.add("p-2", "rounded-lg", "bg-blue-500", "text-white");
+    backButton.textContent = "Back";
+    backButton.addEventListener("click", function () {
+        window.location.href = "dashboard.html";
+    });
+    topBar.appendChild(backButton);
+    
+    document.body.insertBefore(topBar, dataCardsContainer);
+    
+    // Check the saved theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    
+    // Add search input
+    var searchInput = document.createElement("input");
+    searchInput.setAttribute("type", "text");
+    searchInput.setAttribute("id", "searchBox");
+    searchInput.setAttribute("placeholder", "Search by truck no...");
+    
+    // Add classes based on the saved theme
+    if (savedTheme === 'light') {
+        searchInput.classList.add("w-2/3", "mb-4", "p-2", "rounded-lg", "bg-white", "text-black", "border-2", "border-green-500");
+    } else {
+        searchInput.classList.add("w-2/3", "mb-4", "p-2", "rounded-lg", "bg-gray-800", "text-white", "border-2", "border-green-500");
+    }
+    
+    // Create arrow icon
+    var arrowIcon = document.createElement("i");
+    arrowIcon.classList.add("fa", "fa-arrow-up"); // Change these classes to match your icon library
+    arrowIcon.setAttribute("id", "arrow-icon");
+    arrowIcon.style.display = "none"; // Initially hide the arrow icon
+    arrowIcon.style.position = "fixed"; // Position the arrow icon as fixed
+    arrowIcon.style.bottom = "20px"; // Set the bottom property of the arrow icon
+    arrowIcon.style.right = "20px"; // Set the right property of the arrow icon
+    arrowIcon.style.fontSize = "24px"; // Set the size of the arrow icon
+    arrowIcon.style.color = "#000"; // Set the color of the arrow icon
+    arrowIcon.style.zIndex = "9999"; // Make the arrow icon always be on top of other elements
+    arrowIcon.style.animation = "bounceAndSpin 3s infinite linear";
+    
+    // Add hover effect
+    arrowIcon.addEventListener("mouseover", function() {
+        arrowIcon.style.color = "#f00"; // Change the color of the arrow icon on hover
+    });
+    arrowIcon.addEventListener("mouseout", function() {
+        arrowIcon.style.color = "#000"; // Change the color of the arrow icon back when mouse is out
+    });
+    
+    // Append arrow icon to body
+    document.body.appendChild(arrowIcon);
+    
+    // Center search input and arrow icon
+    var searchContainer = document.createElement("div");
+    searchContainer.classList.add("flex", "justify-center");
+    searchContainer.setAttribute("id", "searchContainer");
+    searchContainer.appendChild(arrowIcon);
+    searchContainer.appendChild(searchInput);
+    
+    // Add event listeners to arrow icon
+    ["click", "touchend"].forEach(function(evt) {
+        arrowIcon.addEventListener(evt, function (event) {
+            // Scroll to the top of the page when arrow icon is clicked or tapped
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Prevent default action and stop event propagation
+            event.preventDefault();
+            event.stopPropagation();
         });
-        });
-            dataCard.appendChild(editButton);
-
-            dataCardsContainer.appendChild(dataCard);
-
-            // Add event listener to delete button
-            var deleteButton = document.createElement("button");
-            deleteButton.classList.add("p-2", "rounded-lg", "bg-red-500", "text-white", "mt-4");
-            var deleteIcon = document.createElement("i");
-            deleteIcon.classList.add("fa", "fa-trash"); // Change these classes to match your icon library
-            deleteButton.appendChild(deleteIcon);
-            deleteButton.addEventListener("click", function () {
-            firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            // Get the user's work ID from Realtime Database
-            firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    let workId = snapshot.val().workId;
-                    let enteredWorkId = prompt("Enter your work ID to delete a truck:");
-                    if (workId === enteredWorkId) {
-                        // Delete truck from database
-                        database.ref("trucks/" + childSnapshot.key).remove();
-                        // Remove data card from page
-                        dataCard.remove();
-                    } else {
-                        alert("Incorrect work ID.");
-                    }
-                }
-            });
+    });
+    
+    window.addEventListener("scroll", function () {
+        // Show arrow icon and hide search box when user scrolls beyond a certain point
+        if (window.scrollY > 100) { // Change 100 to the desired scroll position
+            arrowIcon.style.display = "";
+            searchInput.style.display = "none";
         } else {
-            alert("You need to be logged in to delete a truck.");
+            arrowIcon.style.display = "none";
+            searchInput.style.display = "";
         }
     });
+    
+    document.body.insertBefore(searchContainer, dataCardsContainer);
+    
+    // Retrieve data from Firebase and create data cards
+    dataCardsContainer.classList.add("grid", "grid-cols-1", "md:grid-cols-3", "gap-4", "justify-center");
+    
+    // Check the saved theme
+    var dataRef = database.ref("trucks");
+    dataRef.on("child_added", function (childSnapshot) {
+        var childData = childSnapshot.val();
+        var dataCard = document.createElement("div");
+    
+        // Add classes based on the saved theme
+        if (savedTheme === 'light') {
+            dataCard.classList.add("data-card", "w-full", "max-w-xs", "bg-white", "text-black", "rounded-lg", "shadow-lg", "p-4", "mb-4", "mx-2", "shadow-2xl", "border-2", "border-green-500", "transform", "transition", "duration-500", "hover:scale-105");
+        } else {
+            dataCard.classList.add("data-card", "w-full", "max-w-xs", "bg-gray-800", "text-white", "rounded-lg", "shadow-lg", "p-4", "mb-4", "mx-2", "shadow-2xl", "border-2", "border-green-500", "transform", "transition", "duration-500", "hover:scale-105");
+        }
+    
+        var ago_comp_5 = childData.ago_comp_5 ? childData.ago_comp_5 : '';
+        var pms_5 = childData.pms_5 ? childData.pms_5 : '';
+    
+        var ago_comp_6 = childData.ago_comp_5 ? childData.ago_comp_6 : '';
+        var pms_6 = childData.pms_5 ? childData.pms_6 : '';
+    
+        // Function to check if a value is undefined
+        function checkUndefined(value) {
+            return value === undefined ? '' : value;
+        }
+    
+        // Calculate the total of AGO and PMS
+        var totalAgo = (Number(childData.ago_comp_1) || 0) + (Number(childData.ago_comp_2) || 0) + (Number(childData.ago_comp_3) || 0) + (Number(childData.ago_comp_4) || 0) + (Number(childData.ago_comp_5) || 0) + (Number(childData.ago_comp_6) || 0);
+        var totalPms = (Number(childData.pms_1) || 0) + (Number(childData.pms_2) || 0) + (Number(childData.pms_3) || 0) + (Number(childData.pms_4) || 0) + (Number(childData.pms_5) || 0) + (Number(childData.pms_6) || 0);
+    
+        dataCard.innerHTML = `
+            <h2 class="text-lg font-medium">${childData.truck_no}</h2>
+            <p>Driver: ${childData.driver}</p>
+            <p>Transporter: ${childData.transporter}</p>
+            <p>AGO Comp: ${checkUndefined(childData.ago_comp_1)}, ${checkUndefined(childData.ago_comp_2)}, ${checkUndefined(childData.ago_comp_3)}, ${checkUndefined(childData.ago_comp_4)}, ${checkUndefined(childData.ago_comp_5)},${checkUndefined(childData.ago_comp_6)} (Total: ${totalAgo})</p>
+            <p>PMS: ${checkUndefined(childData.pms_1)}, ${checkUndefined(childData.pms_2)}, ${checkUndefined(childData.pms_3)}, ${checkUndefined(childData.pms_4)}, ${checkUndefined(childData.pms_5)},${checkUndefined(childData.pms_6)}  (Total: ${totalPms})</p>
+        `;
+        dataCard.setAttribute("data-truck-no", childData.truck_no);
+    
+        // Create copy button with copy icon
+        var copyButton = document.createElement("button");
+        copyButton.classList.add("mr-2","p-2", "rounded-lg", "bg-blue-500", "text-white", "mt-4");
+        var copyIcon = document.createElement("i");
+        copyIcon.classList.add("fa", "fa-copy"); // Change these classes to match your icon library
+        copyButton.appendChild(copyIcon);
+        copyButton.addEventListener("click", function () {
+            // Create arrays of the compartments
+            var agoComps = [childData.ago_comp_1, childData.ago_comp_2, childData.ago_comp_3, childData.ago_comp_4, childData.ago_comp_5, childData.ago_comp_6];
+            var pmsComps = [childData.pms_1, childData.pms_2, childData.pms_3, childData.pms_4, childData.pms_5, childData.pms_6];
+    
+            // Filter out the undefined compartments and join them with commas
+            var agoCompsString = agoComps.filter(comp => comp !== undefined).join(', ');
+            var pmsCompsString = pmsComps.filter(comp => comp !== undefined).join(', ');
+    
+            // Calculate the total of AGO and PMS
+            var totalAgo = agoComps.reduce((total, comp) => total + (Number(comp) || 0), 0);
+            var totalPms = pmsComps.reduce((total, comp) => total + (Number(comp) || 0), 0);
+    
+            var dataToCopy = `Truck No: ${childData.truck_no}\nDriver: ${childData.driver}\nTransporter: ${childData.transporter}\nAGO Comps: ${agoCompsString} (Total: ${totalAgo})\nPMS: ${pmsCompsString} (Total: ${totalPms})`;
+            navigator.clipboard.writeText(dataToCopy);
+            // Change icon to tick
+            copyIcon.classList.remove("fa-copy");
+            copyIcon.classList.add("fa-check");
+            // Change icon back to copy after a delay
+            setTimeout(function () {
+                copyIcon.classList.remove("fa-check");
+                copyIcon.classList.add("fa-copy");
+            }, 2000); // 2000ms = 2 seconds
+        });
+        dataCard.appendChild(copyButton);
+    
+        // Create edit button with edit icon
+        var editButton = document.createElement("button");
+        editButton.classList.add("mr-2","p-2", "rounded-lg", "bg-green-500", "text-white", "mt-4");
+        var editIcon = document.createElement("i");
+        editIcon.classList.add("fa", "fa-edit"); // Change these classes to match your icon library
+        editButton.appendChild(editIcon);
+        editButton.addEventListener("click", function () {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    // Get the user's work ID from Realtime Database
+                    firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
+                        if (snapshot.exists()) {
+                            let workId = snapshot.val().workId;
+                            let enteredWorkId = prompt("Enter your work ID to edit a truck:");
+                            if (workId === enteredWorkId) {
+                                // Redirect to edit page with truck ID in URL
+                                window.location.href = "edittruck.html?id=" + childSnapshot.key;
+                            } else {
+                                alert("Incorrect work ID.");
+                            }
+                        }
+                    });
+                } else {
+                    alert("You need to be logged in to edit a truck.");
+                }
             });
-            dataCard.appendChild(deleteButton);
-
+        });
+        dataCard.appendChild(editButton);
+    
+        dataCardsContainer.appendChild(dataCard);
+    
+        // Add event listener to delete button
+        var deleteButton = document.createElement("button");
+        deleteButton.classList.add("p-2", "rounded-lg", "bg-red-500", "text-white", "mt-4");
+        var deleteIcon = document.createElement("i");
+        deleteIcon.classList.add("fa", "fa-trash"); // Change these classes to match your icon library
+        deleteButton.appendChild(deleteIcon);
+        deleteButton.addEventListener("click", function () {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    // Get the user's work ID from Realtime Database
+                    firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
+                        if (snapshot.exists()) {
+                            let workId = snapshot.val().workId;
+                            let enteredWorkId = prompt("Enter your work ID to delete a truck:");
+                            if (workId === enteredWorkId) {
+                                // Delete truck from database
+                                database.ref("trucks/" + childSnapshot.key).remove();
+                                // Remove data card from page
+                                dataCard.remove();
+                            } else {
+                                alert("Incorrect work ID.");
+                            }
+                        }
+                    });
+                } else {
+                    alert("You need to be logged in to delete a truck.");
+                }
             });
-
+        });
+        dataCard.appendChild(deleteButton);
+    });
             
 
             // Add search functionality
@@ -465,6 +479,25 @@ window.onload = () => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
 };
+
+
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the close button
+var close = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the close button, close the modal
+close.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
         </script>
     </body>
 </html>
