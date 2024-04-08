@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>wk dashboard</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
   <script src="config.js"></script>
+  <script src="auth.js"></script>
   <style>
 /* base styles for all screen sizes */
 .container {
@@ -132,6 +137,82 @@ body.dark-theme {
   background-color: var(--btn-hover-bg-color);
 }
 
+.modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }        
+        
+        body.light-theme .modal {
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        body.dark-theme .modal {
+            background-color: rgba(255,255,255,0.4); /* White w/ opacity */
+        }
+
+        body.light-theme .modal-content {
+            background-color: var(--light-background);
+            color: var(--light-text);
+            border: 1px solid var(--light-secondary);
+        }
+
+        body.dark-theme .modal-content {
+            background-color: var(--dark-background);
+            color: var(--dark-text);
+            border: 1px solid var(--dark-secondary);
+        }
+
+        body.light-theme .close {
+            color: var(--light-secondary);
+        }
+
+        body.light-theme .close:hover,
+        body.light-theme .close:focus {
+            color: var(--light-primary);
+        }
+
+        body.dark-theme .close {
+            color: var(--dark-secondary);
+        }
+
+        body.dark-theme .close:hover,
+        body.dark-theme .close:focus {
+            color: var(--dark-primary);
+        }
+
   </style>
 </head>
 <body>
@@ -175,12 +256,72 @@ body.dark-theme {
     </div>
     
   </div>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
+
+  <script>
+    
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the close button
+var close = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the close button, close the modal
+close.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+    // Define the toggleTheme function
+    function toggleTheme(e) {
+      if (e.matches || localStorage.getItem('theme') === 'theme-dark') {
+        document.body.classList.remove('theme-light');
+        document.body.classList.add('theme-dark');
+        localStorage.setItem('theme', 'theme-dark');
+      } else {
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+        localStorage.setItem('theme', 'theme-light');
+      }
+    }
+
+    // Listen for dark mode changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', toggleTheme);
+
+    // Listen for click events on the toggle button
+    document.getElementById('themeSwitcher').addEventListener('click', function() {
+      const e = { matches: document.body.classList.contains('theme-light') };
+      toggleTheme(e);
+    });
+
+    // Apply saved theme when the page loads
+    window.addEventListener('load', function() {
+      const e = { matches: localStorage.getItem('theme') === 'theme-dark' };
+      toggleTheme(e);
+    });
+
+  </script>
+
+
   <script>
       // Initialize Firebase
       
-      firebase.initializeApp(firebaseConfig);
+      if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
       const db = firebase.firestore();
 
       // Function to retrieve the recent activity from Firebase and display it as a list
