@@ -7,10 +7,11 @@
   <title>Dashboard</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
-  <script src="config.js"></script>
   <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
   
   <style>
     :root {
@@ -145,7 +146,80 @@
     #user-menu:not(.hidden) {
       display: block;
     }
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+}
 
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+body.light-theme .modal-content {
+  background-color: var(--light-background);
+  color: var(--light-text);
+  border: 1px solid var(--light-secondary);
+}
+
+body.dark-theme .modal-content {
+  background-color: var(--dark-background);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-secondary);
+}
+
+body.light-theme .close {
+  color: var(--light-secondary);
+}
+
+body.light-theme .close:hover,
+body.light-theme .close:focus {
+  color: var(--light-primary);
+}
+
+body.dark-theme .close {
+  color: var(--dark-secondary);
+}
+
+body.dark-theme .close:hover,
+body.dark-theme .close:focus {
+  color: var(--dark-primary);
+}
+
+body.light-theme .modal {
+  background-color: var(--light-modal-background);
+}
+
+body.dark-theme .modal {
+  background-color: var(--dark-modal-background);
+}
     
   </style>
 
@@ -223,6 +297,15 @@
 
             </div>
 
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+              <!-- Modal content -->
+              <div class="modal-content">
+                <span class="close">&times;</span>
+                <p>Your session will end soon due to inactivity.</p>
+              </div>
+            </div>
+
             <script>
               const toggleTheme = () => {
                 const body = document.body;
@@ -273,6 +356,24 @@
               }
               
               themeToggleBtn.addEventListener('click', toggleTheme);
+
+              // Get the modal
+              var modal = document.getElementById("myModal");
+              
+              // Get the close button
+              var close = document.getElementsByClassName("close")[0];
+              
+              // When the user clicks on the close button, close the modal
+              close.onclick = function() {
+                modal.style.display = "none";
+              }
+              
+              // When the user clicks anywhere outside of the modal, close it
+              window.onclick = function(event) {
+                if (event.target == modal) {
+                  modal.style.display = "none";
+                }
+              }
             </script>
            <script>
               document.addEventListener('DOMContentLoaded', (event) => {
@@ -293,7 +394,7 @@
                 }
               });
               
-          firebase.initializeApp(firebaseConfig);
+          
 
           const welcomeTitle = document.getElementById('welcome-title');
           const issaerium = document.getElementById('issaerium');
