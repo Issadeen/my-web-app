@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // Get the <span> element that closes the modal
     var span = document.getElementsByClassName("close")[0];
 
+
     // Set timeout for inactivity
     let timeout;
-    const INACTIVITY_LIMIT = 4 * 60 * 1000; // 10 minutes
-    const WARNING_TIME = 2 * 60 * 1000; // 3 minutes
+    const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
+    
+    let countdown;
 
     function startTimer() {
         timeout = setTimeout(function() {
@@ -32,11 +34,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
         clearTimeout(timeout);
         startTimer();
         hideWarning();
+        clearInterval(countdown);
     }
 
     function showWarning() {
         // Display warning to user
         modal.style.display = "block";
+        console.log('Modal visible');
     }
 
     function hideWarning() {
@@ -54,13 +58,30 @@ document.addEventListener('DOMContentLoaded', (event) => {
             // User is not signed in, redirect to index.html
             window.location.href = "index.html";
         } else {
-            console.log('User is signed in. UID:', user.uid);
+            console.log('User is signed in.');
         }
     });
 
-    // Show warning 3 minutes before session ends
-    setTimeout(showWarning, INACTIVITY_LIMIT - WARNING_TIME);
+let WARNING_TIME = 2 * 60 * 1000; // 2 minutes
+let countdownTime = WARNING_TIME; // Countdown time starts at WARNING_TIME
 
+// Show warning 3 minutes before session ends
+setTimeout(() => {
+    countdown = setInterval(() => {
+        console.log('Countdown before modal warning:', countdownTime / 1000);
+        countdownTime -= 1000;
+        if (countdownTime <= 0) {
+            clearInterval(countdown);
+            console.log('Showing modal warning...');
+            showWarning();
+            if (modal.style.display === "block") {
+                console.log('Modal warning successfully shown.');
+            } else {
+                console.log('Failed to show modal warning.');
+            }
+        }
+    }, 1000);
+}, INACTIVITY_LIMIT - WARNING_TIME);
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
       modal.style.display = "none";
