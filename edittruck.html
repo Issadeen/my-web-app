@@ -36,6 +36,44 @@
         background-color: #38a169;
       }
 
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: var(--bg-primary); /* Fallback color */
+  background-color: rgba(var(--bg-primary), 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #180101;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  color: #f9f2f2; /* Set text color to black */
+}
+
+/* The Close Button */
+.close {
+  color: var(--input-text);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
 
 
     </style>
@@ -110,12 +148,26 @@
       </form>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
+      <!-- The Modal -->
+  <div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Your session will end soon due to inactivity.</p>
+    </div>
+  </div>
 
-      // Firebase configuration
-      firebase.initializeApp(firebaseConfig);
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
       var database = firebase.database();
 
       // Get truck ID from query parameter
@@ -193,6 +245,32 @@
               if (!navigator.onLine) {
                   alert("You are currently offline, data won't be saved. Please check your internet connection.");
               }
+
+              window.addEventListener("offline", function(e) {
+                  alert("You are currently offline, data won't be saved. Please check your internet connection.");
+              });
+
+              window.addEventListener("online", function(e) {
+                  alert("You are now online, data will be saved.");
+              });
+
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the close button
+var close = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the close button, close the modal
+close.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
           </script>
   </body>
 </html>
