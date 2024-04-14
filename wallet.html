@@ -136,16 +136,25 @@
             var tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${i}</td>
-                <td><input type="text" id="truckNo${i}" name="truckNo${i}" placeholder="Truck No"></td>
-                <td><input type="text" id="description${i}" name="description${i}" placeholder="Description"></td>
-                <td><input type="text" id="amount${i}" name="amount${i}" placeholder="Amount" oninput="calculateTotal()"></td>
-                <td><input type="text" id="loadingCompany${i}" name="loadingCompany${i}" placeholder="Loading Company"></td>
-                <td><input type="text" id="depot${i}" name="depot${i}" placeholder="Depot"></td>
+                <td><input type="text" id="truckNo${i}" name="truckNo${i}" placeholder="TRUCK NO" oninput="this.value = this.value.toUpperCase()"></td>
+                <td><input type="text" id="description${i}" name="description${i}" placeholder="DESCRIPTION" oninput="this.value = this.value.toUpperCase()"></td>
+                <td><input type="text" id="amount${i}" name="amount${i}" placeholder="AMOUNT" oninput="calculateTotal()" onblur="formatAmount(this)"></td>
+                <td><input type="text" id="loadingCompany${i}" name="loadingCompany${i}" placeholder="LOADING COMPANY" oninput="this.value = this.value.toUpperCase()"></td>
+                <td><input type="text" id="depot${i}" name="depot${i}" placeholder="DEPOT" oninput="this.value = this.value.toUpperCase()"></td>
             `;
             tbody.appendChild(tr);
         }
     });
-
+    
+    function formatAmount(input) {
+        var value = parseFloat(input.value);
+        if (!isNaN(value)) {
+            input.value = '$' + value.toFixed(2).toLocaleString();
+        } else {
+            input.value = '';
+        }
+    }
+    
     function calculateTotal() {
         var total = 0;
         var inputs = document.querySelectorAll('#truck-rows input[name^="amount"]');
@@ -154,7 +163,7 @@
                 total += parseFloat(input.value);
             }
         });
-        document.getElementById('total').value = total.toFixed(2);
+        document.getElementById('total').value = '$' + total.toFixed(2).toLocaleString();
     }
     
     function generatePDF() {
