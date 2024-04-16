@@ -126,45 +126,45 @@
             <button class="generate-btn" onclick="generatePDF()">Generate PDF</button>
         </div>
     
-
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var numTrucks = prompt("How many trucks do you want to input?");
-        var tbody = document.getElementById('truck-rows');
-        var totalAmount = 0;
-        for (var i = 1; i <= numTrucks; i++) {
-            var tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${i}</td>
-                <td><input type="text" id="truckNo${i}" name="truckNo${i}" placeholder="TRUCK NO" oninput="this.value = this.value.toUpperCase()"></td>
-                <td><input type="text" id="description${i}" name="description${i}" placeholder="DESCRIPTION" oninput="this.value = this.value.toUpperCase()"></td>
-                <td><input type="text" id="amount${i}" name="amount${i}" placeholder="AMOUNT" oninput="calculateTotal()" onblur="formatAmount(this)"></td>
-                <td><input type="text" id="loadingCompany${i}" name="loadingCompany${i}" placeholder="LOADING COMPANY" oninput="this.value = this.value.toUpperCase()"></td>
-                <td><input type="text" id="depot${i}" name="depot${i}" placeholder="DEPOT" oninput="this.value = this.value.toUpperCase()"></td>
-            `;
-            tbody.appendChild(tr);
-        }
-    });
-    
-    function formatAmount(input) {
-        var value = parseFloat(input.value);
-        if (!isNaN(value)) {
-            input.value = '$' + value.toFixed(2).toLocaleString();
-        } else {
-            input.value = '';
-        }
-    }
-    
-    function calculateTotal() {
-        var total = 0;
-        var inputs = document.querySelectorAll('#truck-rows input[name^="amount"]');
-        inputs.forEach(function(input) {
-            if (!isNaN(parseFloat(input.value))) {
-                total += parseFloat(input.value);
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var numTrucks = prompt("How many trucks do you want to input?");
+            var tbody = document.getElementById('truck-rows');
+            var totalAmount = 0;
+            for (var i = 1; i <= numTrucks; i++) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${i}</td>
+                    <td><input type="text" id="truckNo${i}" name="truckNo${i}" placeholder="TRUCK NO" oninput="this.value = this.value.toUpperCase()"></td>
+                    <td><input type="text" id="description${i}" name="description${i}" placeholder="DESCRIPTION" oninput="this.value = this.value.toUpperCase()"></td>
+                    <td><input type="text" id="amount${i}" name="amount${i}" placeholder="AMOUNT" onchange="formatAmount(this)" oninput="formatAmount(this)" onblur="formatAmount(this)"></td>
+                    <td><input type="text" id="loadingCompany${i}" name="loadingCompany${i}" placeholder="LOADING COMPANY" oninput="this.value = this.value.toUpperCase()"></td>
+                    <td><input type="text" id="depot${i}" name="depot${i}" placeholder="DEPOT" oninput="this.value = this.value.toUpperCase()"></td>
+                `;
+                tbody.appendChild(tr);
             }
         });
-        document.getElementById('total').value = '$' + total.toFixed(2).toLocaleString();
-    }
+        
+        function formatAmount(input) {
+            var value = parseFloat(input.value);
+            if (!isNaN(value)) {
+                input.dataset.value = value; // Store the numeric value in a data attribute
+                input.value = '$' + value.toFixed(2).toLocaleString();
+            }
+            calculateTotal(); // Calculate the total after formatting the amount
+        }
+        
+        function calculateTotal() {
+            var total = 0;
+            var inputs = document.querySelectorAll('#truck-rows input[name^="amount"]');
+            inputs.forEach(function(input) {
+                var value = parseFloat(input.dataset.value); // Use the numeric value from the data attribute
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            document.getElementById('total').value = '$' + total.toFixed(2).toLocaleString();
+        } 
     
     function generatePDF() {
         var seller = document.getElementById('seller').value;
