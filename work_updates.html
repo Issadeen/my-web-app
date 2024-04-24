@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Work Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
+    <style>
+        /* Styles for modl */
+        .modl {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modl-content {
+            background-color: #1f2937;
+            margin: 20% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 10px;
+            color: #fff; /* Text color */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Styles for form */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            color: #111827; /* Text color */
+            background-color: #e5e7eb; /* Background color */
+        }
+
+        .input-group button {
+            padding: 0.5rem 1rem;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-group button:hover {
+            background-color: #45a049;
+        }
+    
+        /* Add some padding and background color to the table */
+        table {
+            padding: 1em;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
+    
+        
+            /* Add some padding and background color to the table */
+            table {
+                padding: 1em;
+                background-color: #1f2937;
+                border-radius: 5px;
+                color: #fff;
+            }
+
+            /* Add some padding, border and background color to the table cells */
+            th, td {
+                padding: 0.5em;
+                border: 1px solid #4B5563;
+                background-color: #1f2937;
+            }
+
+            /* Add some hover effect to the table rows */
+            tr:hover {
+                background-color: #2D3748;
+            }
+
+            /* Add some style to the table header */
+            thead {
+                background-color: #4B5563;
+                color: #E5E7EB;
+            }
+            
+            .line-through {
+                text-decoration: line-through;
+            }
+        </style>
+    
+    <body class="bg-gray-900 text-white">
+    <nav class="flex justify-between items-center p-4 bg-gray-800">
+        <h1 class="text-2xl font-bold">Work Details</h1>
+        <div>
+            <button id="download_button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Download PDF
+            </button>
+            <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+            <button id="add_button" class="ml-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- modl -->
+    <div id="mymodl" class="modl">
+        <div class="modl-content bg-gray-800">
+            <span class="close">&times;</span>
+            <form id="add_work_form">
+                <div class="input-group">
+                    <label for="owner">Owner:</label>
+                    <input type="text" id="owner" name="owner" required>
+                </div>
+                <div class="input-group">
+                    <label for="product">Product:</label>
+                    <input type="text" id="product" name="product" required>
+                </div>
+                <div class="input-group">
+                    <label for="truck_number">Truck Number:</label>
+                    <input type="text" id="truck_number" name="truck_number" required>
+                </div>
+                <div class="input-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="text" id="quantity" name="quantity" required>
+                </div>
+                <div class="input-group">
+                    <label for="status">Status:</label>
+                    <input type="text" id="status" name="status" required>
+                </div>
+                <div class="input-group">
+                    <label for="orderno">Order Number:</label>
+                    <input type="text" id="orderno" name="orderno" required>
+                </div>
+                <div class="input-group">
+                    <label for="depot">Depot:</label>
+                    <input type="text" id="depot" name="depot" required>
+                </div>
+                <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closemodl()">Cancel</button>
+                <button type="submit">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
+        <table class="table-auto w-full" id="work_details_table">
+            <!-- Table content -->
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Owner</th>
+                    <th class="px-4 py-2">Product</th>
+                    <th class="px-4 py-2">Truck Number</th>
+                    <th class="px-4 py-2">Quantity</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Order Number</th> <!-- New column -->
+                    <th class="px-4 py-2">Depot</th> <!-- New column -->
+                    <th class="px-4 py-2">Actions</th> <!-- New column for delete button -->
+                </tr>
+            </thead>
+            <tbody id="work_details_table_body">
+                <!-- Table rows will be added dynamically using JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+        <!-- Summary section -->
+        <div id="summary_section" class="mt-4">
+            <h2 class="text-lg font-semibold mb-2">Summary</h2>
+            <div id="summary_stats" class="flex flex-wrap gap-4"></div>
+            <div id="owner_summary"></div>
+        </div>
+   
+    
+
+    
+    <script>
+            // Initialize Firebase app
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            // Get a reference to the Realtime Database
+            const db = firebase.database();
+
+            // Get a reference to the "work_details" node in the database
+            const workDetailsRef = db.ref("work_details");
+
+            // Get the modl
+            const modl = document.getElementById("mymodl");
+            // Get the button that opens the modl
+            const btn = document.getElementById("add_button");
+            // Get the <span> element that closes the modl
+            const span = document.getElementsByClassName("close")[0];
+
+            // Define the openmodl function
+            function openmodl() {
+                modl.style.display = "block";
+            }
+
+            // Define the closemodl function
+            function closemodl() {
+                modl.style.display = "none";
+            }
+
+            // When the user clicks the button, open the modl and stop event propagation
+            btn.onclick = function(event) {
+                event.stopPropagation();
+                openmodl();
+            }
+
+            // When the user clicks on <span> (x), close the modl
+            span.onclick = function() {
+                closemodl();
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function(event) {
+                event.stopPropagation();
+                closemodl();
+            }
+    </script>
+<script>
+    // Declare summary variables at a higher scope
+    var totalOrders = 0;
+    var queuedOrders = 0;
+    var unqueuedOrders = 0;
+    var agoOrders = 0;
+    var pmsOrders = 0;
+    var ownerSummary = {};
+
+    // Listen for changes to the data in the "work_details" node
+    workDetailsRef.on("value", function(snapshot) {
+        var workDetails = snapshot.val();
+        if (workDetails) {
+            var tableBody = document.getElementById("work_details_table_body");
+            tableBody.innerHTML = "";
+
+            // Reset summary variables
+            totalOrders = 0;
+            queuedOrders = 0;
+            unqueuedOrders = 0;
+            agoOrders = 0;
+            pmsOrders = 0;
+            ownerSummary = {};
+
+            // Loop through the child nodes of the "work_details" node
+            snapshot.forEach(function(childSnapshot) {
+                var childData = childSnapshot.val();
+                // Increment total orders count
+                totalOrders++;
+
+                // Increment queued or unqueued orders count based on status
+                if (childData.status === "queued") {
+                    queuedOrders++;
+                } else {
+                    unqueuedOrders++;
+                }
+
+                // Increment ago or pms orders count based on product
+if (childData.product.trim() === "AGO") {
+    agoOrders++;
+} else if (childData.product.trim() === "PMS") {
+    pmsOrders++;
+}
+
+                // Increment owner's orders count and product count
+                if (!ownerSummary[childData.owner]) {
+                    ownerSummary[childData.owner] = {
+                        totalOrders: 1,
+                        agoOrders: childData.product === "AGO" ? 1 : 0,
+                        pmsOrders: childData.product === "PMS" ? 1 : 0,
+                        queuedOrders: childData.status === "queued" ? 1 : 0,
+                        unqueuedOrders: childData.status === "not queued" ? 1 : 0,
+                        products: {}
+                    };
+                } else {
+                    ownerSummary[childData.owner].totalOrders++;
+                    ownerSummary[childData.owner].agoOrders += childData.product === "AGO" ? 1 : 0;
+                    ownerSummary[childData.owner].pmsOrders += childData.product === "PMS" ? 1 : 0;
+                    ownerSummary[childData.owner].queuedOrders += childData.status === "queued" ? 1 : 0;
+                    ownerSummary[childData.owner].unqueuedOrders += childData.status === "not queued" ? 1 : 0;
+                }
+
+                // Increment product count for each owner
+                if (!ownerSummary[childData.owner].products[childData.product]) {
+                    ownerSummary[childData.owner].products[childData.product] = 1;
+                } else {
+                    ownerSummary[childData.owner].products[childData.product]++;
+                }
+
+                // Create table rows for each order (code omitted for brevity)
+            });
+
+            // Update summary section (code omitted for brevity)
+            updateSummarySection();
+        }
+    });
+
+    // Update the summary section with the latest data
+    function updateSummarySection() {
+        // Get the summary section and the summary stats div
+        const summarySection = document.getElementById("summary_section");
+        const summaryStats = document.getElementById("summary_stats");
+        const ownerSummaryDiv = document.getElementById("owner_summary");
+
+        // Update the summary stats
+        summaryStats.innerHTML = `
+            <div class="bg-gray-700 p-4 rounded">
+                <div>Total Orders: ${totalOrders}</div>
+                <div>Queued Orders: ${queuedOrders}</div>
+                <div>Unqueued Orders: ${unqueuedOrders}</div>
+                <div>AGO Orders: ${agoOrders}</div>
+                <div>PMS Orders: ${pmsOrders}</div>
+            </div>
+        `;
+
+        // Update the owner summary
+        ownerSummaryDiv.innerHTML = "";
+        for (const owner in ownerSummary) {
+            const ownerData = ownerSummary[owner];
+            ownerSummaryDiv.innerHTML += `
+                <div class="bg-gray-700 p-4 rounded mt-4">
+                    <h3 class="text-lg font-semibold">${owner}</h3>
+                    <div>Total Orders: ${ownerData.totalOrders}</div>
+                    <div>Queued Orders: ${ownerData.queuedOrders}</div>
+                    <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
+                    <div>AGO Orders: ${ownerData.agoOrders}</div>
+                    <div>PMS Orders: ${ownerData.pmsOrders}</div>
+                    <div class="mt-2">
+                        <h4 class="text-md font-semibold">Products</h4>
+                        <ul>
+                            ${Object.keys(ownerData.products).map(product => `<li>${product}: ${ownerData.products[product]}</li>`).join("")}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+    }
+</script>
+
+
+    <script>// Listen for changes to the data in the "work_details" node
+        workDetailsRef.on("value", function(snapshot) {
+            var workDetails = snapshot.val();
+            if (workDetails) {
+                var tableBody = document.getElementById("work_details_table_body");
+                tableBody.innerHTML = "";
+                // Loop through the child nodes of the "work_details" node
+                snapshot.forEach(function(childSnapshot) {
+                    var childData = childSnapshot.val();
+                    // Check if all required data is present
+                    if (childData.owner && childData.product && childData.truck_number && childData.quantity && childData.orderno && childData.depot) {
+                        // Create table rows
+                        var row = tableBody.insertRow();
+                        row.insertCell().textContent = childData.owner;
+                        row.insertCell().textContent = childData.product;
+                        // Create cell for truck number
+                        var truckNumberCell = row.insertCell();
+                        var truckInput = document.createElement("input");
+                        truckInput.type = "text";
+                        truckInput.value = childData.truck_number;
+                        truckInput.classList.add("bg-gray-800", "text-white", "p-2", "rounded", "focus:outline-none", "focus:bg-gray-900");
+                        truckInput.disabled = true; // Disable input by default
+                        truckNumberCell.appendChild(truckInput);
+                        // Display the latest previous truck number
+                        if (childData.previous_trucks && childData.previous_trucks.length > 0) {
+                            var latestPreviousTruck = childData.previous_trucks[childData.previous_trucks.length - 1];
+                            var previousTruckText = document.createElement("small");
+                            previousTruckText.textContent = "Previous: " + latestPreviousTruck;
+                            truckNumberCell.appendChild(previousTruckText);
+                        }
+                        row.insertCell().textContent = childData.quantity;
+                        // Create cell for status
+                        var statusCell = row.insertCell();
+                        var statusButton = document.createElement("button");
+                        statusButton.classList.add("px-4", "py-2", "rounded");
+                        statusButton.textContent = childData.status;
+                        statusButton.onclick = function() {
+                            childData.status = childData.status === "queued" ? "not queued" : "queued";
+                            statusButton.textContent = childData.status;
+                            // Save the updated status to Firebase
+                            workDetailsRef.child(childSnapshot.key).update({ status: childData.status });
+                        };
+                        statusCell.appendChild(statusButton);
+                        row.insertCell().textContent = childData.orderno; // New field
+                        row.insertCell().textContent = childData.depot; // New field
+                        // Add button for loaded/paid status change
+                        var actionsCell = row.insertCell();
+                        var actionsButton = document.createElement("button");
+                        actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded");
+                        // Create Font Awesome icons
+                        var paidIcon = document.createElement("i");
+                        paidIcon.classList.add("fas", "fa-check");
+                        // Set initial button content
+                        if (childData.loaded && childData.paid) {
+                            actionsButton.appendChild(paidIcon);
+                        } else if (childData.loaded) {
+                            actionsButton.textContent = "Paid";
+                        } else {
+                            actionsButton.textContent = "Loaded";
+                        }
+                        actionsButton.onclick = function() {
+                            if (!childData.loaded) { // If not loaded
+                                childData.loaded = true;
+                                actionsButton.textContent = "Paid";
+                            } else if (!childData.paid) { // If loaded but not paid
+                                childData.paid = true;
+                                actionsButton.textContent = ""; // Clear the button text
+                                actionsButton.appendChild(paidIcon);
+                                actionsButton.disabled = true; // Disable the button once the order is paid
+                            }
+                            // Save the updated loaded and paid status to Firebase
+                            workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid });
+                        };
+                        actionsCell.appendChild(actionsButton);
+                        // Add "Change Truck" button
+                        var changeTruckButton = document.createElement("button");
+                        changeTruckButton.textContent = "Change Truck";
+                        changeTruckButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded");
+                        changeTruckButton.onclick = function() {
+                            // Check if the order is loaded
+                            if (childData.loaded) {
+                                // If the order is loaded, return immediately without making any changes
+                                return;
+                            }
+                            if (changeTruckButton.textContent === "Change Truck") {
+                                truckInput.disabled = false;
+                                changeTruckButton.textContent = "Save";
+                                var previousTruckText = document.createElement("small");
+                                previousTruckText.textContent = "Previous: " + childData.truck_number;
+                                truckNumberCell.appendChild(previousTruckText);
+                            } else {
+                                // Save the new truck number
+                                var newTruckNumber = truckInput.value;
+                                // Add the old truck number to the array of previous truck numbers
+                                if (!childData.previous_trucks) {
+                                    childData.previous_trucks = [];
+                                }
+                                childData.previous_trucks.push(childData.truck_number);
+                                childData.truck_number = newTruckNumber;
+                                // Disable input after saving
+                                truckInput.disabled = true;
+                                changeTruckButton.textContent = "Change Truck";
+                                // Save the updated truck number and previous truck numbers to Firebase
+                                workDetailsRef.child(childSnapshot.key).update({ truck_number: childData.truck_number, previous_trucks: childData.previous_trucks });
+                            }
+                        };
+                        actionsCell.appendChild(changeTruckButton);
+                        // Add delete button to the row
+                        var deleteCell = row.insertCell();
+                        var deleteButton = document.createElement("button");
+                        deleteButton.classList.add("bg-red-600", "hover:bg-red-700", "px-4", "py-2", "rounded");
+                        deleteButton.onclick = function() {
+                            deleteOrder(childSnapshot.key); // Pass the key of the order to be deleted
+                        };
+                        // Create Font Awesome delete icon
+                        var deleteIcon = document.createElement("i");
+                        deleteIcon.classList.add("fas", "fa-trash-alt");
+                        deleteButton.appendChild(deleteIcon);
+                        deleteCell.appendChild(deleteButton);
+                    } else {
+                        console.error("Invalid data format: ", childData);
+                    }
+                });
+        
+                // After all table rows have been created, add the event listener for the download button
+                document.getElementById("download_button").addEventListener("click", function() {
+                    // Once the dynamic content is ready, create the PDF
+                    let docDefinition = {
+                        content: [
+                            {
+                                table: {
+                                    widths: [100, 100, 100, 100, 100, 100, 100, 100], // Fixed widths
+                                    body: [
+                                        ['Owner', 'Product', 'Truck Number', 'Quantity', 'Status', 'Order Number', 'Depot', 'Actions'], // Header row
+                                        // Dynamic content will be added here using JavaScript
+                                    ]
+                                }
+                            }
+                        ]
+                    };
+        
+                    let tableRows = document.querySelectorAll("table tr");
+                    let numCells = tableRows[0].querySelectorAll("td").length;
+        
+                    tableRows.forEach(function(row) {
+                        let cells = row.querySelectorAll("td");
+                        if (cells.length === numCells) {
+                            let rowData = [];
+                            cells.forEach(function(cell) {
+                                if (cell !== undefined) {
+                                    rowData.push({ text: cell.textContent.trim() });
+                                } else {
+                                    console.warn("Undefined cell found in row:", row);
+                                }
+                            });
+                            if (rowData.length === numCells) {
+                                docDefinition.content[0].table.body.push(rowData);
+                            }
+                        } else {
+                            console.warn("Row with mismatched number of cells:", row);
+                        }
+                    });
+        
+                    // Apply tableHeader style to all table headers
+                    docDefinition.content.forEach(function(item) {
+                        if (item.table && item.table.body && item.table.body.length > 0) {
+                            item.table.body[0].forEach(function(cell) {
+                                cell.style = 'tableHeader';
+                            });
+                        }
+                    });
+        
+                    // Add watermark
+                    docDefinition.watermark = { text: 'Issaerium-23', color: 'lightgray', opacity: 0.3, bold: true, italics: false };
+        
+                    // Generate and download the PDF
+                    pdfMake.createPdf(docDefinition).download('result.pdf');
+                });
+            }
+        });
+        
+
+
+// Handle form submission
+document.getElementById("add_work_form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const newWorkDetail = {};
+    formData.forEach(function(value, key) {
+        newWorkDetail[key] = value;
+    });
+
+    // Add "previous_trucks" field if it doesn't exist
+    if (!newWorkDetail.previous_trucks) {
+        newWorkDetail.previous_trucks = [];
+    }
+
+    // Generate unique ID for owner
+    const ownerId = generateUniqueId(); // You need to implement this function
+
+    // Save owner's data under the generated ID
+    db.ref("owners/" + ownerId).set({
+        product: newWorkDetail.product,
+        depot: newWorkDetail.depot
+    });
+
+    // Save the new work detail to Firebase
+    workDetailsRef.push(newWorkDetail);
+
+    // Close the modl
+    closemodl();
+});
+
+
+// Function to generate unique ID
+function generateUniqueId() {
+    // Generate a random ID or use a library like UUID for unique ID generation
+    // Example:
+    return Math.random().toString(36).substr(2, 9);
+}
+
+// Function to delete an order
+function deleteOrder(orderKey) {
+    if (confirm("Are you sure you want to delete this order?")) {
+        workDetailsRef.child(orderKey).remove()
+            .then(function() {
+                console.log("Order deleted successfully");
+            })
+            .catch(function(error) {
+                console.error("Error deleting order: ", error);
+            });
+    }
+}
+
+        // Logout user after 5 minutes of inactivity
+        let logoutTimer = null;
+        function resetLogoutTimer() {
+            if (logoutTimer) {
+                clearTimeout(logoutTimer);
+            }
+            logoutTimer = setTimeout(function() {
+                // TODO: Logout user
+                alert("You have been logged out due to inactivity.");
+                // You should replace the alert with actual logout code
+                // For example, if you're using Firebase:
+                // firebase.auth().signOut();
+            }, 5 * 60 * 1000); // 5 minutes
+        }
+        resetLogoutTimer();
+        document.addEventListener("mousemove", resetLogoutTimer);
+        document.addEventListener("keypress", resetLogoutTimer);
+        
+        // Handle "Logout" button click
+        document.getElementById("logout_button").addEventListener("click", function() {
+            firebase.auth().signOut().then(function() {
+                // No need to reset the logout timer here because the user is being logged out
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                alert("An error occurred while logging out.");
+            });
+        });
+    </script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+
+</body>
+</html>
