@@ -47,7 +47,6 @@
         .close:hover,
         .close:focus {
             color: black;
-            text-decoration: none;
             cursor: pointer;
         }
 
@@ -117,9 +116,47 @@
                 color: #E5E7EB;
             }
             
-            .line-through {
-                text-decoration: line-through;
+            
+
+            #summary_section {
+                flex-direction: row;
             }
+
+            #summary_stats {
+                margin-right: 1rem;
+            }
+#owner_summary ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px; /* adjust this value to control the space between owners */
+}
+
+#owner_summary ul li {
+    list-style-type: none;
+    background-color: #4B5563;
+    color: #E5E7EB;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+}
+
+#owner_summary ul li span {
+    font-weight: bold;
+}
+
+#owner_summary ul li:not(:last-child) {
+    margin-right: 20px;
+}
+
+#owner_summary ul li:hover {
+    background-color: #2D3748;
+}
+
+
+#work_details_table td.line-through {
+    text-decoration: line-through;
+}
+
         </style>
     
     <body class="bg-gray-900 text-white">
@@ -152,6 +189,10 @@
                     <input type="text" id="product" name="product" required>
                 </div>
                 <div class="input-group">
+                    <label for="destination">destination:</label>
+                    <input type="text" id="destination" name="destination" required>
+                </div>
+                <div class="input-group">
                     <label for="truck_number">Truck Number:</label>
                     <input type="text" id="truck_number" name="truck_number" required>
                 </div>
@@ -180,6 +221,7 @@
     <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
         <table class="table-auto w-full" id="work_details_table">
             <!-- Table content -->
+            <input type="text" id="search" placeholder="Search by owner's name" style="color: white; background-color: #2d3748;">
             <thead>
                 <tr>
                     <th class="px-4 py-2">Owner</th>
@@ -189,6 +231,7 @@
                     <th class="px-4 py-2">Status</th>
                     <th class="px-4 py-2">Order Number</th> <!-- New column -->
                     <th class="px-4 py-2">Depot</th> <!-- New column -->
+                    <th class="px-4 py-2">destination</th> <!-- New column -->
                     <th class="px-4 py-2">Actions</th> <!-- New column for delete button -->
                 </tr>
             </thead>
@@ -199,7 +242,7 @@
     </div>
     
         <!-- Summary section -->
-        <div id="summary_section" class="mt-4">
+        <div id="summary_section" class="mt-4 flex">
             <h2 class="text-lg font-semibold mb-2">Summary</h2>
             <div id="summary_stats" class="flex flex-wrap gap-4"></div>
             <div id="owner_summary"></div>
@@ -261,14 +304,14 @@
     var agoOrders = 0;
     var pmsOrders = 0;
     var ownerSummary = {};
-
+    
     // Listen for changes to the data in the "work_details" node
     workDetailsRef.on("value", function(snapshot) {
         var workDetails = snapshot.val();
         if (workDetails) {
             var tableBody = document.getElementById("work_details_table_body");
             tableBody.innerHTML = "";
-
+    
             // Reset summary variables
             totalOrders = 0;
             queuedOrders = 0;
@@ -276,62 +319,89 @@
             agoOrders = 0;
             pmsOrders = 0;
             ownerSummary = {};
-
+    
             // Loop through the child nodes of the "work_details" node
             snapshot.forEach(function(childSnapshot) {
                 var childData = childSnapshot.val();
                 // Increment total orders count
                 totalOrders++;
-
+    
                 // Increment queued or unqueued orders count based on status
                 if (childData.status === "queued") {
                     queuedOrders++;
                 } else {
                     unqueuedOrders++;
                 }
-
+    
                 // Increment ago or pms orders count based on product
-if (childData.product.trim() === "AGO") {
-    agoOrders++;
-} else if (childData.product.trim() === "PMS") {
-    pmsOrders++;
-}
-
+                if (childData.product.trim().toUpperCase() === "AGO") {
+                    agoOrders++;
+                } else if (childData.product.trim().toUpperCase() === "PMS") {
+                    pmsOrders++;
+                }
+    
                 // Increment owner's orders count and product count
                 if (!ownerSummary[childData.owner]) {
                     ownerSummary[childData.owner] = {
                         totalOrders: 1,
-                        agoOrders: childData.product === "AGO" ? 1 : 0,
-                        pmsOrders: childData.product === "PMS" ? 1 : 0,
+                        agoOrders: childData.product.trim().toUpperCase() === "AGO" ? 1 : 0,
+                        pmsOrders: childData.product.trim().toUpperCase() === "PMS" ? 1 : 0,
                         queuedOrders: childData.status === "queued" ? 1 : 0,
                         unqueuedOrders: childData.status === "not queued" ? 1 : 0,
                         products: {}
                     };
                 } else {
                     ownerSummary[childData.owner].totalOrders++;
-                    ownerSummary[childData.owner].agoOrders += childData.product === "AGO" ? 1 : 0;
-                    ownerSummary[childData.owner].pmsOrders += childData.product === "PMS" ? 1 : 0;
+                    ownerSummary[childData.owner].agoOrders += childData.product.trim().toUpperCase() === "AGO" ? 1 : 0;
+                    ownerSummary[childData.owner].pmsOrders += childData.product.trim().toUpperCase() === "PMS" ? 1 : 0;
                     ownerSummary[childData.owner].queuedOrders += childData.status === "queued" ? 1 : 0;
                     ownerSummary[childData.owner].unqueuedOrders += childData.status === "not queued" ? 1 : 0;
                 }
-
+    
                 // Increment product count for each owner
                 if (!ownerSummary[childData.owner].products[childData.product]) {
                     ownerSummary[childData.owner].products[childData.product] = 1;
                 } else {
                     ownerSummary[childData.owner].products[childData.product]++;
                 }
-
+    
                 // Create table rows for each order (code omitted for brevity)
             });
-
+    
             // Update summary section (code omitted for brevity)
             updateSummarySection();
         }
     });
+    
+// Initialize loadedTrucks and pendingOrders count
+let loadedTrucks = 0;
+let pendingOrders = 0;
 
-    // Update the summary section with the latest data
-    function updateSummarySection() {
+// Get a reference to your Firebase data
+var ref = firebase.database().ref("path/to/your/data");
+
+// Use the `on` method to listen for data changes
+ref.on("value", function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+        var childData = childSnapshot.val();
+
+        // Check if the truck is loaded
+        if (childData.loaded) {
+            loadedTrucks++;
+        }
+
+        // Check if the order is queued and the truck is not loaded
+        if (childData.status === "queued" && !childData.loaded) {
+            pendingOrders++;
+        }
+    });
+}, function (error) {
+    console.log("Error: " + error.code);
+});
+    
+    
+     // Update the summary section with the latest data
+     function updateSummarySection() {
         // Get the summary section and the summary stats div
         const summarySection = document.getElementById("summary_section");
         const summaryStats = document.getElementById("summary_stats");
@@ -343,21 +413,27 @@ if (childData.product.trim() === "AGO") {
                 <div>Total Orders: ${totalOrders}</div>
                 <div>Queued Orders: ${queuedOrders}</div>
                 <div>Unqueued Orders: ${unqueuedOrders}</div>
+                <div>Loaded Trucks: ${loadedTrucks}</div>
+                <div>Pending Orders: ${pendingOrders}</div>
                 <div>AGO Orders: ${agoOrders}</div>
                 <div>PMS Orders: ${pmsOrders}</div>
             </div>
         `;
 
-        // Update the owner summary
+        // Update the owner summary with flexbox
         ownerSummaryDiv.innerHTML = "";
+        ownerSummaryDiv.classList.add("flex", "flex-wrap", "gap-4"); // Apply flexbox to the container
+
         for (const owner in ownerSummary) {
             const ownerData = ownerSummary[owner];
             ownerSummaryDiv.innerHTML += `
-                <div class="bg-gray-700 p-4 rounded mt-4">
+                <div class="bg-gray-700 p-4 rounded mt-4 basis-1/3">
                     <h3 class="text-lg font-semibold">${owner}</h3>
                     <div>Total Orders: ${ownerData.totalOrders}</div>
                     <div>Queued Orders: ${ownerData.queuedOrders}</div>
                     <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
+                    <div>Loaded Trucks: ${ownerData.loadedTrucks}</div>
+                    <div>Pending Orders: ${ownerData.pendingOrders}</div>
                     <div>AGO Orders: ${ownerData.agoOrders}</div>
                     <div>PMS Orders: ${ownerData.pmsOrders}</div>
                     <div class="mt-2">
@@ -370,10 +446,9 @@ if (childData.product.trim() === "AGO") {
             `;
         }
     }
-</script>
-
-
-    <script>// Listen for changes to the data in the "work_details" node
+    </script>
+    <script>
+    // Listen for changes to the data in the "work_details" node
         workDetailsRef.on("value", function(snapshot) {
             var workDetails = snapshot.val();
             if (workDetails) {
@@ -383,7 +458,7 @@ if (childData.product.trim() === "AGO") {
                 snapshot.forEach(function(childSnapshot) {
                     var childData = childSnapshot.val();
                     // Check if all required data is present
-                    if (childData.owner && childData.product && childData.truck_number && childData.quantity && childData.orderno && childData.depot) {
+                    if (childData.owner && childData.product && childData.truck_number && childData.quantity && childData.orderno && childData.depot && childData.destination) {
                         // Create table rows
                         var row = tableBody.insertRow();
                         row.insertCell().textContent = childData.owner;
@@ -418,10 +493,11 @@ if (childData.product.trim() === "AGO") {
                         statusCell.appendChild(statusButton);
                         row.insertCell().textContent = childData.orderno; // New field
                         row.insertCell().textContent = childData.depot; // New field
+                        row.insertCell().textContent = childData.destination; // New field
                         // Add button for loaded/paid status change
                         var actionsCell = row.insertCell();
                         var actionsButton = document.createElement("button");
-                        actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded");
+                        actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded", "mr-4");
                         // Create Font Awesome icons
                         var paidIcon = document.createElement("i");
                         paidIcon.classList.add("fas", "fa-check");
@@ -429,22 +505,28 @@ if (childData.product.trim() === "AGO") {
                         if (childData.loaded && childData.paid) {
                             actionsButton.appendChild(paidIcon);
                         } else if (childData.loaded) {
-                            actionsButton.textContent = "Paid";
+                            actionsButton.textContent = "Paid?";
                         } else {
-                            actionsButton.textContent = "Loaded";
+                            actionsButton.textContent = "Loaded?";
                         }
                         actionsButton.onclick = function() {
-                            if (!childData.loaded) { // If not loaded
+                            if (!childData.loaded) { 
                                 childData.loaded = true;
+                                childData.crossedOut = true;
                                 actionsButton.textContent = "Paid";
-                            } else if (!childData.paid) { // If loaded but not paid
+                                // Add the line-through class to all cells
+                                for (var i = 0; i < row.cells.length; i++) {
+                                row.cells[i].classList.add("line-through");
+                                }
+                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error); 
+                            } else if (!childData.paid) { 
                                 childData.paid = true;
-                                actionsButton.textContent = ""; // Clear the button text
+                                childData.crossedOut = true;
+                                actionsButton.textContent = "";
                                 actionsButton.appendChild(paidIcon);
-                                actionsButton.disabled = true; // Disable the button once the order is paid
-                            }
-                            // Save the updated loaded and paid status to Firebase
-                            workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid });
+                                actionsButton.disabled = true; 
+                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid, crossedOut: childData.crossedOut }).catch(console.error);
+                            } 
                         };
                         actionsCell.appendChild(actionsButton);
                         // Add "Change Truck" button
@@ -496,64 +578,123 @@ if (childData.product.trim() === "AGO") {
                         console.error("Invalid data format: ", childData);
                     }
                 });
+                
         
-                // After all table rows have been created, add the event listener for the download button
-                document.getElementById("download_button").addEventListener("click", function() {
-                    // Once the dynamic content is ready, create the PDF
-                    let docDefinition = {
-                        content: [
-                            {
-                                table: {
-                                    widths: [100, 100, 100, 100, 100, 100, 100, 100], // Fixed widths
-                                    body: [
-                                        ['Owner', 'Product', 'Truck Number', 'Quantity', 'Status', 'Order Number', 'Depot', 'Actions'], // Header row
-                                        // Dynamic content will be added here using JavaScript
-                                    ]
-                                }
-                            }
-                        ]
-                    };
-        
-                    let tableRows = document.querySelectorAll("table tr");
-                    let numCells = tableRows[0].querySelectorAll("td").length;
-        
-                    tableRows.forEach(function(row) {
-                        let cells = row.querySelectorAll("td");
-                        if (cells.length === numCells) {
-                            let rowData = [];
-                            cells.forEach(function(cell) {
-                                if (cell !== undefined) {
-                                    rowData.push({ text: cell.textContent.trim() });
-                                } else {
-                                    console.warn("Undefined cell found in row:", row);
-                                }
-                            });
-                            if (rowData.length === numCells) {
-                                docDefinition.content[0].table.body.push(rowData);
-                            }
-                        } else {
-                            console.warn("Row with mismatched number of cells:", row);
-                        }
-                    });
-        
-                    // Apply tableHeader style to all table headers
-                    docDefinition.content.forEach(function(item) {
-                        if (item.table && item.table.body && item.table.body.length > 0) {
-                            item.table.body[0].forEach(function(cell) {
-                                cell.style = 'tableHeader';
-                            });
-                        }
-                    });
-        
-                    // Add watermark
-                    docDefinition.watermark = { text: 'Issaerium-23', color: 'lightgray', opacity: 0.3, bold: true, italics: false };
-        
-                    // Generate and download the PDF
-                    pdfMake.createPdf(docDefinition).download('result.pdf');
-                });
+// After all table rows have been created, add the event listener for the download button
+document.getElementById("download_button").addEventListener("click", function () {
+    let docDefinition = {
+        content: [
+            { text: 'Work Details Report', style: 'header' }, // Main heading
+            {
+                table: {
+                    widths: [30, 90, 90, 90, 90, 90, 90, 90, 90], 
+                    body: [
+                        ['Index', 'Owner', 'Product', 'Truck Number', 'Quantity', 'Status', 'Order Number', 'Depot', 'destination'],
+                    ],
+                },
+                layout: {
+                    fillColor: function (rowIndex, node, columnIndex) {
+                        return (rowIndex % 2 === 0 && rowIndex !== 0) ? '#f2f2f2' : null;
+                    }
+                }
+            },
+        ],
+        styles: {
+            header: {
+                fontSize: 22,
+                bold: true,
+                alignment: 'center',
+                margin: [0, 0, 0, 20]
+            },
+            subheader: {
+                fontSize: 16,
+                bold: true,
+                margin: [0, 20, 0, 10]
+            },
+            ownerName: {
+                fontSize: 14,
+                bold: true,
+                margin: [0, 10, 0, 5]
+            },
+            tableHeader: {
+                bold: true,
+                fontSize: 12,
+                fillColor: '#1f2937',
+                color: '#fff' 
+            },
+            footer: {
+                fontSize: 10,
+                color: 'grey',
+                alignment: 'right',
+                margin: [0, 10, 20, 0]
+            }
+        },
+        footer: function (currentPage, pageCount) {
+            return { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, style: 'footer' };
+        },
+        pageOrientation: 'landscape',
+    };
+
+    let tableRows = Array.from(document.querySelectorAll("table tr"));
+    let rowDataArray = [];
+
+    tableRows.forEach(function(row) {
+        let cells = Array.from(row.querySelectorAll("td")).slice(0, 8);
+        let rowData = [];
+        cells.forEach(function(cell) {
+            if (cell !== undefined) {
+                let inputElement = cell.querySelector("input");
+                if (inputElement) {
+                    rowData.push({ text: inputElement.value.trim() });
+                } else {
+                    rowData.push({ text: cell.textContent.trim() });
+                }
+            } else {
+                console.warn("Undefined cell found in row:", row);
+                return;
             }
         });
-        
+        if (rowData.length === 8) { // Only add rows with the correct number of cells
+            rowDataArray.push(rowData);
+        } else {
+            console.warn("Row with mismatched number of cells:", row);
+        }
+    });
+
+    // Sort, handling the header row separately
+    rowDataArray.sort((a, b) => {
+        if (a[0].text === 'Index') return -1; // Always place header first
+        if (b[0].text === 'Index') return 1; // Always place header first
+        return a[1].text.localeCompare(b[1].text); // Sort data rows by 'Owner'
+    });
+
+    // Add data to table (once)
+    rowDataArray.forEach((rowData, index) => {
+        rowData.unshift({ text: (index + 1).toString() }); // Add index
+        docDefinition.content[1].table.body.push(rowData); // Add to the correct table
+    });
+
+    // Add Total Summary (no changes here)
+    docDefinition.content.push({ text: 'Total Summary', style: 'subheader' });
+    docDefinition.content.push({
+        ul: [
+            { text: 'Total Orders: ' + totalOrders },
+            { text: 'Queued Orders: ' + queuedOrders },
+            { text: 'Unqueued Orders: ' + unqueuedOrders },
+            { text: 'Loaded Trucks: ' + loadedTrucks },
+            { text: 'Pending Orders: ' + pendingOrders },
+            { text: 'AGO Orders: ' + agoOrders },
+            { text: 'PMS Orders: ' + pmsOrders }
+        ],
+        margin: [0, 0, 0, 20]
+    });
+
+
+    pdfMake.createPdf(docDefinition).download('work_details_report.pdf'); 
+});
+
+ }
+});
 
 
 // Handle form submission
@@ -570,22 +711,33 @@ document.getElementById("add_work_form").addEventListener("submit", function(eve
         newWorkDetail.previous_trucks = [];
     }
 
+    // Check if "destination" field exists, if not, set it to an empty string
+    if (!newWorkDetail.destination) {
+        newWorkDetail.destination = "";
+    }
+
     // Generate unique ID for owner
     const ownerId = generateUniqueId(); // You need to implement this function
 
     // Save owner's data under the generated ID
     db.ref("owners/" + ownerId).set({
         product: newWorkDetail.product,
-        depot: newWorkDetail.depot
+        depot: newWorkDetail.depot,
+        destination: newWorkDetail.destination
+    }).catch(error => {
+        console.error("Error saving data to Firebase:", error); // Log any errors
     });
 
     // Save the new work detail to Firebase
-    workDetailsRef.push(newWorkDetail);
+    workDetailsRef.push({
+    ...newWorkDetail,  // Spread the existing newWorkDetail properties
+    paid: false,        // Add paid property
+    crossedOut: false // Add crossedOut property
+});
 
     // Close the modl
     closemodl();
 });
-
 
 // Function to generate unique ID
 function generateUniqueId() {
@@ -634,6 +786,37 @@ function deleteOrder(orderKey) {
                 alert("An error occurred while logging out.");
             });
         });
+    </script>
+
+
+    
+    <script>
+    document.getElementById('search').addEventListener('keyup', function() {
+    var search = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#work_details_table_body tr');
+
+    for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].querySelectorAll('td');
+        var found = false;
+
+        for (var j = 0; j < cells.length; j++) {
+            // Get cell content, checking for input elements
+            var cellContent = cells[j].textContent.toLowerCase();
+            var inputElement = cells[j].querySelector("input");
+            if (inputElement) {
+                cellContent = inputElement.value.toLowerCase(); 
+            }
+            
+            if (cellContent.indexOf(search) > -1) {
+                found = true;
+                break;
+            }
+        }
+        rows[i].style.display = found ? "" : "none";
+    }
+});
+
+
     </script>
 
 
