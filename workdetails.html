@@ -213,6 +213,23 @@ body.dark-theme {
             color: var(--dark-primary);
         }
 
+
+        @keyframes moving-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(173, 216, 230, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(173, 216, 230, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(173, 216, 230, 0);
+  }
+}
+
+.moving-ring {
+  animation: moving-ring 2s infinite;
+}
+
   </style>
 </head>
 <body>
@@ -227,28 +244,28 @@ body.dark-theme {
   </div>
 </nav>
   <div class="container mx-auto mt-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="rounded-lg shadow-lg p-4">
-        <h2 class="text-lg font-bold mb-2">Entry Details</h2>
-        <div>View and manage Entries.</div>
-        <a href="mentry.html" class="link">Add Entries</a>
-        <a href="kentry.html" class="link">View and Manage Entries</a>
-        <a href="work_updates.html" class="link">View and Manage orders/a>
-
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="rounded-lg shadow-lg p-4 moving-ring">
+          <h2 class="text-lg font-bold mb-2">Entry Details</h2>
+          <div>View and manage Entries.</div>
+          <a href="mentry.html" class="link">Add Entries</a>
+          <a href="kentry.html" class="link">View and Manage Entries</a>
+          <a href="work_updates.html" class="link">View and Manage orders</a>
+        </div>
+        <div class="rounded-lg shadow-lg p-4 moving-ring">
+          <h2 class="text-lg font-bold mb-2">Invoices</h2>
+          <div class="text-gray-400 mb-2">View and manage Invoices & Expenses.</div>
+          <a href="dataentry.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">Add Invoices</a>
+          <a href="display.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Invoices</a>
+        </div>
+        <div class="rounded-lg shadow-lg p-4 moving-ring">
+          <h2 class="text-lg font-bold mb-2">Reports</h2>
+          <div class="text-gray-400 mb-2">View and generate reports.</div>
+          <a href="expenses.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Expenses</a>
+          <a href="tracker.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Tracker</a>
+        </div>
       </div>
-      <div class="rounded-lg shadow-lg p-4">
-        <h2 class="text-lg font-bold mb-2">Invoices</h2>
-        <div class="text-gray-400 mb-2">View and manage Ivoices & Expenses.</div>
-        <a href="dataentry.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block">add Invoices</a>
-        <a href="display.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Invoices</a>
-      </div>
-      <div class="rounded-lg shadow-lg p-4">
-        <h2 class="text-lg font-bold mb-2">Reports</h2>
-        <div class="text-gray-400 mb-2">View and generate reports.</div>
-        <a href="expenses.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-4">View Expenses</a>
-        <a href="tracker.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded block mt-2">Tracker</a>
-      </div>
-    </div>
+  </div>
     <div class="mt-4">
       <h2 class="text-lg font-bold mb-2">Recent Activity</h2>
       <ul id="activity-list">
