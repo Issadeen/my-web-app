@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truck Entry System</title>
-    <!-- Include Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="config.js"></script>
-    <script src="auth.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truck Entry System</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="config.js"></script> 
+  <script src="auth.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
 </head>
 <style>
 :root {
@@ -88,7 +86,7 @@ body.dark-theme input.theme-input {
 
 /* Add more selectors to style other elements based on the theme */
 
-        table {
+    table {
         border-collapse: collapse;
         width: 100%;
     }
@@ -252,57 +250,189 @@ body.dark-theme input.theme-input {
         body.dark-theme .close:focus {
             color: var(--dark-primary);
         }
+
+    /* Media query for Android screens (adjust breakpoint as needed) */
+    @media (max-width: 768px) { 
+        /* ... (Your existing card styles for #resultTable) ... */
+
+        /* Card styling for the summary table rows */
+        #resultTable tr { 
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1);
+        }
+
+        #resultTable td {
+            padding: 0.5rem 0; 
+            border: none; 
+        }
+
+        /* Headers for the summary cards */
+        #resultTable tr td:nth-child(1):before { content: "Product - Destination: "; font-weight: bold; }
+        #resultTable tr td:nth-child(2):before { content: "Remaining Quantity: "; font-weight: bold; }
+        #resultTable tr td:nth-child(3):before { content: "Estimated Trucks: "; font-weight: bold; }
+        #resultTable tr td:nth-child(4):before { content: "Mother Entries: "; font-weight: bold; }
+
+        /* Hide the table header row on Android screens */
+        #resultTable tr:first-child {
+            display: none; 
+        }
+    }
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.btn i {
+    font-size: 1.5em;
+}
+
+.btn .btn-text {
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* Tooltip styling */
+.btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    font-size: 0.9em;
+}
+
+.btn:hover::after {
+    opacity: 1;
+}
+
+/* Media query for Android screens (adjust breakpoint as needed) */
+@media (max-width: 768px) {
+    .btn .btn-text {
+        display: none;
+    }
+
+    .btn {
+        padding: 10px;
+    }
+}
+/* Responsive typography for the heading */
+h1 {
+    font-size: 3rem; /* Default font size for large screens */
+}
+
+@media (max-width: 1024px) {
+    h1 {
+        font-size: 2.5rem; /* Adjust font size for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem; /* Adjust font size for small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem; /* Adjust font size for very small screens */
+    }
+}
+
 </style>
-
-<!-- Your HTML code -->
 <body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <!-- Top bar -->
-        <div class="top-bar">
-            <h1 class="text-3xl font-bold">Truck Entry System</h1>
-            <button onclick="window.location.href='mentry.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add TR800 Entry</button>
-            <!-- Add home button with Font Awesome icon -->
-            <button onclick="window.location.href='dashboard.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                <i class="fas fa-home"></i>
-            </button>
-            <button id="themeSwitcher">Switch Theme</button>
-        </div>
+  <div class="container mx-auto p-4">
+    <div class="top-bar">
+      <h1 class="text-3xl font-bold">Entry System</h1>
+      <button onclick="window.location.href='mentry.html'" class="btn bg-blue-500 text-white neumorphic" data-tooltip="Add TR800 Entry">
+        <i class="fas fa-plus"></i><span class="btn-text">Add TR800 Entry</span>
+    </button>
+      <button onclick="window.location.href='dashboard.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <i class="fas fa-home"></i>
+      </button>
+      <button id="themeSwitcher">Switch Theme</button>
+    </div>
 
-        <!-- Form for truck details -->
-        <form id="truckForm" class="bg-white p-4 rounded shadow mt-4">
-            <!-- Input fields: truck number, destination, product, AT20 quantity -->
-            <input type="text" id="truckNumber" placeholder="Truck Number" class="w-full mb-2 p-2 border rounded">
-            <input type="text" id="destination" placeholder="Destination" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
-            <input type="text" id="product" placeholder="Product" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
-            <input type="number" id="at20Quantity" placeholder="AT20 Quantity" class="w-full mb-2 p-2 border rounded">
-            <div id="message" class="mt-2 mb-2"></div>
-            <button id="getEntriesButton" type="button" onclick="getEntries()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Entries</button>
-            <button type="button" onclick="getAllEntries()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Get Entry usage</button>
-            <button type="button" onclick="window.location.href='manual.html'" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Manual Allocation</button>
-            <button type="button" id="summaryButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Quantity Summary</button>
-            <button type="button" id="downloadPdfButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Download PDF</button>
-        </form>
+    <form id="truckForm" class="bg-white p-4 rounded shadow mt-4">
+      <input type="text" id="truckNumber" placeholder="Truck Number" class="w-full mb-2 p-2 border rounded">
+      <input type="text" id="destination" placeholder="Destination" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
+      <input type="text" id="product" placeholder="Product" class="w-full mb-2 p-2 border rounded" oninput="this.value = this.value.toLowerCase()">
+      <input type="number" id="at20Quantity" placeholder="AT20 Quantity" class="w-full mb-2 p-2 border rounded">
+      <div id="message" class="mt-2 mb-2"></div>
+      <div class="button-container">
+        <button id="getEntriesButton" type="button" onclick="getEntries()" class="btn bg-blue-500 text-white">
+            <i class="fas fa-list"></i><span class="btn-text">Get Entries</span>
+        </button>
+        <button type="button" onclick="getAllEntries()" class="btn bg-green-500 text-white">
+            <i class="fas fa-clipboard-list"></i><span class="btn-text">Get Entry Usage</span>
+        </button>
+        <button type="button" onclick="window.location.href='manual.html'" class="btn bg-green-500 text-white">
+            <i class="fas fa-book"></i><span class="btn-text">Manual Allocation</span>
+        </button>
+        <button type="button" id="summaryButton" class="btn bg-yellow-500 text-white">
+            <i class="fas fa-chart-bar"></i><span class="btn-text">Quantity Summary</span>
+        </button>
+        <button type="button" id="downloadPdfButton" class="btn bg-red-500 text-white">
+            <i class="fas fa-file-pdf"></i><span class="btn-text">Download PDF</span>
+        </button>
+    </div>
 
-<button id="undoButton" style="display: none;">Undo Changes</button>
+    </form>
 
-<!-- Add these inputs to your HTML file -->
-<div class="filter-container">
-    <input type="text" id="entryFilter2" class="theme-input" onkeyup="filterTable('entryFilter2', 0)" placeholder="Filter by Entry">
-    <input type="text" id="productFilter2" class="theme-input" onkeyup="filterTable('productFilter2', 3)" placeholder="Filter by Product">
-    <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination">
-    <input type="text" id="truckFilter2" class="theme-input" onkeyup="filterTable('truckFilter2', 5)" placeholder="Filter by Truck Number">
-</div>
-<!-- Display retrieved mother entry and quantity -->
-<div id="result" class="mt-4"></div>
+    <button id="undoButton" class="btn bg-red-500 text-white neumorphic" style="display: none;" data-tooltip="Undo Changes">
+        <i class="fas fa-undo"></i><span class="btn-text">Undo Changes</span>
+    </button>
 
-<!-- The Modal -->
-<div id="myModal" class="modal">
-    <!-- Modal content -->
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <p>Your session will end soon due to inactivity.</p>
+    <div class="filter-container">
+      <input type="text" id="entryFilter2" class="theme-input" onkeyup="filterTable('entryFilter2', 0)" placeholder="Filter by Entry">
+      <input type="text" id="productFilter2" class="theme-input" onkeyup="filterTable('productFilter2', 3)" placeholder="Filter by Product">
+      <input type="text" id="destinationFilter2" class="theme-input" onkeyup="filterTable('destinationFilter2', 4)" placeholder="Filter by Destination">
+      <input type="text" id="truckFilter2" class="theme-input" onkeyup="filterTable('truckFilter2', 5)" placeholder="Filter by Truck Number">
+    </div>
+
+    <div id="result" class="mt-4"></div>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <span class="close">×</span>
+        <p>Your session will end soon due to inactivity.</p>
+      </div>
     </div>
   </div>
+
   
 <script>
     // intialize firebase...
@@ -784,7 +914,7 @@ function getAllEntries() {
                 let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
 
                 // Format utilized trucks and quantities
-                let utilizedTrucksAndQuantitiesStr = utilizedTrucksAndQuantities.map((t, i) => `{${t.truckNumber}: ${t.subtractedQuantity}}`).join('<br>');
+                let utilizedTrucksAndQuantitiesStr = utilizedTrucksAndQuantities.map((t, i) => `${i+1}. ${t.truckNumber}: ${t.subtractedQuantity}`).join('<br>');
 
                 // Add a new row to the table
                 let row = document.createElement('tr');
@@ -947,13 +1077,14 @@ document.getElementById('summaryButton').addEventListener('click', function() {
 
             // Display the summary
             let summaryTable = document.createElement('table');
-            summaryTable.id = 'resultTable'; // Add this line
+            summaryTable.id = 'summaryTable'; // Give the summary table a unique ID
             summaryTable.innerHTML = '<tr><th>Product - Destination</th><th>Remaining Quantity</th><th>Estimated Truck No</th><th>Mother Entries</th></tr>';
+
             for (let key in summary) {
                 summaryTable.innerHTML += `<tr><td>${key}</td><td>${summary[key].remainingQuantity.toFixed(2)}</td><td>${summary[key].estimatedTrucks.toFixed(2)}</td><td>${summary[key].motherEntries.map(entry => `${entry.number} (${entry.remainingQuantity})`).join(', ')}</td></tr>`;
             }
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '';
+            resultDiv.innerHTML = ''; // Clear previous results
             resultDiv.appendChild(summaryTable);
         } else {
             // Display a message when there are no entries
