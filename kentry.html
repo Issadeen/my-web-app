@@ -30,6 +30,7 @@
 body.light-theme {
     background-color: var(--light-background);
     color: var(--light-text);
+
 }
 
 body.dark-theme {
@@ -170,9 +171,7 @@ body.dark-theme input.theme-input {
   .theme-input {
     margin: 0 10px 0 0; /* This adds a 10px space to the right of each input box */
 }
-.highlight {
-    background-color: rgb(5, 128, 244); /* Change as per your preference */
-}
+
 
  /* The Modal (background) */
  .modal {
@@ -372,6 +371,12 @@ h1 {
     }
 }
 
+.highlight {
+    background-color: rgb(5, 128, 244);
+    
+}
+
+
 </style>
 <body class="bg-gray-100">
   <div class="container mx-auto p-4">
@@ -379,7 +384,7 @@ h1 {
       <h1 class="text-3xl font-bold">Entry System</h1>
       <button onclick="window.location.href='mentry.html'" class="btn bg-blue-500 text-white neumorphic" data-tooltip="Add TR800 Entry">
         <i class="fas fa-plus"></i><span class="btn-text">Add TR800 Entry</span>
-    </button>
+        </button>
       <button onclick="window.location.href='dashboard.html'" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
         <i class="fas fa-home"></i>
       </button>
@@ -408,6 +413,8 @@ h1 {
         <button type="button" id="downloadPdfButton" class="btn bg-red-500 text-white">
             <i class="fas fa-file-pdf"></i><span class="btn-text">Download PDF</span>
         </button>
+        <button id="exportCSVButton">Export to CSV</button>
+
     </div>
 
     </form>
@@ -865,7 +872,6 @@ at20QuantityInput.addEventListener('input', function() {
     });
 });
 
-// Define getAllEntries function
 function getAllEntries() {
     // Fetch all TR800 entries and truck entries from Realtime Database
     Promise.all([
@@ -898,10 +904,10 @@ function getAllEntries() {
                 });
             });
 
-            // show filter container
+            // Show filter container
             document.querySelector('.filter-container').style.display = 'flex';
 
-            // hide the filter container on button click
+            // Hide the filter container on button click
             document.getElementById('getEntriesButton').addEventListener('click', function() {
                 document.querySelector('.filter-container').style.display = 'none';
             });
@@ -913,8 +919,8 @@ function getAllEntries() {
                 // Get the utilized trucks and quantities for this entry
                 let utilizedTrucksAndQuantities = truckEntries[data.number] || [];
 
-                // Format utilized trucks and quantities
-                let utilizedTrucksAndQuantitiesStr = utilizedTrucksAndQuantities.map((t, i) => `${i+1}. ${t.truckNumber}: ${t.subtractedQuantity}`).join('<br>');
+                // Format utilized trucks and quantities using list numbering
+                let utilizedTrucksAndQuantitiesStr = utilizedTrucksAndQuantities.map((t, i) => `(${i+1}) ${t.truckNumber}: ${t.subtractedQuantity}`).join('<br>');
 
                 // Add a new row to the table
                 let row = document.createElement('tr');
@@ -941,6 +947,7 @@ function getAllEntries() {
         console.error(error);
     });
 }
+
 
 // undo without prompt
 function undoChangesWithoutPrompt() {
@@ -1012,7 +1019,6 @@ function undoChanges() {
         });
     }
 }
-// Define filterTable function
 function filterTable(inputId, columnIndex) {
     // Declare variables
     let input, filter, table, tr, td, i, txtValue;
@@ -1025,9 +1031,14 @@ function filterTable(inputId, columnIndex) {
     for (i = 0; i < tr.length; i++) {
         td = tr[i].getElementsByTagName("td")[columnIndex];
         if (td) {
-            txtValue = td.textContent || td.innerText;
+            // Use a data attribute to store the original content if it doesn't already exist
+            if (!td.dataset.originalContent) {
+                td.dataset.originalContent = td.textContent || td.innerText;
+            }
+            txtValue = td.dataset.originalContent;
+
             if (filter === '') {
-                // If the filter is empty, display all rows and remove the 'highlight' class from all cells
+                // If the filter is empty, display all rows and reset the cell content
                 tr[i].style.display = "";
                 td.innerHTML = txtValue;
             } else if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -1037,12 +1048,14 @@ function filterTable(inputId, columnIndex) {
                 td.innerHTML = html;
             } else {
                 tr[i].style.display = "none";
-                // Remove the 'highlight' class from the cell
+                // Reset the cell content to the original
                 td.innerHTML = txtValue;
             }
         }
     }
 }
+
+
 
 //to get the summary of the remaining quantity.
 document.getElementById('summaryButton').addEventListener('click', function() {
@@ -1093,6 +1106,56 @@ document.getElementById('summaryButton').addEventListener('click', function() {
         }
     });
 });
+
+// Export to CSV
+document.getElementById('exportCSVButton').addEventListener('click', function() {
+    exportTableToCSV('entries.csv');
+});
+
+function exportTableToCSV(filename) {
+    let csv = [];
+    let rows = document.querySelectorAll('#resultTable tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length; j++) {
+            row.push(cols[j].innerText);
+        }
+        
+        csv.push(row.join(','));
+    }
+
+    // Download CSV
+    downloadCSV(csv.join('\n'), filename);
+}
+
+function downloadCSV(csv, filename) {
+    let csvFile;
+    let downloadLink;
+
+    // CSV file
+    csvFile = new Blob([csv], { type: 'text/csv' });
+
+    // Download link
+    downloadLink = document.createElement('a');
+
+    // File name
+    downloadLink.download = filename;
+
+    // Create a link to the file
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+    // Hide download link
+    downloadLink.style.display = 'none';
+
+    // Add the link to the DOM
+    document.body.appendChild(downloadLink);
+
+    // Click the link
+    downloadLink.click();
+}
+
     </script>
 </body>
 </html>
