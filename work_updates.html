@@ -157,6 +157,90 @@
     text-decoration: line-through;
 }
 
+
+/* Modal styles */
+.gpModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding-top: 60px;
+        }
+
+        .gpModal-content {
+            background-color: #2a2a2a;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        input[type=text], input[type=date], input[type=number] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+        }
+
+        label {
+            margin-top: 12px;
+        }
+
+        button[type=submit] {
+            background-color: #3d98dd;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button[type=submit]:hover {
+            background-color: #357abd;
+        }
+
+        input:invalid {
+            border-color: red;
+        }
+        .error {
+            color: green;
+            display: none;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+
+    #ticker {
+        position: relative;
+        animation: ticker 10s linear infinite;
+    }
+
+        @keyframes ticker {
+         0% { left: 100%; }
+        100% { left: -100%; }
+        }
         </style>
     
     <body class="bg-gray-900 text-white">
@@ -174,6 +258,13 @@
             </button>
         </div>
     </nav>
+
+    <div id="tickerContainer" style="overflow: hidden; white-space: nowrap;">
+        <div id="ticker" style="position: relative; animation: ticker 40s linear infinite;">
+            <!-- Add your ticker content here -->
+            <span>hi Issadeen</span>
+        </div>
+    </div>
 
     <!-- modl -->
     <div id="mymodl" class="modl">
@@ -201,8 +292,15 @@
                     <input type="text" id="quantity" name="quantity" required>
                 </div>
                 <div class="input-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" name="price" required style="width: 100%; height: 30px;">
+                </div>
+                <div class="input-group">
                     <label for="status">Status:</label>
-                    <input type="text" id="status" name="status" required>
+                    <select id="status" name="status" required style="width: 100%; height: 30px;">
+                        <option value="queued">Queued</option>
+                        <option value="not queued">Not Queued</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label for="orderno">Order Number:</label>
@@ -217,7 +315,6 @@
             </form>
         </div>
     </div>
-
     <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
         <table class="table-auto w-full" id="work_details_table">
             <!-- Table content -->
@@ -240,6 +337,61 @@
             </tbody>
         </table>
     </div>
+
+    <!-- The Modal -->
+    <div id="gpModal" class="gpModal">
+        <div class="gpModal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <form id="gatePassForm">
+                <label for="code">Code:</label>
+                <input type="text" id="code" name="code" required>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="licensePlate">License Plate:</label>
+                <input type="text" id="licensePlate" name="licensePlate" pattern="^[A-Z0-9]+-[A-Z0-9]+$" required>
+                <div id="licensePlateError" class="error">Please use the format: ABC1234-XYZ5678</div>
+
+                <label for="destination">Destination:</label>
+                <input type="text" id="destination" name="destination" required>
+
+                <label for="fuelType">Fuel Type:</label>
+                <input type="text" id="fuelType" name="fuelType" required>
+
+                <label for="totalLiters">Total Liters:</label>
+                <input type="number" id="totalLiters" name="totalLiters" required>
+
+                <label for="liters1">Liters 1:</label>
+                <input type="number" id="liters1" name="liters1" required>
+
+                <label for="liters2">Liters 2:</label>
+                <input type="number" id="liters2" name="liters2" required>
+
+                <label for="liters3">Liters 3:</label>
+                <input type="number" id="liters3" name="liters3" required>
+
+                <label for="passNumber">Pass Number:</label>
+                <input type="text" id="passNumber" name="passNumber" required>
+
+                <label for="name1">Name 1:</label>
+                <input type="text" id="name1" name="name1" required>
+
+                <label for="name2">Name 2:</label>
+                <input type="text" id="name2" name="name2" required>
+
+                <label for="loadingPoint">Loading Point:</label>
+                <input type="text" id="loadingPoint" name="loadingPoint" required>
+
+                <label for="at20">At 20:</label>
+                <input type="text" id="at20" name="at20" required>
+
+                <button type="button" onclick="generatePDF(this)">Generate Gate Pass</button>
+            </form>
+        </div>
+</div>
+
+    
     
         <!-- Summary section -->
         <div id="summary_section" class="mt-4 flex">
@@ -261,6 +413,9 @@
 
             // Get a reference to the "work_details" node in the database
             const workDetailsRef = db.ref("work_details");
+
+            // Hide the gatePassForm initially
+            document.getElementById('gatePassForm').style.display = 'none';
 
             // Get the modl
             const modl = document.getElementById("mymodl");
@@ -319,7 +474,7 @@
             agoOrders = 0;
             pmsOrders = 0;
             ownerSummary = {};
-    
+
             // Loop through the child nodes of the "work_details" node
             snapshot.forEach(function(childSnapshot) {
                 var childData = childSnapshot.val();
@@ -370,6 +525,15 @@
     
             // Update summary section (code omitted for brevity)
             updateSummarySection();
+
+            // Update ticker
+function updateTicker() {
+    const ticker = document.getElementById('ticker');
+    ticker.innerHTML = `Total Orders: ${totalOrders}, Queued Orders: ${queuedOrders}, Unqueued Orders: ${unqueuedOrders}, AGO Orders: ${agoOrders}, PMS Orders: ${pmsOrders}`;
+}
+
+// Call updateTicker function whenever you update the variables
+updateTicker();
         }
     });
     
@@ -448,8 +612,8 @@ ref.on("value", function(snapshot) {
     }
     </script>
     <script>
-    // Listen for changes to the data in the "work_details" node
-        workDetailsRef.on("value", function(snapshot) {
+// Listen for changes to the data in the "work_details" node
+workDetailsRef.on("value", function(snapshot) {
             var workDetails = snapshot.val();
             if (workDetails) {
                 var tableBody = document.getElementById("work_details_table_body");
@@ -496,43 +660,57 @@ ref.on("value", function(snapshot) {
                         row.insertCell().textContent = childData.destination; // New field
                         // Add button for loaded/paid status change
                         var actionsCell = row.insertCell();
+
+                        // Create the actions button (Paid/Loaded)
                         var actionsButton = document.createElement("button");
                         actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded", "mr-4");
                         // Create Font Awesome icons
                         var paidIcon = document.createElement("i");
                         paidIcon.classList.add("fas", "fa-check");
-                        // Set initial button content
+
+                        // Add GP button 
+                        const gpButton = document.createElement("button");
+                        gpButton.textContent = "GP";
+                        gpButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
+                        gpButton.style.display = 'none'; // Hide GP button initially
+                        gpButton.onclick = function() {
+                            // Populate and show the gate pass form
+                            populateForm(this);
+                            document.getElementById('gatePassForm').style.display = 'block';
+                        };
+
+                        // Create a container for the buttons
+                        var buttonContainer = document.createElement("div");
+                        buttonContainer.style.display = "flex";
+
+                        // Set initial button content for actionsButton
                         if (childData.loaded && childData.paid) {
                             actionsButton.appendChild(paidIcon);
+                            actionsButton.disabled = true; // Disable the button after paid
+                            buttonContainer.appendChild(actionsButton);
+                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
+
+                            // Show the GP button when paid is true
+                            if (childData.paid) {
+                                gpButton.style.display = 'inline-block'; // Display GP button inline
+                            }
                         } else if (childData.loaded) {
                             actionsButton.textContent = "Paid?";
+                            buttonContainer.appendChild(actionsButton);
+                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
                         } else {
                             actionsButton.textContent = "Loaded?";
+                            buttonContainer.appendChild(actionsButton);
+                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
                         }
-                        actionsButton.onclick = function() {
-                            if (!childData.loaded) { 
-                                childData.loaded = true;
-                                childData.crossedOut = true;
-                                actionsButton.textContent = "Paid";
-                                // Add the line-through class to all cells
-                                for (var i = 0; i < row.cells.length; i++) {
-                                row.cells[i].classList.add("line-through");
-                                }
-                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error); 
-                            } else if (!childData.paid) { 
-                                childData.paid = true;
-                                childData.crossedOut = true;
-                                actionsButton.textContent = "";
-                                actionsButton.appendChild(paidIcon);
-                                actionsButton.disabled = true; 
-                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid, crossedOut: childData.crossedOut }).catch(console.error);
-                            } 
-                        };
-                        actionsCell.appendChild(actionsButton);
+
+                        // Append the container to the actionsCell
+                        actionsCell.appendChild(buttonContainer);
+
                         // Add "Change Truck" button
                         var changeTruckButton = document.createElement("button");
                         changeTruckButton.textContent = "Change Truck";
-                        changeTruckButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded");
+                        changeTruckButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
                         changeTruckButton.onclick = function() {
                             // Check if the order is loaded
                             if (childData.loaded) {
@@ -561,7 +739,17 @@ ref.on("value", function(snapshot) {
                                 workDetailsRef.child(childSnapshot.key).update({ truck_number: childData.truck_number, previous_trucks: childData.previous_trucks });
                             }
                         };
-                        actionsCell.appendChild(changeTruckButton);
+
+                        // Hide the Change Truck button if the order is loaded
+                        changeTruckButton.style.display = childData.loaded ? "none" : "inline-block";
+
+                        // Create a container for the 'Loaded/Paid' buttons and 'Change Truck' button
+                        var actionButtonsContainer = document.createElement("div");
+                        actionButtonsContainer.style.display = "flex";
+                        actionButtonsContainer.appendChild(buttonContainer);
+                        actionButtonsContainer.appendChild(changeTruckButton);
+
+                        actionsCell.appendChild(actionButtonsContainer);
                         // Add delete button to the row
                         var deleteCell = row.insertCell();
                         var deleteButton = document.createElement("button");
@@ -574,10 +762,31 @@ ref.on("value", function(snapshot) {
                         deleteIcon.classList.add("fas", "fa-trash-alt");
                         deleteButton.appendChild(deleteIcon);
                         deleteCell.appendChild(deleteButton);
+                        actionsButton.onclick = function() {
+                            if (!childData.loaded) { 
+                                childData.loaded = true;
+                                childData.crossedOut = true;
+                                actionsButton.textContent = "Paid";
+                                // Add the line-through class to all cells
+                                for (var i = 0; i < row.cells.length; i++) {
+                                row.cells[i].classList.add("line-through");
+                                }
+                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error); 
+                            } else if (!childData.paid) { 
+                                childData.paid = true;
+                                childData.crossedOut = true;
+                                actionsButton.textContent = "";
+                                actionsButton.appendChild(paidIcon);
+                                actionsButton.disabled = true; 
+                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid, crossedOut: childData.crossedOut }).catch(console.error);
+                            } 
+                        };
                     } else {
                         console.error("Invalid data format: ", childData);
                     }
                 });
+            
+            
                 
         
 // After all table rows have been created, add the event listener for the download button
@@ -823,6 +1032,192 @@ function deleteOrder(orderKey) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
 
+<!-- jsPDF and html2canvas CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+<script>
+async function populateForm(button) {
+    // Get the table row containing the clicked button
+    const row = button.closest('tr');
+    const cells = row.getElementsByTagName('td');
+
+    // Map table cell values to form fields
+    document.getElementById('code').value = cells[5].innerText; // Order Number
+    document.getElementById('licensePlate').value = cells[2].querySelector('input').value; // Get value from input field
+    document.getElementById('destination').value = cells[7].innerText; // Destination
+    document.getElementById('fuelType').value = cells[1].innerText; // Product
+    document.getElementById('totalLiters').value = cells[3].innerText; // Quantity
+
+    // Set default values for date, loading point, at20, pass number, name1, and name2
+    document.getElementById('date').value = new Date().toISOString().split('T')[0]; // Current date
+    document.getElementById('loadingPoint').value = cells[6].innerText; // Depot
+    document.getElementById('at20').value = 'Default At 20'; // Set as per your logic
+
+    // Set the pass number in the form field
+    let lastPassNumber = await getLastPassNumber();
+    document.getElementById('passNumber').value = `MOK-GP-${lastPassNumber + 1}`;
+
+    document.getElementById('name1').value = 'ZAINAB AHMED'; // Name 1
+    document.getElementById('name2').value = 'IBRAHIM MOHAMED ATHMAN'; // Name 2
+
+    // Display the modal
+    document.getElementById('gpModal').style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById('gpModal').style.display = "none";
+}
+
+// Close the modal if the user clicks anywhere outside of the modal
+window.onclick = function(event) {
+    const modal = document.getElementById('gpModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+async function getLastPassNumber() {
+    const snapshot = await db.ref("gatePasses/lastPassNumber").once('value');
+    return snapshot.val() || 192; // Default to 192 if not found
+}
+
+async function incrementPassNumber() {
+    const lastNumber = await getLastPassNumber();
+    const newNumber = lastNumber + 1;
+    await db.ref("gatePasses/lastPassNumber").set(newNumber);
+    return newNumber;
+}
+
+async function generatePDF(button) {
+    const { jsPDF } = window.jspdf;
+    const form = document.getElementById('gatePassForm');
+
+    // Validate license plate format
+    const licensePlateInput = document.getElementById('licensePlate');
+            const licensePlateError = document.getElementById('licensePlateError');
+            const licensePlateValue = licensePlateInput.value;
+
+            if (licensePlateValue.includes('/')) {
+                licensePlateError.style.display = 'block';
+                licensePlateError.textContent = 'License Plate must use - instead of /.';
+                licensePlateInput.focus();
+                return;
+            } else if (!licensePlateValue.match(/^[A-Z0-9]+-[A-Z0-9]+$/)) {
+                licensePlateError.style.display = 'block';
+                licensePlateError.textContent = 'License Plate must be in the format ABC123-DEF456.';
+                licensePlateInput.focus();
+                return;
+            } else {
+                licensePlateError.style.display = 'none';
+            }
+
+   // Check if the form is valid
+   if (!form.checkValidity()) {
+   form.reportValidity(); // This will highlight the invalid fields
+   return;
+    }
+
+    // Get form data
+    const formData = new FormData(form);
+    const truckNumber = formData.get('licensePlate');
+
+    // Check if truck number was used in the last 2 hours
+    const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+    const ref = firebase.database().ref('gatePasses');
+    const snapshot = await ref.orderByChild('truckNumber').equalTo(truckNumber).limitToLast(1).once('value');
+    const lastGatePass = snapshot.val();
+    let isDuplicate = false;
+    let passNumber;
+    if (lastGatePass) {
+        const lastPassData = Object.values(lastGatePass)[0];
+        if (lastPassData.timestamp > twoHoursAgo) {
+            isDuplicate = true;
+            passNumber = lastPassData.passNumber;
+        } else {
+            passNumber = await incrementPassNumber();
+        }
+    } else {
+        passNumber = await incrementPassNumber();
+    }
+
+    // Define file names
+    const fileName = `gate-pass-${Date.now()}.pdf`;
+    const duplicateFileName = `gate-pass-${Date.now()}-duplicate.pdf`;
+
+    // Create a new PDF document
+    const doc = new jsPDF('landscape', 'pt', 'a4');
+
+    // Add background image
+    const backgroundImg = new Image();
+    backgroundImg.src = './public/image.png';
+
+    backgroundImg.onload = function() {
+        doc.addImage(backgroundImg, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+
+        // Set font to bold 
+        doc.setFont('helvetica', 'bold');
+
+        // Add text on top of the background image
+        doc.setFontSize(14);
+        doc.setTextColor('#3D98DD');
+
+        doc.text(formData.get('code'), 125, 175);
+        doc.text(formData.get('date'), 425, 205);
+        doc.text(formData.get('licensePlate'), 440, 265);
+        doc.text(formData.get('destination'), 100, 250);
+        doc.text(formData.get('fuelType'), 120, 340);
+        doc.text(formData.get('totalLiters'), 400, 340);
+        doc.text(formData.get('liters1'), 700, 340);
+        doc.text(formData.get('liters2'), 700, 370);
+        doc.text(formData.get('liters3'), 700, 400);
+        doc.text(`MOK-GP-${passNumber}`, 700, 175);
+        doc.text(formData.get('name1'), 100, 535);
+        doc.text(formData.get('name2'), 660, 525);
+        doc.text(formData.get('loadingPoint'), 740, 265);
+        doc.text(formData.get('at20'), 500, 340);
+
+        if (isDuplicate) {
+            doc.text('DUPLICATE', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center' });
+        }
+
+        if (isDuplicate) {
+            doc.save(duplicateFileName);
+        } else {
+            doc.save(fileName);
+        }
+
+        const gpButton = button;
+        const passNumberLink = document.createElement('a');
+        passNumberLink.href = `./${isDuplicate ? duplicateFileName : fileName}`;
+        passNumberLink.download = isDuplicate ? duplicateFileName : fileName;
+        passNumberLink.textContent = `MOK-GP-${passNumber}`;
+        passNumberLink.onclick = function(e) {
+            e.preventDefault();
+            const link = document.createElement('a');
+            link.href = `./${isDuplicate ? duplicateFileName : fileName}`;
+            link.download = isDuplicate ? duplicateFileName : fileName;
+            link.click();
+        };
+        gpButton.parentNode.replaceChild(passNumberLink, gpButton);
+    };
+
+    // Save gate pass data to Firebase only if it's not a duplicate
+    if (!isDuplicate) {
+        const gatePassData = Object.fromEntries(formData.entries());
+        gatePassData.timestamp = Date.now();
+        gatePassData.truckNumber = truckNumber;
+        gatePassData.passNumber = passNumber; // Save the passNumber to Firebase
+        firebase.database().ref(`gatePasses/${truckNumber}`).set(gatePassData);
+    }
+
+    // Rename the gpButton to the passNumber
+    button.textContent = passNumber;
+
+    // Close the modal after PDF generation
+    closeModal();
+}
+
+</script>
 </body>
 </html>
