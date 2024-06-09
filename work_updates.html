@@ -1095,27 +1095,27 @@ async function generatePDF(button) {
 
     // Validate license plate format
     const licensePlateInput = document.getElementById('licensePlate');
-            const licensePlateError = document.getElementById('licensePlateError');
-            const licensePlateValue = licensePlateInput.value;
+    const licensePlateError = document.getElementById('licensePlateError');
+    const licensePlateValue = licensePlateInput.value;
 
-            if (licensePlateValue.includes('/')) {
-                licensePlateError.style.display = 'block';
-                licensePlateError.textContent = 'License Plate must use - instead of /.';
-                licensePlateInput.focus();
-                return;
-            } else if (!licensePlateValue.match(/^[A-Z0-9]+-[A-Z0-9]+$/)) {
-                licensePlateError.style.display = 'block';
-                licensePlateError.textContent = 'License Plate must be in the format ABC123-DEF456.';
-                licensePlateInput.focus();
-                return;
-            } else {
-                licensePlateError.style.display = 'none';
-            }
+    if (licensePlateValue.includes('/')) {
+        licensePlateError.style.display = 'block';
+        licensePlateError.textContent = 'License Plate must use - instead of /.';
+        licensePlateInput.focus();
+        return;
+    } else if (!licensePlateValue.match(/^[A-Z0-9]+-[A-Z0-9]+$/)) {
+        licensePlateError.style.display = 'block';
+        licensePlateError.textContent = 'License Plate must be in the format ABC123-DEF456.';
+        licensePlateInput.focus();
+        return;
+    } else {
+        licensePlateError.style.display = 'none';
+    }
 
-   // Check if the form is valid
-   if (!form.checkValidity()) {
-   form.reportValidity(); // This will highlight the invalid fields
-   return;
+    // Check if the form is valid
+    if (!form.checkValidity()) {
+        form.reportValidity(); // This will highlight the invalid fields
+        return;
     }
 
     // Get form data
@@ -1181,13 +1181,14 @@ async function generatePDF(button) {
             doc.text('DUPLICATE', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() / 2, { align: 'center' });
         }
 
+        // Save the PDF
         if (isDuplicate) {
             doc.save(duplicateFileName);
         } else {
             doc.save(fileName);
         }
 
-        const gpButton = button;
+        // Replace the GP button with the passNumber link temporarily
         const passNumberLink = document.createElement('a');
         passNumberLink.href = `./${isDuplicate ? duplicateFileName : fileName}`;
         passNumberLink.download = isDuplicate ? duplicateFileName : fileName;
@@ -1199,7 +1200,14 @@ async function generatePDF(button) {
             link.download = isDuplicate ? duplicateFileName : fileName;
             link.click();
         };
-        gpButton.parentNode.replaceChild(passNumberLink, gpButton);
+        button.parentNode.replaceChild(passNumberLink, button);
+
+        // Reset the button after a short delay
+        setTimeout(() => {
+            passNumberLink.parentNode.replaceChild(button, passNumberLink);
+            button.textContent = 'Generate Gate Pass';
+            button.disabled = false;
+        }, 2000); // Adjust delay as necessary
     };
 
     // Save gate pass data to Firebase only if it's not a duplicate
@@ -1210,9 +1218,6 @@ async function generatePDF(button) {
         gatePassData.passNumber = passNumber; // Save the passNumber to Firebase
         firebase.database().ref(`gatePasses/${truckNumber}`).set(gatePassData);
     }
-
-    // Rename the gpButton to the passNumber
-    button.textContent = passNumber;
 
     // Close the modal after PDF generation
     closeModal();
