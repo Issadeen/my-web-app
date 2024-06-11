@@ -5,6 +5,7 @@
     <title>Work Details</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://kit.fontawesome.com/d00c9b568a.js" crossorigin="anonymous"></script>
+    <!-- Remove duplicate Firebase libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -242,11 +243,17 @@
         100% { left: -100%; }
         }
         </style>
+
+
     
     <body class="bg-gray-900 text-white">
     <nav class="flex justify-between items-center p-4 bg-gray-800">
         <h1 class="text-2xl font-bold">Work Details</h1>
         <div>
+            <button onclick="openAddStockModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Add Stock
+            </button>
+
             <button id="download_button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Download PDF
             </button>
@@ -266,55 +273,86 @@
         </div>
     </div>
 
+
+
     <!-- modl -->
-    <div id="mymodl" class="modl">
+    <!-- Add Work Form Modal -->
+    <div id="mymodl" class="modl" style="z-index: 999;">
+    <div class="modl-content bg-gray-800">
+        <span class="close" onclick="closemymodl()">×</span>
+        <form id="add_work_form">
+            <div class="input-group">
+                <label for="owner">Owner:</label>
+                <input type="text" id="owner" name="owner" required>
+            </div>
+            <div class="input-group">
+                <label for="product">Product:</label>
+                <input type="text" id="product" name="product" required>
+            </div>
+            <div class="input-group">
+                <label for="destination">Destination:</label>
+                <input type="text" id="destination" name="destination" required>
+            </div>
+            <div class="input-group">
+                <label for="truck_number">Truck Number:</label>
+                <input type="text" id="truck_number" name="truck_number" required>
+            </div>
+            <div class="input-group">
+                <label for="quantity">Quantity:</label>
+                <input type="text" id="quantity" name="quantity" required>
+            </div>
+            <div class="input-group">
+                <label for="price">Price:</label>
+                <input type="number" id="price" name="price" required style="width: 100%; height: 30px;">
+            </div>
+            <div class="input-group">
+                <label for="status">Status:</label>
+                <select id="status" name="status" required style="width: 100%; height: 30px;">
+                    <option value="queued">Queued</option>
+                    <option value="not queued">Not Queued</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="orderno">Order Number:</label>
+                <input type="text" id="orderno" name="orderno" required>
+            </div>
+            <div class="input-group">
+                <label for="depot">Depot:</label>
+                <input type="text" id="depot" name="depot" required>
+            </div>
+            <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closemodl()">Cancel</button>
+            <button type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+<!-- Insufficient Stock Modal -->
+<div id="noStockModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none; z-index: 1000;">
+    <div class="bg-gray-800 text-white p-4 rounded-lg w-1/2">
+        <span class="close text-white text-2xl float-right cursor-pointer" onclick="closeNoStockModal()">&times;</span>
+        <p>Insufficient stock to fulfill the order. Please try again with a lower quantity or wait for restock.</p>
+    </div>
+</div>
+
+     <!-- Add Stock Modal -->
+     <div id="addStockModal" class="modl">
         <div class="modl-content bg-gray-800">
-            <span class="close">&times;</span>
-            <form id="add_work_form">
+            <span class="close" onclick="closeAddStockModal()">×</span>
+            <form id="add_stock_form">
                 <div class="input-group">
-                    <label for="owner">Owner:</label>
-                    <input type="text" id="owner" name="owner" required>
+                    <label for="stock_product">Product:</label>
+                    <input type="text" id="stock_product" name="stock_product" required>
                 </div>
                 <div class="input-group">
-                    <label for="product">Product:</label>
-                    <input type="text" id="product" name="product" required>
+                    <label for="stock_quantity">Quantity:</label>
+                    <input type="text" id="stock_quantity" name="stock_quantity" required>
                 </div>
-                <div class="input-group">
-                    <label for="destination">destination:</label>
-                    <input type="text" id="destination" name="destination" required>
-                </div>
-                <div class="input-group">
-                    <label for="truck_number">Truck Number:</label>
-                    <input type="text" id="truck_number" name="truck_number" required>
-                </div>
-                <div class="input-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="text" id="quantity" name="quantity" required>
-                </div>
-                <div class="input-group">
-                    <label for="price">Price:</label>
-                    <input type="number" id="price" name="price" required style="width: 100%; height: 30px;">
-                </div>
-                <div class="input-group">
-                    <label for="status">Status:</label>
-                    <select id="status" name="status" required style="width: 100%; height: 30px;">
-                        <option value="queued">Queued</option>
-                        <option value="not queued">Not Queued</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="orderno">Order Number:</label>
-                    <input type="text" id="orderno" name="orderno" required>
-                </div>
-                <div class="input-group">
-                    <label for="depot">Depot:</label>
-                    <input type="text" id="depot" name="depot" required>
-                </div>
-                <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closemodl()">Cancel</button>
-                <button type="submit">Save</button>
+                <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closeAddStockModal()">Cancel</button>
+                <button type="submit">Add Stock</button>
             </form>
         </div>
     </div>
+
     <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
         <table class="table-auto w-full" id="work_details_table">
             <!-- Table content -->
@@ -341,7 +379,7 @@
     <!-- The Modal -->
     <div id="gpModal" class="gpModal">
         <div class="gpModal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" onclick="closeModal()">×</span>
             <form id="gatePassForm">
                 <label for="code">Code:</label>
                 <input type="text" id="code" name="code" required>
@@ -390,7 +428,7 @@
             </form>
         </div>
 </div>
-
+<div id="stocks"></div>
     
     
         <!-- Summary section -->
@@ -400,7 +438,7 @@
             <div id="owner_summary"></div>
         </div>
    
-    
+       
 
     
     <script>
@@ -449,6 +487,21 @@
             span.onclick = function(event) {
                 event.stopPropagation();
                 closemodl();
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modl) {
+                    closemodl();
+                }
+            }
+
+            function openAddStockModal() {
+                document.getElementById('addStockModal').style.display = 'block';
+            }
+            
+            function closeAddStockModal() {
+                document.getElementById('addStockModal').style.display = 'none';
             }
     </script>
 <script>
@@ -906,7 +959,6 @@ document.getElementById("download_button").addEventListener("click", function ()
 });
 
 
-// Handle form submission
 document.getElementById("add_work_form").addEventListener("submit", function(event) {
     event.preventDefault();
     const formData = new FormData(this);
@@ -925,27 +977,47 @@ document.getElementById("add_work_form").addEventListener("submit", function(eve
         newWorkDetail.destination = "";
     }
 
-    // Generate unique ID for owner
-    const ownerId = generateUniqueId(); // You need to implement this function
+    const product = newWorkDetail.product;
+    const quantity = parseFloat(newWorkDetail.quantity);
 
-    // Save owner's data under the generated ID
-    db.ref("owners/" + ownerId).set({
-        product: newWorkDetail.product,
-        depot: newWorkDetail.depot,
-        destination: newWorkDetail.destination
+    const stockRef = firebase.database().ref(`/stocks/${product}`);
+    stockRef.once('value').then(snapshot => {
+        const stock = snapshot.val();
+        if (stock && stock.quantity >= quantity) {
+            // Generate unique ID for owner
+            const ownerId = generateUniqueId(); // Implement this function as per your requirements
+
+            // Save owner's data under the generated ID
+            db.ref("owners/" + ownerId).set({
+                product: newWorkDetail.product,
+                depot: newWorkDetail.depot,
+                destination: newWorkDetail.destination
+            }).catch(error => {
+                console.error("Error saving owner data to Firebase:", error);
+            });
+
+            // Save the new work detail (order) to Firebase
+            workDetailsRef.push({
+                ...newWorkDetail,  // Spread the existing newWorkDetail properties
+                paid: false,       // Add paid property
+                crossedOut: false, // Add crossedOut property
+                estimated_trucks: product === 'pms' ? (quantity / 40).toFixed(2) : (quantity / 36).toFixed(2),
+                created_at: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                // Update the stock
+                stockRef.update({ quantity: stock.quantity - quantity });
+                console.log('Order created and stock updated successfully');
+                // Close the "Add Work Form" modal
+                closemodl();
+            }).catch(error => {
+                console.error("Error creating order:", error);
+            });
+        } else {
+            showNoStockModal();
+        }
     }).catch(error => {
-        console.error("Error saving data to Firebase:", error); // Log any errors
+        console.error('Error fetching stock:', error);
     });
-
-    // Save the new work detail to Firebase
-    workDetailsRef.push({
-    ...newWorkDetail,  // Spread the existing newWorkDetail properties
-    paid: false,        // Add paid property
-    crossedOut: false // Add crossedOut property
-});
-
-    // Close the modl
-    closemodl();
 });
 
 // Function to generate unique ID
@@ -954,6 +1026,79 @@ function generateUniqueId() {
     // Example:
     return Math.random().toString(36).substr(2, 9);
 }
+
+
+
+document.getElementById("add_stock_form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const newStock = {};
+    formData.forEach(function(value, key) {
+        newStock[key] = value;
+    });
+
+    // Use the correct keys to access the form data
+    const stockRef = firebase.database().ref(`/stocks/${newStock.stock_product}`);
+
+    // Add the new stock to Firebase
+    stockRef.set({
+        product: newStock.stock_product,
+        quantity: parseFloat(newStock.stock_quantity)
+    }).then(() => {
+        console.log('Stock added successfully');
+        closeAddStockModal();
+    }).catch(error => {
+        console.error('Error adding stock:', error);
+    });
+});
+
+// Get a reference to the stocks node in Firebase
+const stocksRef = firebase.database().ref('/stocks');
+
+// Get a reference to the stocks div
+const stocksDiv = document.getElementById('stocks');
+
+// Listen for changes to the stocks data
+stocksRef.on('value', function(snapshot) {
+    // The snapshot contains the current data
+    const stocks = snapshot.val();
+
+    // Clear the stocks div
+    stocksDiv.innerHTML = '';
+
+    // Loop through the stocks and create an element for each one
+    for (let product in stocks) {
+        const quantity = stocks[product].quantity;
+        let estimatedTrucks;
+
+        // Calculate the estimated trucks based on the product type
+        if (product === 'ago') {
+            estimatedTrucks = quantity / 36;
+        } else if (product === 'pms') {
+            estimatedTrucks = quantity / 40;
+        }
+
+        const stockDiv = document.createElement('div');
+        stockDiv.textContent = `Product: ${product}, Quantity: ${quantity}, Estimated Trucks: ${estimatedTrucks.toFixed(1)}`;
+        stocksDiv.appendChild(stockDiv);
+    }
+});
+        // Function to close the Add Stock modal
+        function closeAddStockModal() {
+            document.getElementById("addStockModal").style.display = "none";
+        }
+
+        // Function to show the Add Stock modal
+        function showAddStockModal() {
+            document.getElementById("addStockModal").style.display = "flex";
+        }
+
+// Function to close the "Add Work Form" modal
+function closemodl() {
+    document.getElementById("mymodl").style.display = "none";
+}
+
+
 
 // Function to delete an order
 function deleteOrder(orderKey) {
