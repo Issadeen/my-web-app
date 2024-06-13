@@ -250,11 +250,76 @@
         100% { left: -100%; }
         }
 
-        #ownerModal button.close { 
-    position: absolute; /* Position relative to the modal */
-    top: 10px; /* Adjust top position as needed */
-    right: 10px; /* Adjust right position as needed */
-}
+            /* Dark theme and modern styles for the modal */
+    #ownerModal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    #ownerModalContent {
+        background-color: #333;
+        color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 600px;
+        position: relative;
+    }
+
+    .close {
+        color: #aaa;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover, .close:focus {
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    table th, table td {
+        border: 1px solid #555;
+        padding: 8px;
+        text-align: left;
+    }
+
+    table th {
+        background-color: #444;
+    }
+
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        margin: 10px 0;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
     </style>
 
     <body class="bg-gray-900 text-white">
@@ -617,7 +682,6 @@ function updateSummaryData(snapshot) {
   }
 }
 
-// Function to create and show the modal dialog
 function showOwnerModal(owner) {
     const modal = document.getElementById("ownerModal");
     const modalContent = document.getElementById("ownerModalContent");
@@ -626,7 +690,7 @@ function showOwnerModal(owner) {
     let totalAmount = 0;
 
     const loadedTrucksHtml = `
-        <table style="width: 100%;">
+        <table>
             <thead>
                 <tr>
                     <th>Index</th>
@@ -639,17 +703,22 @@ function showOwnerModal(owner) {
             </thead>
             <tbody>
                 ${ownerData.loadedTrucks.map((truck, index) => {
-                    const amount = truck.paid ? `$${truck.price * truck.at20}` : `$${truck.price * truck.at20}`;
-                    if (truck.paid) totalAmount += truck.price * truck.at20; // Calculate total amount for paid trucks
-    
+                    const amount = truck.price * truck.at20;
+                    let amountHtml = `$${amount.toFixed(2)}`;
+                    if (truck.paid) {
+                        amountHtml = `<s>$${amount.toFixed(2)}</s> Paid`;
+                    } else {
+                        amountHtml = `$${amount.toFixed(2)} Not Paid`;
+                    }
+                    totalAmount += amount;
                     return `
                         <tr>
                             <td>${index + 1}</td>
                             <td>${truck.truck_number}</td>
                             <td>${truck.product}</td>
-                            <td>$${truck.price}</td>
+                            <td>$${Number(truck.price).toFixed(2)}</td>
                             <td>${truck.at20}</td>
-                            <td>${amount}</td>
+                            <td>${amountHtml}</td>
                         </tr>
                     `;
                 }).join("")}
@@ -658,7 +727,7 @@ function showOwnerModal(owner) {
     `;
     
     const pendingTrucksHtml = `
-        <table style="width: 100%;">
+        <table>
             <thead>
                 <tr>
                     <th>Index</th>
@@ -675,7 +744,7 @@ function showOwnerModal(owner) {
                             <td>${index + 1}</td>
                             <td>${truck.truck_number}</td>
                             <td>${truck.product}</td>
-                            <td>$${truck.price}</td>
+                            <td>$${Number(truck.price).toFixed(2)}</td>
                             <td>${truck.quantity}</td>
                         </tr>
                     `;
@@ -684,41 +753,39 @@ function showOwnerModal(owner) {
         </table>
     `;
 
-  modalContent.innerHTML = `
-    <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
-    <button class="close" onclick="closeOwnerModal()">×</button>
-    <h3 class="text-lg font-semibold">${owner}</h3>
-    <div>Total Orders: ${ownerData.totalOrders}</div>
-    <div>AGO Orders: ${ownerData.agoOrders}</div>
-    <div>PMS Orders: ${ownerData.pmsOrders}</div>
-    <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
-    ${loadedTrucksHtml}
-    <div>Total Amount to be Paid: ${totalAmount > 0 ? `$${totalAmount}` : 'Paid'}</div>
-    <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
-    ${pendingTrucksHtml}
-  `;
+    const totalAmountHtml = totalAmount > 0 ? `$${totalAmount.toFixed(2)}` : '-';
 
-  modal.style.display = "flex";
+    modalContent.innerHTML = `
+        <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
+        <span class="close" onclick="closeOwnerModal()">×</span>
+        <h3 class="text-lg font-semibold">${owner}</h3>
+        <div>Total Orders: ${ownerData.totalOrders}</div>
+        <div>AGO Orders: ${ownerData.agoOrders}</div>
+        <div>PMS Orders: ${ownerData.pmsOrders}</div>
+        <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
+        ${loadedTrucksHtml}
+        <div>Total Amount to be Paid: ${totalAmountHtml}</div>
+        <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
+        ${pendingTrucksHtml}
+    `;
 
-// Attach event listener to copy button here
-document.getElementById("copyButton").addEventListener("click", function() {
-    const range = document.createRange();
-    range.selectNode(modalContent);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-    document.execCommand("copy");
-    window.getSelection().removeAllRanges();
+    modal.style.display = "flex";
 
-    alert("Content copied to clipboard");
-});
+    document.getElementById("copyButton").addEventListener("click", async function() {
+        const htmlContent = modalContent.innerHTML;
+        try {
+            await navigator.clipboard.writeText(htmlContent);
+            alert("Content copied to clipboard");
+        } catch (err) {
+            console.error("Failed to copy: ", err);
+        }
+    });
 }
 
-// Function to close the modal
 function closeOwnerModal() {
-  const modal = document.getElementById("ownerModal");
-  modal.style.display = "none";
+    const modal = document.getElementById("ownerModal");
+    modal.style.display = "none";
 }
-
 
 
 // Update the owner summary with flexbox
@@ -868,6 +935,13 @@ workDetailsRef.on("value", function(snapshot) {
                             // Save the updated status to Firebase
                             workDetailsRef.child(childSnapshot.key).update({ status: childData.status });
                         };
+                        
+                        // If the truck is loaded, grey out the status button and disable it
+                        if (childData.loaded) {
+                            statusButton.classList.add("bg-gray-500"); // Add a class to make the button appear greyed out
+                            statusButton.disabled = true; // Disable the button
+                        }
+                        
                         statusCell.appendChild(statusButton);
                         row.insertCell().textContent = childData.orderno; // New field
                         row.insertCell().textContent = childData.depot; // New field
