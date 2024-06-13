@@ -59,15 +59,20 @@
         .input-group label {
             display: block;
             margin-bottom: 0.5rem;
+            font-weight: bold;
         }
 
-        .input-group input[type="text"] {
+        .input-group input[type="text"],
+        .input-group input[type="number"],
+        .input-group select {
             width: 100%;
             padding: 0.5rem;
             border-radius: 5px;
             border: 1px solid #ccc;
-            color: #111827; /* Text color */
-            background-color: #e5e7eb; /* Background color */
+            color: #fff; /* Text color */
+            background-color: #333; /* Background color */
+            font-size: 1rem;
+            height: 30px; /* Adjust height as needed */
         }
 
         .input-group button {
@@ -77,90 +82,92 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1rem;
         }
 
         .input-group button:hover {
             background-color: #45a049;
         }
-    
+
+        .input-group span.error {
+            color: #ff5733; /* Red color for error messages */
+            font-size: 0.8rem;
+        }
         /* Add some padding and background color to the table */
         table {
             padding: 1em;
             background-color: #f8f8f8;
             border-radius: 5px;
         }
-    
-        
-            /* Add some padding and background color to the table */
-            table {
-                padding: 1em;
-                background-color: #1f2937;
-                border-radius: 5px;
-                color: #fff;
-            }
 
-            /* Add some padding, border and background color to the table cells */
-            th, td {
-                padding: 0.5em;
-                border: 1px solid #4B5563;
-                background-color: #1f2937;
-            }
+        /* Table styles */
+        /* Add some padding and background color to the table */
+        table {
+            padding: 1em;
+            background-color: #1f2937;
+            border-radius: 5px;
+            color: #fff;
+        }
 
-            /* Add some hover effect to the table rows */
-            tr:hover {
-                background-color: #2D3748;
-            }
+        /* Add some padding, border and background color to the table cells */
+        th, td {
+            padding: 0.5em;
+            border: 1px solid #4B5563;
+            background-color: #1f2937;
+        }
 
-            /* Add some style to the table header */
-            thead {
-                background-color: #4B5563;
-                color: #E5E7EB;
-            }
-            
-            
+        /* Add some hover effect to the table rows */
+        tr:hover {
+            background-color: #2D3748;
+        }
 
-            #summary_section {
-                flex-direction: row;
-            }
+        /* Add some style to the table header */
+        thead {
+            background-color: #4B5563;
+            color: #E5E7EB;
+        }
 
-            #summary_stats {
-                margin-right: 1rem;
-            }
-#owner_summary ul {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 20px; /* adjust this value to control the space between owners */
-}
+        #summary_section {
+            flex-direction: row;
+        }
 
-#owner_summary ul li {
-    list-style-type: none;
-    background-color: #4B5563;
-    color: #E5E7EB;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-}
+        #summary_stats {
+            margin-right: 1rem;
+        }
 
-#owner_summary ul li span {
-    font-weight: bold;
-}
+        #owner_summary ul {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 20px; /* adjust this value to control the space between owners */
+        }
 
-#owner_summary ul li:not(:last-child) {
-    margin-right: 20px;
-}
+        #owner_summary ul li {
+            list-style-type: none;
+            background-color: #4B5563;
+            color: #E5E7EB;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
 
-#owner_summary ul li:hover {
-    background-color: #2D3748;
-}
+        #owner_summary ul li span {
+            font-weight: bold;
+        }
 
+        #owner_summary ul li:not(:last-child) {
+            margin-right: 20px;
+        }
 
-#work_details_table td.line-through {
-    text-decoration: line-through;
-}
+        #owner_summary ul li:hover {
+            background-color: #2D3748;
+        }
 
+        #work_details_table td.line-through {
+            text-decoration: line-through;
+        }
 
-/* Modal styles */
-.gpModal {
+        /* Modal styles */
+        .gpModal {
             display: none;
             position: fixed;
             z-index: 1;
@@ -226,7 +233,7 @@
             border-color: red;
         }
         .error {
-            color: green;
+            color: #ff5733; /* Red color for error messages */
             display: none;
             margin-top: -10px;
             margin-bottom: 10px;
@@ -242,206 +249,203 @@
          0% { left: 100%; }
         100% { left: -100%; }
         }
-        </style>
 
+        #ownerModal button.close { 
+    position: absolute; /* Position relative to the modal */
+    top: 10px; /* Adjust top position as needed */
+    right: 10px; /* Adjust right position as needed */
+}
+    </style>
 
-    
     <body class="bg-gray-900 text-white">
-    <nav class="flex justify-between items-center p-4 bg-gray-800">
-        <h1 class="text-2xl font-bold">Work Details</h1>
-        <div>
-            <button onclick="openAddStockModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Add Stock
-            </button>
+        <nav class="flex justify-between items-center p-4 bg-gray-800">
+            <h1 class="text-2xl font-bold">Work Details</h1>
+            <div>
+                <button onclick="openAddStockModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Add Stock
+                </button>
+                
 
-            <button id="download_button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Download PDF
-            </button>
-            <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-            <button id="add_button" class="ml-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
-                <i class="fas fa-plus"></i>
-            </button>
+                <button id="download_button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Download PDF
+                </button>
+                <button id="logout_button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <button id="add_button" class="ml-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </nav>
+
+        <div id="tickerContainer" style="overflow: hidden; white-space: nowrap;">
+            <div id="ticker" style="position: relative; animation: ticker 40s linear infinite;">
+                <!-- Add your ticker content here -->
+                <span>hi Issadeen</span>
+            </div>
         </div>
-    </nav>
 
-    <div id="tickerContainer" style="overflow: hidden; white-space: nowrap;">
-        <div id="ticker" style="position: relative; animation: ticker 40s linear infinite;">
-            <!-- Add your ticker content here -->
-            <span>hi Issadeen</span>
+        <!-- modl -->
+        <!-- Add Work Form Modal -->
+        <div id="mymodl" class="modl" style="z-index: 999;">
+            <div class="modl-content bg-gray-800">
+                <span class="close" onclick="closemymodl()">×</span>
+                <form id="add_work_form">
+                    <div class="input-group">
+                        <label for="owner">Owner:</label>
+                        <input type="text" id="owner" name="owner" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="product">Product:</label>
+                        <input type="text" id="product" name="product" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="destination">Destination:</label>
+                        <input type="text" id="destination" name="destination" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="truck_number">Truck Number:</label>
+                        <input type="text" id="truck_number" name="truck_number" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="text" id="quantity" name="quantity" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" name="price" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="status">Status:</label>
+                        <input type="text" id="status" name="status" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="orderno">Order Number:</label>
+                        <input type="text" id="orderno" name="orderno" required>
+                        <span id="order_no_error" class="error" style="color: white;"></span>
+                    </div>
+                    <div class="input-group">
+                        <label for="depot">Depot:</label>
+                        <input type="text" id="depot" name="depot" required>
+                    </div>
+                    <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closemodl()">Cancel</button>
+                    <button type="submit">Save</button>
+                </form>
+            </div>
         </div>
-    </div>
 
-
-
-    <!-- modl -->
-    <!-- Add Work Form Modal -->
-    <div id="mymodl" class="modl" style="z-index: 999;">
-    <div class="modl-content bg-gray-800">
-        <span class="close" onclick="closemymodl()">×</span>
-        <form id="add_work_form">
-            <div class="input-group">
-                <label for="owner">Owner:</label>
-                <input type="text" id="owner" name="owner" required>
+        <!-- Insufficient Stock Modal -->
+        <div id="noStockModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none; z-index: 1000;">
+            <div class="bg-gray-800 text-white p-4 rounded-lg w-1/2">
+                <span class="close text-white text-2xl float-right cursor-pointer" onclick="closeNoStockModal()">×</span>
+                <p>Insufficient stock to fulfill the order. Please try again with a lower quantity or wait for restock.</p>
             </div>
-            <div class="input-group">
-                <label for="product">Product:</label>
-                <input type="text" id="product" name="product" required>
-            </div>
-            <div class="input-group">
-                <label for="destination">Destination:</label>
-                <input type="text" id="destination" name="destination" required>
-            </div>
-            <div class="input-group">
-                <label for="truck_number">Truck Number:</label>
-                <input type="text" id="truck_number" name="truck_number" required>
-            </div>
-            <div class="input-group">
-                <label for="quantity">Quantity:</label>
-                <input type="text" id="quantity" name="quantity" required>
-            </div>
-            <div class="input-group">
-                <label for="price">Price:</label>
-                <input type="number" id="price" name="price" required style="width: 100%; height: 30px;">
-            </div>
-            <div class="input-group">
-                <label for="status">Status:</label>
-                <select id="status" name="status" required style="width: 100%; height: 30px;">
-                    <option value="queued">Queued</option>
-                    <option value="not queued">Not Queued</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="orderno">Order Number:</label>
-                <input type="text" id="orderno" name="orderno" required>
-            </div>
-            <div class="input-group">
-                <label for="depot">Depot:</label>
-                <input type="text" id="depot" name="depot" required>
-            </div>
-            <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closemodl()">Cancel</button>
-            <button type="submit">Save</button>
-        </form>
-    </div>
-</div>
-
-<!-- Insufficient Stock Modal -->
-<div id="noStockModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none; z-index: 1000;">
-    <div class="bg-gray-800 text-white p-4 rounded-lg w-1/2">
-        <span class="close text-white text-2xl float-right cursor-pointer" onclick="closeNoStockModal()">&times;</span>
-        <p>Insufficient stock to fulfill the order. Please try again with a lower quantity or wait for restock.</p>
-    </div>
-</div>
-
-     <!-- Add Stock Modal -->
-     <div id="addStockModal" class="modl">
-        <div class="modl-content bg-gray-800">
-            <span class="close" onclick="closeAddStockModal()">×</span>
-            <form id="add_stock_form">
-                <div class="input-group">
-                    <label for="stock_product">Product:</label>
-                    <input type="text" id="stock_product" name="stock_product" required>
-                </div>
-                <div class="input-group">
-                    <label for="stock_quantity">Quantity:</label>
-                    <input type="text" id="stock_quantity" name="stock_quantity" required>
-                </div>
-                <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closeAddStockModal()">Cancel</button>
-                <button type="submit">Add Stock</button>
-            </form>
         </div>
-    </div>
 
-    <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
-        <table class="table-auto w-full" id="work_details_table">
-            <!-- Table content -->
-            <input type="text" id="search" placeholder="Search by owner's name" style="color: white; background-color: #2d3748;">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2">Owner</th>
-                    <th class="px-4 py-2">Product</th>
-                    <th class="px-4 py-2">Truck Number</th>
-                    <th class="px-4 py-2">Quantity</th>
-                    <th class="px-4 py-2">Status</th>
-                    <th class="px-4 py-2">Order Number</th> <!-- New column -->
-                    <th class="px-4 py-2">Depot</th> <!-- New column -->
-                    <th class="px-4 py-2">destination</th> <!-- New column -->
-                    <th class="px-4 py-2">Actions</th> <!-- New column for delete button -->
-                </tr>
-            </thead>
-            <tbody id="work_details_table_body">
-                <!-- Table rows will be added dynamically using JavaScript -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- The Modal -->
-    <div id="gpModal" class="gpModal">
-        <div class="gpModal-content">
-            <span class="close" onclick="closeModal()">×</span>
-            <form id="gatePassForm">
-                <label for="code">Code:</label>
-                <input type="text" id="code" name="code" required>
-
-                <label for="date">Date:</label>
-                <input type="date" id="date" name="date" required>
-
-                <label for="licensePlate">License Plate:</label>
-                <input type="text" id="licensePlate" name="licensePlate" pattern="^[A-Z0-9]+-[A-Z0-9]+$" required>
-                <div id="licensePlateError" class="error">Please use the format: ABC1234-XYZ5678</div>
-
-                <label for="destination">Destination:</label>
-                <input type="text" id="destination" name="destination" required>
-
-                <label for="fuelType">Fuel Type:</label>
-                <input type="text" id="fuelType" name="fuelType" required>
-
-                <label for="totalLiters">Total Liters:</label>
-                <input type="number" id="totalLiters" name="totalLiters" required>
-
-                <label for="liters1">Liters 1:</label>
-                <input type="number" id="liters1" name="liters1" required>
-
-                <label for="liters2">Liters 2:</label>
-                <input type="number" id="liters2" name="liters2" required>
-
-                <label for="liters3">Liters 3:</label>
-                <input type="number" id="liters3" name="liters3" required>
-
-                <label for="passNumber">Pass Number:</label>
-                <input type="text" id="passNumber" name="passNumber" required>
-
-                <label for="name1">Name 1:</label>
-                <input type="text" id="name1" name="name1" required>
-
-                <label for="name2">Name 2:</label>
-                <input type="text" id="name2" name="name2" required>
-
-                <label for="loadingPoint">Loading Point:</label>
-                <input type="text" id="loadingPoint" name="loadingPoint" required>
-
-                <label for="at20">At 20:</label>
-                <input type="text" id="at20" name="at20" required>
-
-                <button type="button" onclick="generatePDF(this)">Generate Gate Pass</button>
-            </form>
+        <!-- Add Stock Modal -->
+        <div id="addStockModal" class="modl">
+            <div class="modl-content bg-gray-800">
+                <span class="close" onclick="closeAddStockModal()">×</span>
+                <form id="add_stock_form">
+                    <div class="input-group">
+                        <label for="stock_product">Product:</label>
+                        <input type="text" id="stock_product" name="stock_product" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="stock_quantity">Quantity:</label>
+                        <input type="text" id="stock_quantity" name="stock_quantity" required>
+                    </div>
+                    <button type="button" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded" onclick="closeAddStockModal()">Cancel</button>
+                    <button type="submit">Add Stock</button>
+                </form>
+            </div>
         </div>
-</div>
-<div id="stocks"></div>
-    
-    
+
+        <div class="max-w-full mx-auto my-10 p-8 bg-gray-800 rounded">
+            <table class="table-auto w-full" id="work_details_table">
+                <!-- Table content -->
+                <input type="text" id="search" placeholder="Search by owner's name" style="color: white; background-color: #2d3748;">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2">Owner</th>
+                        <th class="px-4 py-2">Product</th>
+                        <th class="px-4 py-2">Truck Number</th>
+                        <th class="px-4 py-2">Quantity</th>
+                        <th class="px-4 py-2">Status</th>
+                        <th class="px-4 py-2">Order Number</th> <!-- New column -->
+                        <th class="px-4 py-2">Depot</th> <!-- New column -->
+                        <th class="px-4 py-2">destination</th> <!-- New column -->
+                        <th class="px-4 py-2">Actions</th> <!-- New column for delete button -->
+                    </tr>
+                </thead>
+                <tbody id="work_details_table_body">
+                    <!-- Table rows will be added dynamically using JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- The Modal -->
+        <div id="gpModal" class="gpModal">
+            <div class="gpModal-content">
+                <span class="close" onclick="closeModal()">×</span>
+                <form id="gatePassForm">
+                    <label for="code">Code:</label>
+                    <input type="text" id="code" name="code" required>
+
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date" required>
+
+                    <label for="licensePlate">License Plate:</label>
+                    <input type="text" id="licensePlate" name="licensePlate" pattern="^[A-Z0-9]+-[A-Z0-9]+$" required>
+                    <div id="licensePlateError" class="error">Please use the format: ABC1234-XYZ5678</div>
+
+                    <label for="destination">Destination:</label>
+                    <input type="text" id="destination" name="destination" required>
+
+                    <label for="fuelType">Fuel Type:</label>
+                    <input type="text" id="fuelType" name="fuelType" required>
+
+                    <label for="totalLiters">Total Liters:</label>
+                    <input type="number" id="totalLiters" name="totalLiters" required>
+
+                    <label for="liters1">Liters 1:</label>
+                    <input type="number" id="liters1" name="liters1" required>
+
+                    <label for="liters2">Liters 2:</label>
+                    <input type="number" id="liters2" name="liters2" required>
+
+                    <label for="liters3">Liters 3:</label>
+                    <input type="number" id="liters3" name="liters3" required>
+
+                    <label for="passNumber">Pass Number:</label>
+                    <input type="text" id="passNumber" name="passNumber" required>
+
+                    <label for="name1">Name 1:</label>
+                    <input type="text" id="name1" name="name1" required>
+
+                    <label for="name2">Name 2:</label>
+                    <input type="text" id="name2" name="name2" required>
+
+                    <label for="loadingPoint">Loading Point:</label>
+                    <input type="text" id="loadingPoint" name="loadingPoint" required>
+
+                    <label for="at20">At 20:</label>
+                    <input type="text" id="at20" name="at20" required>
+
+                    <button type="button" onclick="generatePDF(this)">Generate Gate Pass</button>
+                </form>
+            </div>
+        </div>
+        <div id="stocks"></div>
+
         <!-- Summary section -->
         <div id="summary_section" class="mt-4 flex">
             <h2 class="text-lg font-semibold mb-2">Summary</h2>
             <div id="summary_stats" class="flex flex-wrap gap-4"></div>
             <div id="owner_summary"></div>
         </div>
-   
-       
 
-    
-    <script>
+        <script>
             // Initialize Firebase app
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
@@ -499,172 +503,329 @@
             function openAddStockModal() {
                 document.getElementById('addStockModal').style.display = 'block';
             }
-            
+
             function closeAddStockModal() {
                 document.getElementById('addStockModal').style.display = 'none';
             }
-    </script>
-<script>
-    // Declare summary variables at a higher scope
-    var totalOrders = 0;
-    var queuedOrders = 0;
-    var unqueuedOrders = 0;
-    var agoOrders = 0;
-    var pmsOrders = 0;
-    var ownerSummary = {};
-    
-    // Listen for changes to the data in the "work_details" node
-    workDetailsRef.on("value", function(snapshot) {
-        var workDetails = snapshot.val();
-        if (workDetails) {
-            var tableBody = document.getElementById("work_details_table_body");
-            tableBody.innerHTML = "";
-    
-            // Reset summary variables
-            totalOrders = 0;
-            queuedOrders = 0;
-            unqueuedOrders = 0;
-            agoOrders = 0;
-            pmsOrders = 0;
-            ownerSummary = {};
+        </script>
+        <script>
 
-            // Loop through the child nodes of the "work_details" node
-            snapshot.forEach(function(childSnapshot) {
-                var childData = childSnapshot.val();
-                // Increment total orders count
-                totalOrders++;
-    
-                // Increment queued or unqueued orders count based on status
-                if (childData.status === "queued") {
-                    queuedOrders++;
-                } else {
-                    unqueuedOrders++;
-                }
-    
-                // Increment ago or pms orders count based on product
-                if (childData.product.trim().toUpperCase() === "AGO") {
-                    agoOrders++;
-                } else if (childData.product.trim().toUpperCase() === "PMS") {
-                    pmsOrders++;
-                }
-    
-                // Increment owner's orders count and product count
-                if (!ownerSummary[childData.owner]) {
-                    ownerSummary[childData.owner] = {
-                        totalOrders: 1,
-                        agoOrders: childData.product.trim().toUpperCase() === "AGO" ? 1 : 0,
-                        pmsOrders: childData.product.trim().toUpperCase() === "PMS" ? 1 : 0,
-                        queuedOrders: childData.status === "queued" ? 1 : 0,
-                        unqueuedOrders: childData.status === "not queued" ? 1 : 0,
-                        products: {}
-                    };
-                } else {
-                    ownerSummary[childData.owner].totalOrders++;
-                    ownerSummary[childData.owner].agoOrders += childData.product.trim().toUpperCase() === "AGO" ? 1 : 0;
-                    ownerSummary[childData.owner].pmsOrders += childData.product.trim().toUpperCase() === "PMS" ? 1 : 0;
-                    ownerSummary[childData.owner].queuedOrders += childData.status === "queued" ? 1 : 0;
-                    ownerSummary[childData.owner].unqueuedOrders += childData.status === "not queued" ? 1 : 0;
-                }
-    
-                // Increment product count for each owner
-                if (!ownerSummary[childData.owner].products[childData.product]) {
-                    ownerSummary[childData.owner].products[childData.product] = 1;
-                } else {
-                    ownerSummary[childData.owner].products[childData.product]++;
-                }
-    
-                // Create table rows for each order (code omitted for brevity)
-            });
-    
-            // Update summary section (code omitted for brevity)
-            updateSummarySection();
+// Declare summary variables at a higher scope
+var totalOrders = 0;
+var queuedOrders = 0;
+var unqueuedOrders = 0;
+var agoOrders = 0;
+var pmsOrders = 0;
+var loadedOrders = 0;
+var ownerSummary = {};
+var loadedTrucks = 0; 
+var pendingOrders = 0;
 
-            // Update ticker
+// Fetch initial data on page load
+window.onload = function() {
+  workDetailsRef.once('value', function(snapshot) {
+    updateSummaryData(snapshot); // Update summary variables with initial data
+    updateSummarySection(); // Update the summary section
+    updateTicker(); // Update the ticker
+  });
+};
+
+// Listen for changes to the data in the "work_details" node
+workDetailsRef.on("value", function(snapshot) {
+  updateSummaryData(snapshot); // Update summary variables on changes
+  updateSummarySection(); // Update the summary section
+  updateTicker(); // Update the ticker
+});
+
+// Function to update summary variables from a snapshot
+function updateSummaryData(snapshot) {
+  var workDetails = snapshot.val();
+  if (workDetails) {
+    // Reset summary variables
+    totalOrders = 0;
+    queuedOrders = 0;
+    unqueuedOrders = 0;
+    agoOrders = 0;
+    pmsOrders = 0;
+    loadedOrders = 0;
+    pendingOrders = 0;
+    ownerSummary = {};
+    loadedTrucks = 0;
+
+    snapshot.forEach(function(childSnapshot) {
+      var childData = childSnapshot.val();
+      totalOrders++;
+
+      // Check if the order is loaded
+      if (childData.loaded === true || childData.loaded === "true") {
+        loadedOrders++;
+        loadedTrucks++; // Increment loaded trucks
+      }
+
+      // Increment pending orders count
+      if (childData.status === "queued" && (childData.loaded !== true && childData.loaded !== "true")) {
+        pendingOrders++;
+      }
+
+      // Increment ago or pms orders count based on product
+      if (childData.product.trim().toUpperCase() === "AGO") {
+        agoOrders++;
+      } else if (childData.product.trim().toUpperCase() === "PMS") {
+        pmsOrders++;
+      }
+
+      // Increment owner's orders count and product count
+      if (!ownerSummary[childData.owner]) {
+        ownerSummary[childData.owner] = {
+          totalOrders: 1,
+          agoOrders: childData.product.trim().toUpperCase() === "AGO" ? 1 : 0,
+          pmsOrders: childData.product.trim().toUpperCase() === "PMS" ? 1 : 0,
+          queuedOrders: childData.status === "queued" ? 1 : 0,
+          unqueuedOrders: childData.status !== "queued" ? 1 : 0,
+          loadedOrders: childData.loaded === true || childData.loaded === "true" ? 1 : 0,
+          pendingOrders: childData.status === "queued" && (childData.loaded !== true && childData.loaded !== "true") ? 1 : 0,
+          products: {},
+          loadedTrucks: [],
+          pendingTrucks: []
+        };
+      } else {
+        ownerSummary[childData.owner].totalOrders++;
+        ownerSummary[childData.owner].agoOrders += childData.product.trim().toUpperCase() === "AGO" ? 1 : 0;
+        ownerSummary[childData.owner].pmsOrders += childData.product.trim().toUpperCase() === "PMS" ? 1 : 0;
+        ownerSummary[childData.owner].queuedOrders += childData.status === "queued" ? 1 : 0;
+        ownerSummary[childData.owner].unqueuedOrders += childData.status !== "queued" ? 1 : 0;
+        ownerSummary[childData.owner].loadedOrders += childData.loaded === true || childData.loaded === "true" ? 1 : 0;
+        ownerSummary[childData.owner].pendingOrders += childData.status === "queued" && (childData.loaded !== true && childData.loaded !== "true") ? 1 : 0;
+      }
+
+      // Increment product count for each owner
+      if (!ownerSummary[childData.owner].products[childData.product]) {
+        ownerSummary[childData.owner].products[childData.product] = 1;
+      } else {
+        ownerSummary[childData.owner].products[childData.product]++;
+      }
+
+      // Track loaded and pending trucks
+      if (childData.loaded === true || childData.loaded === "true") {
+        ownerSummary[childData.owner].loadedTrucks.push(childData);
+      } else if (childData.status === "queued") {
+        ownerSummary[childData.owner].pendingTrucks.push(childData);
+      }
+
+      // ... (Your existing code for creating table rows)
+    });
+  }
+}
+
+// Function to create and show the modal dialog
+function showOwnerModal(owner) {
+    const modal = document.getElementById("ownerModal");
+    const modalContent = document.getElementById("ownerModalContent");
+    const ownerData = ownerSummary[owner];
+
+    let totalAmount = 0;
+
+    const loadedTrucksHtml = `
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Truck</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>At20</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${ownerData.loadedTrucks.map((truck, index) => {
+                    const amount = truck.paid ? `$${truck.price * truck.at20}` : `$${truck.price * truck.at20}`;
+                    if (truck.paid) totalAmount += truck.price * truck.at20; // Calculate total amount for paid trucks
+    
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${truck.truck_number}</td>
+                            <td>${truck.product}</td>
+                            <td>$${truck.price}</td>
+                            <td>${truck.at20}</td>
+                            <td>${amount}</td>
+                        </tr>
+                    `;
+                }).join("")}
+            </tbody>
+        </table>
+    `;
+    
+    const pendingTrucksHtml = `
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Truck</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${ownerData.pendingTrucks.map((truck, index) => {
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${truck.truck_number}</td>
+                            <td>${truck.product}</td>
+                            <td>$${truck.price}</td>
+                            <td>${truck.quantity}</td>
+                        </tr>
+                    `;
+                }).join("")}
+            </tbody>
+        </table>
+    `;
+
+  modalContent.innerHTML = `
+    <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
+    <button class="close" onclick="closeOwnerModal()">×</button>
+    <h3 class="text-lg font-semibold">${owner}</h3>
+    <div>Total Orders: ${ownerData.totalOrders}</div>
+    <div>AGO Orders: ${ownerData.agoOrders}</div>
+    <div>PMS Orders: ${ownerData.pmsOrders}</div>
+    <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
+    ${loadedTrucksHtml}
+    <div>Total Amount to be Paid: ${totalAmount > 0 ? `$${totalAmount}` : 'Paid'}</div>
+    <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
+    ${pendingTrucksHtml}
+  `;
+
+  modal.style.display = "flex";
+
+// Attach event listener to copy button here
+document.getElementById("copyButton").addEventListener("click", function() {
+    const range = document.createRange();
+    range.selectNode(modalContent);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand("copy");
+    window.getSelection().removeAllRanges();
+
+    alert("Content copied to clipboard");
+});
+}
+
+// Function to close the modal
+function closeOwnerModal() {
+  const modal = document.getElementById("ownerModal");
+  modal.style.display = "none";
+}
+
+
+
+// Update the owner summary with flexbox
+function updateOwnerSummary() {
+  const ownerSummaryDiv = document.getElementById("owner_summary");
+  ownerSummaryDiv.innerHTML = "";
+  ownerSummaryDiv.classList.add("flex", "flex-wrap", "gap-4");
+
+  for (const owner in ownerSummary) {
+    const ownerData = ownerSummary[owner];
+    ownerSummaryDiv.innerHTML += `
+      <div class="bg-gray-700 p-4 rounded mt-4 basis-1/3">
+        <h3 class="text-lg font-semibold">${owner}</h3>
+        <div>Total Orders: ${ownerData.totalOrders}</div>
+        <div>Queued Orders: ${ownerData.queuedOrders}</div>
+        <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
+        <div>Loaded Orders: ${ownerData.loadedOrders || 0}</div>
+        <div>Pending Orders: ${ownerData.pendingOrders || 0}</div>
+        <div>AGO Orders: ${ownerData.agoOrders}</div>
+        <div>PMS Orders: ${ownerData.pmsOrders}</div>
+        <button onclick="showOwnerModal('${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
+      </div>
+    `;
+  }
+}
+
+// Update the summary section with the latest data
+function updateSummarySection() {
+  const summaryStats = document.getElementById("summary_stats");
+
+  // Update the summary stats
+  summaryStats.innerHTML = `
+    <div class="bg-gray-700 p-4 rounded">
+      <div>Total Orders: ${totalOrders}</div>
+      <div>Queued Orders: ${queuedOrders}</div>
+      <div>Unqueued Orders: ${unqueuedOrders}</div>
+      <div>Loaded Orders: ${loadedOrders}</div>
+      <div>Pending Orders: ${pendingOrders}</div>
+      <div>AGO Orders: ${agoOrders}</div>
+      <div>PMS Orders: ${pmsOrders}</div>
+      <div>Loaded Trucks: ${loadedTrucks}</div>
+    </div>
+  `;
+
+  // Update the owner summary
+  updateOwnerSummary();
+}
+
+// Update the ticker with the latest data
 function updateTicker() {
-    const ticker = document.getElementById('ticker');
-    ticker.innerHTML = `Total Orders: ${totalOrders}, Queued Orders: ${queuedOrders}, Unqueued Orders: ${unqueuedOrders}, AGO Orders: ${agoOrders}, PMS Orders: ${pmsOrders}`;
+  const ticker = document.getElementById('ticker');
+  ticker.innerHTML = `Total Orders: ${totalOrders}, Queued Orders: ${queuedOrders}, Unqueued Orders: ${unqueuedOrders}, AGO Orders: ${agoOrders}, PMS Orders: ${pmsOrders}`;
 }
 
 // Call updateTicker function whenever you update the variables
 updateTicker();
-        }
-    });
-    
-// Initialize loadedTrucks and pendingOrders count
-let loadedTrucks = 0;
-let pendingOrders = 0;
 
-// Get a reference to your Firebase data
-var ref = firebase.database().ref("path/to/your/data");
-
-// Use the `on` method to listen for data changes
-ref.on("value", function(snapshot) {
-    snapshot.forEach(function(childSnapshot) {
-        var childData = childSnapshot.val();
-
-        // Check if the truck is loaded
-        if (childData.loaded) {
-            loadedTrucks++;
-        }
-
-        // Check if the order is queued and the truck is not loaded
-        if (childData.status === "queued" && !childData.loaded) {
-            pendingOrders++;
-        }
-    });
-}, function (error) {
-    console.log("Error: " + error.code);
-});
-    
-    
-     // Update the summary section with the latest data
-     function updateSummarySection() {
-        // Get the summary section and the summary stats div
-        const summarySection = document.getElementById("summary_section");
-        const summaryStats = document.getElementById("summary_stats");
-        const ownerSummaryDiv = document.getElementById("owner_summary");
-
-        // Update the summary stats
-        summaryStats.innerHTML = `
-            <div class="bg-gray-700 p-4 rounded">
-                <div>Total Orders: ${totalOrders}</div>
-                <div>Queued Orders: ${queuedOrders}</div>
-                <div>Unqueued Orders: ${unqueuedOrders}</div>
-                <div>Loaded Trucks: ${loadedTrucks}</div>
-                <div>Pending Orders: ${pendingOrders}</div>
-                <div>AGO Orders: ${agoOrders}</div>
-                <div>PMS Orders: ${pmsOrders}</div>
+document.addEventListener("DOMContentLoaded", function() {
+    // Modal HTML
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="ownerModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div id="ownerModalContent" class="bg-gray-800 p-6 rounded shadow-lg w-1/2 text-white relative">
+                <button onclick="closeOwnerModal()" class="bg-red-500 text-white p-2 rounded absolute top-4 right-4">Close</button>
+                <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16 hidden">Copy</button>
             </div>
-        `;
+        </div>
+    `);
 
-        // Update the owner summary with flexbox
-        ownerSummaryDiv.innerHTML = "";
-        ownerSummaryDiv.classList.add("flex", "flex-wrap", "gap-4"); // Apply flexbox to the container
+    document.addEventListener("DOMContentLoaded", function() {
+    // Add the copy button to the modal dynamically
+  document.getElementById("ownerModalContent").appendChild(document.getElementById("copyButton")); 
+  document.getElementById("copyButton").classList.remove("hidden"); 
+    });
 
-        for (const owner in ownerSummary) {
-            const ownerData = ownerSummary[owner];
-            ownerSummaryDiv.innerHTML += `
-                <div class="bg-gray-700 p-4 rounded mt-4 basis-1/3">
-                    <h3 class="text-lg font-semibold">${owner}</h3>
-                    <div>Total Orders: ${ownerData.totalOrders}</div>
-                    <div>Queued Orders: ${ownerData.queuedOrders}</div>
-                    <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
-                    <div>Loaded Trucks: ${ownerData.loadedTrucks}</div>
-                    <div>Pending Orders: ${ownerData.pendingOrders}</div>
-                    <div>AGO Orders: ${ownerData.agoOrders}</div>
-                    <div>PMS Orders: ${ownerData.pmsOrders}</div>
-                    <div class="mt-2">
-                        <h4 class="text-md font-semibold">Products</h4>
-                        <ul>
-                            ${Object.keys(ownerData.products).map(product => `<li>${product}: ${ownerData.products[product]}</li>`).join("")}
-                        </ul>
-                    </div>
-                </div>
-            `;
-        }
-    }
-    </script>
-    <script>
+    // Function to copy the content of the modal
+    document.getElementById("copyButton").addEventListener("click", function() {
+        const range = document.createRange();
+        range.selectNode(modalContent);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand("copy");
+        window.getSelection().removeAllRanges();
+    
+        // Parse copied content
+        const copiedContent = modalContent.innerText;
+        const lines = copiedContent.split('\n');
+        let tableHtml = '<table>';
+    
+        lines.forEach(line => {
+            const parts = line.split(': ');
+            tableHtml += '<tr><td>' + parts[0] + '</td><td>' + parts[1] + '</td></tr>';
+        });
+    
+        tableHtml += '</table>';
+    
+        // Replace modal content with table
+        modalContent.innerHTML = tableHtml;
+    
+        alert("Content copied to clipboard and represented as a table");
+    });
+
+  // Your other code...
+
+}); 
+
+</script>
+<script>
 // Listen for changes to the data in the "work_details" node
 workDetailsRef.on("value", function(snapshot) {
             var workDetails = snapshot.val();
@@ -816,23 +977,32 @@ workDetailsRef.on("value", function(snapshot) {
                         deleteButton.appendChild(deleteIcon);
                         deleteCell.appendChild(deleteButton);
                         actionsButton.onclick = function() {
-                            if (!childData.loaded) { 
-                                childData.loaded = true;
-                                childData.crossedOut = true;
-                                actionsButton.textContent = "Paid";
-                                // Add the line-through class to all cells
-                                for (var i = 0; i < row.cells.length; i++) {
-                                row.cells[i].classList.add("line-through");
+                            if (!childData.loaded) {
+                                // Ask for at20 before marking as loaded
+                                var at20 = prompt("Please enter at20 before marking as loaded");
+                                if (at20) {
+                                    // Save at20 to Firebase
+                                    workDetailsRef.child(childSnapshot.key).update({ at20: at20 }).catch(console.error);
+                                    childData.loaded = true;
+                                    childData.crossedOut = true;
+                                    actionsButton.textContent = "Paid";
+                                    // Add the line-through class to all cells
+                                    for (var i = 0; i < row.cells.length; i++) {
+                                        row.cells[i].classList.add("line-through");
+                                    }
+                                    workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error);
+                                } else {
+                                    // Prevent marking as loaded if at20 is not provided
+                                    alert("You must provide at20 before marking as loaded");
                                 }
-                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error); 
-                            } else if (!childData.paid) { 
+                            } else if (!childData.paid) {
                                 childData.paid = true;
                                 childData.crossedOut = true;
                                 actionsButton.textContent = "";
                                 actionsButton.appendChild(paidIcon);
-                                actionsButton.disabled = true; 
+                                actionsButton.disabled = true;
                                 workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid, crossedOut: childData.crossedOut }).catch(console.error);
-                            } 
+                            }
                         };
                     } else {
                         console.error("Invalid data format: ", childData);
@@ -959,6 +1129,8 @@ document.getElementById("download_button").addEventListener("click", function ()
 });
 
 
+// ... Your existing JavaScript ...
+
 document.getElementById("add_work_form").addEventListener("submit", function(event) {
     event.preventDefault();
     const formData = new FormData(this);
@@ -967,58 +1139,33 @@ document.getElementById("add_work_form").addEventListener("submit", function(eve
         newWorkDetail[key] = value;
     });
 
-    // Add "previous_trucks" field if it doesn't exist
-    if (!newWorkDetail.previous_trucks) {
-        newWorkDetail.previous_trucks = [];
-    }
+    // Get the order number input field and error message elements
+    const orderNoInput = document.getElementById('orderno');
+    const orderNoError = document.getElementById('order_no_error');
 
-    // Check if "destination" field exists, if not, set it to an empty string
-    if (!newWorkDetail.destination) {
-        newWorkDetail.destination = "";
-    }
-
-    const product = newWorkDetail.product;
-    const quantity = parseFloat(newWorkDetail.quantity);
-
-    const stockRef = firebase.database().ref(`/stocks/${product}`);
-    stockRef.once('value').then(snapshot => {
-        const stock = snapshot.val();
-        if (stock && stock.quantity >= quantity) {
-            // Generate unique ID for owner
-            const ownerId = generateUniqueId(); // Implement this function as per your requirements
-
-            // Save owner's data under the generated ID
-            db.ref("owners/" + ownerId).set({
-                product: newWorkDetail.product,
-                depot: newWorkDetail.depot,
-                destination: newWorkDetail.destination
-            }).catch(error => {
-                console.error("Error saving owner data to Firebase:", error);
-            });
-
-            // Save the new work detail (order) to Firebase
-            workDetailsRef.push({
-                ...newWorkDetail,  // Spread the existing newWorkDetail properties
-                paid: false,       // Add paid property
-                crossedOut: false, // Add crossedOut property
-                estimated_trucks: product === 'pms' ? (quantity / 40).toFixed(2) : (quantity / 36).toFixed(2),
-                created_at: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                // Update the stock
-                stockRef.update({ quantity: stock.quantity - quantity });
-                console.log('Order created and stock updated successfully');
-                // Close the "Add Work Form" modal
-                closemodl();
-            }).catch(error => {
-                console.error("Error creating order:", error);
-            });
+    // Check if an order with the same order number already exists
+    const ordersRef = firebase.database().ref('/work_details');
+    ordersRef.orderByChild('orderno').startAt(newWorkDetail.orderno).endAt(newWorkDetail.orderno + '\uf8ff').once('value', snapshot => {
+        if (snapshot.exists()) {
+            // Get the truck number from the existing order
+            const existingOrder = Object.values(snapshot.val())[0]; // Assuming only one matching order
+            const existingTruckNumber = existingOrder.truck_number;
+        
+            // Display error message with the truck number
+            orderNoError.textContent = `Order number already exists and is used by truck number: ${existingTruckNumber}. Please choose a different one.`;
+            orderNoError.style.display = 'block'; // Show the error message
+            orderNoInput.focus(); // Focus on the input field
         } else {
-            showNoStockModal();
+            // No duplicate found, proceed with saving the order
+            // ... your existing order saving logic ...
         }
     }).catch(error => {
-        console.error('Error fetching stock:', error);
+        console.error('Error checking order number:', error);
+        // Handle error appropriately
     });
 });
+
+// ... Your existing JavaScript ...
 
 // Function to generate unique ID
 function generateUniqueId() {
