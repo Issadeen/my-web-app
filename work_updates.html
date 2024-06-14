@@ -320,6 +320,16 @@
     button:hover {
         background-color: #45a049;
     }
+
+    .not-paid {
+        background-color: #ffcccc; /* Light red for not paid */
+    }
+    .underpaid {
+        background-color: #ffebcc; /* Light orange for underpaid */
+    }
+    .overpaid {
+        background-color: #ccffcc; /* Light green for overpaid */
+    }
     </style>
 
     <body class="bg-gray-900 text-white">
@@ -510,6 +520,15 @@
             <div id="owner_summary"></div>
         </div>
 
+        <button id="unpaidPreviewButton">Unpaid Preview</button>
+
+        <div id="unpaidTrucksModal" class="modal">
+        <div id="unpaidTrucksModalContent" class="modal-content">
+            <span class="close" onclick="closeUnpaidTrucksModal()">×</span>
+            <!-- Unpaid trucks content will be injected here -->
+        </div>
+        </div>
+
         <script>
             // Initialize Firebase app
             if (!firebase.apps.length) {
@@ -687,7 +706,7 @@ function showOwnerModal(owner) {
     const modalContent = document.getElementById("ownerModalContent");
     const ownerData = ownerSummary[owner];
 
-    let totalAmount = 0;
+    let totalAmountNotPaid = 0;
 
     const loadedTrucksHtml = `
         <table>
@@ -705,14 +724,27 @@ function showOwnerModal(owner) {
                 ${ownerData.loadedTrucks.map((truck, index) => {
                     const amount = truck.price * truck.at20;
                     let amountHtml = `$${amount.toFixed(2)}`;
+                    let rowClass = '';
+
                     if (truck.paid) {
-                        amountHtml = `<s>$${amount.toFixed(2)}</s> Paid`;
+                        if (truck.amountPaid < amount) {
+                            amountHtml = `<span style="color: orange;">$${truck.amountPaid.toFixed(2)} Underpaid</span>`;
+                            totalAmountNotPaid += (amount - truck.amountPaid); // Add only the unpaid part
+                            rowClass = 'underpaid';
+                        } else if (truck.amountPaid > amount) {
+                            amountHtml = `<span style="color: green;">$${truck.amountPaid.toFixed(2)} Overpaid</span>`;
+                            rowClass = 'overpaid';
+                        } else {
+                            amountHtml = `<s>$${amount.toFixed(2)}</s> Paid in Full`;
+                        }
                     } else {
                         amountHtml = `$${amount.toFixed(2)} Not Paid`;
+                        totalAmountNotPaid += amount; // Add the whole amount
+                        rowClass = 'not-paid'; // Add class to not paid trucks
                     }
-                    totalAmount += amount;
+
                     return `
-                        <tr>
+                        <tr class="${rowClass}">
                             <td>${index + 1}</td>
                             <td>${truck.truck_number}</td>
                             <td>${truck.product}</td>
@@ -725,7 +757,7 @@ function showOwnerModal(owner) {
             </tbody>
         </table>
     `;
-    
+
     const pendingTrucksHtml = `
         <table>
             <thead>
@@ -753,7 +785,7 @@ function showOwnerModal(owner) {
         </table>
     `;
 
-    const totalAmountHtml = totalAmount > 0 ? `$${totalAmount.toFixed(2)}` : '-';
+    const totalAmountHtml = totalAmountNotPaid > 0 ? `$${totalAmountNotPaid.toFixed(2)}` : '-';
 
     modalContent.innerHTML = `
         <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
@@ -1203,7 +1235,6 @@ document.getElementById("download_button").addEventListener("click", function ()
 });
 
 
-// ... Your existing JavaScript ...
 
 document.getElementById("add_work_form").addEventListener("submit", function(event) {
     event.preventDefault();
@@ -1231,7 +1262,16 @@ document.getElementById("add_work_form").addEventListener("submit", function(eve
             orderNoInput.focus(); // Focus on the input field
         } else {
             // No duplicate found, proceed with saving the order
-            // ... your existing order saving logic ...
+            const newOrderId = generateUniqueId(); // Generate a unique ID for the new order
+            firebase.database().ref('work_details/' + newOrderId).set(newWorkDetail)
+            .then(() => {
+                console.log('Order saved successfully');
+                // You can add code here to clear the form or give feedback to the user
+            })
+            .catch((error) => {
+                console.error('Error saving order:', error);
+                // Handle error appropriately
+            });
         }
     }).catch(error => {
         console.error('Error checking order number:', error);
@@ -1271,6 +1311,11 @@ document.getElementById("add_stock_form").addEventListener("submit", function(ev
     }).catch(error => {
         console.error('Error adding stock:', error);
     });
+
+    // log the form data to the console for debugging purposes
+    for (var pair of formData.entries()) {
+        console.log(pair[0]+ ', '+ pair[1]); 
+    }
 });
 
 // Get a reference to the stocks node in Firebase
@@ -1588,6 +1633,81 @@ async function generatePDF(button) {
     // Close the modal after PDF generation
     closeModal();
 }
+
+// unpaid review
+        function getUnpaidLoadedTrucks() {
+            const unpaidTrucks = [];
+
+            Object.keys(ownerSummary).forEach(owner => {
+                const ownerData = ownerSummary[owner];
+                
+                ownerData.loadedTrucks.forEach(truck => {
+                    if (!truck.paid) {
+                        unpaidTrucks.push({
+                            owner: owner,
+                            truckNumber: truck.truck_number,
+                            product: truck.product,
+                            price: truck.price,
+                            at20: truck.at20,
+                            amount: truck.price * truck.at20,
+                        });
+                    }
+                });
+            });
+
+            return unpaidTrucks;
+        }
+
+        function showUnpaidLoadedTrucks() {
+            const modal = document.getElementById("unpaidTrucksModal");
+            const modalContent = document.getElementById("unpaidTrucksModalContent");
+            const unpaidTrucks = getUnpaidLoadedTrucks();
+
+            const unpaidTrucksHtml = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Owner</th>
+                            <th>Truck Number</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>At20</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${unpaidTrucks.map((truck, index) => {
+                            return `
+                                <tr>
+                                    <td>${truck.owner}</td>
+                                    <td>${truck.truckNumber}</td>
+                                    <td>${truck.product}</td>
+                                    <td>$${Number(truck.price).toFixed(2)}</td>
+                                    <td>${truck.at20}</td>
+                                    <td>$${truck.amount.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+            `;
+
+            modalContent.innerHTML = `
+                <span class="close" onclick="closeUnpaidTrucksModal()">×</span>
+                <h3 class="text-lg font-semibold">Unpaid Loaded Trucks</h3>
+                ${unpaidTrucksHtml}
+            `;
+
+            modal.style.display = "flex";
+        }
+
+        function closeUnpaidTrucksModal() {
+            const modal = document.getElementById("unpaidTrucksModal");
+            modal.style.display = "none";
+        }
+
+        document.getElementById("unpaidPreviewButton").addEventListener("click", showUnpaidLoadedTrucks);
+    
 
 </script>
 </body>
