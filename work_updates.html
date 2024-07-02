@@ -1573,12 +1573,12 @@ async function generatePDF(button) {
         licensePlateError.textContent = 'License Plate must use - instead of /.';
         licensePlateInput.focus();
         return;
-    } else if (!licensePlateValue.match(/^[A-Z0-9]+-[A-Z0-9]+$/)) {
+    } else if (!licensePlateValue.match(/^(T\d{3}[A-Z]{3}-T\d{3}[A-Z]{3}|[A-Z0-9]+-[A-Z0-9]+)$/)) {
         licensePlateError.style.display = 'block';
-        licensePlateError.textContent = 'License Plate must be in the format ABC123-DEF456.';
+        licensePlateError.textContent = 'License Plate must be in the format ABC123-DEF456 or T253DFQ-T889DFF.';
         licensePlateInput.focus();
         return;
-    } else {
+    }else {
         licensePlateError.style.display = 'none';
     }
 
