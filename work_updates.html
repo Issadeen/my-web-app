@@ -701,12 +701,17 @@ function updateSummaryData(snapshot) {
   }
 }
 
+
+
+
 function showOwnerModal(owner) {
     const modal = document.getElementById("ownerModal");
     const modalContent = document.getElementById("ownerModalContent");
     const ownerData = ownerSummary[owner];
 
     let totalAmountNotPaid = 0;
+    let totalAmountPaid = ownerData.totalAmountPaid || 0;
+    let totalAmountToBePaid = 0;
 
     const loadedTrucksHtml = `
         <table>
@@ -723,6 +728,7 @@ function showOwnerModal(owner) {
             <tbody>
                 ${ownerData.loadedTrucks.map((truck, index) => {
                     const amount = truck.price * truck.at20;
+                    totalAmountToBePaid += amount;
                     let amountHtml = `$${amount.toFixed(2)}`;
                     let rowClass = '';
 
@@ -786,6 +792,7 @@ function showOwnerModal(owner) {
     `;
 
     const totalAmountHtml = totalAmountNotPaid > 0 ? `$${totalAmountNotPaid.toFixed(2)}` : '-';
+    const pendingBalance = totalAmountToBePaid - totalAmountPaid;
 
     modalContent.innerHTML = `
         <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
@@ -799,6 +806,25 @@ function showOwnerModal(owner) {
         <div>Total Amount to be Paid: ${totalAmountHtml}</div>
         <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
         ${pendingTrucksHtml}
+        <h4 class="text-md font-semibold mt-4">Payment Stats</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Total to be Paid</th>
+                    <th>Paid Amount</th>
+                    <th>Pending Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>$${totalAmountToBePaid.toFixed(2)}</td>
+                    <td>$${totalAmountPaid.toFixed(2)}</td>
+                    <td>$${pendingBalance.toFixed(2)}</td>
+                    <td><button onclick="addPaidAmount('${owner}')" class="bg-blue-500 text-white p-2 rounded">Add Paid</button></td>
+                </tr>
+            </tbody>
+        </table>
     `;
 
     modal.style.display = "flex";
@@ -819,60 +845,63 @@ function closeOwnerModal() {
     modal.style.display = "none";
 }
 
+function addPaidAmount(owner) {
+    const amount = prompt("Enter the paid amount:");
+    if (amount !== null && !isNaN(amount) && amount > 0) {
+        ownerSummary[owner].totalAmountPaid = (ownerSummary[owner].totalAmountPaid || 0) + parseFloat(amount);
+        showOwnerModal(owner); // Refresh the modal to show updated payment stats
+    } else {
+        alert("Invalid amount entered");
+    }
+}
 
-// Update the owner summary with flexbox
 function updateOwnerSummary() {
-  const ownerSummaryDiv = document.getElementById("owner_summary");
-  ownerSummaryDiv.innerHTML = "";
-  ownerSummaryDiv.classList.add("flex", "flex-wrap", "gap-4");
+    const ownerSummaryDiv = document.getElementById("owner_summary");
+    ownerSummaryDiv.innerHTML = "";
+    ownerSummaryDiv.classList.add("flex", "flex-wrap", "gap-4");
 
-  for (const owner in ownerSummary) {
-    const ownerData = ownerSummary[owner];
-    ownerSummaryDiv.innerHTML += `
-      <div class="bg-gray-700 p-4 rounded mt-4 basis-1/3">
-        <h3 class="text-lg font-semibold">${owner}</h3>
-        <div>Total Orders: ${ownerData.totalOrders}</div>
-        <div>Queued Orders: ${ownerData.queuedOrders}</div>
-        <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
-        <div>Loaded Orders: ${ownerData.loadedOrders || 0}</div>
-        <div>Pending Orders: ${ownerData.pendingOrders || 0}</div>
-        <div>AGO Orders: ${ownerData.agoOrders}</div>
-        <div>PMS Orders: ${ownerData.pmsOrders}</div>
-        <button onclick="showOwnerModal('${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
-      </div>
-    `;
-  }
+    for (const owner in ownerSummary) {
+        const ownerData = ownerSummary[owner];
+        ownerSummaryDiv.innerHTML += `
+            <div class="bg-gray-700 p-4 rounded mt-4 basis-1/3">
+                <h3 class="text-lg font-semibold">${owner}</h3>
+                <div>Total Orders: ${ownerData.totalOrders}</div>
+                <div>Queued Orders: ${ownerData.queuedOrders}</div>
+                <div>Unqueued Orders: ${ownerData.unqueuedOrders}</div>
+                <div>Loaded Orders: ${ownerData.loadedOrders || 0}</div>
+                <div>Pending Orders: ${ownerData.pendingOrders || 0}</div>
+                <div>AGO Orders: ${ownerData.agoOrders}</div>
+                <div>PMS Orders: ${ownerData.pmsOrders}</div>
+                <button onclick="showOwnerModal('${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
+            </div>
+        `;
+    }
 }
 
-// Update the summary section with the latest data
 function updateSummarySection() {
-  const summaryStats = document.getElementById("summary_stats");
+    const summaryStats = document.getElementById("summary_stats");
 
-  // Update the summary stats
-  summaryStats.innerHTML = `
-    <div class="bg-gray-700 p-4 rounded">
-      <div>Total Orders: ${totalOrders}</div>
-      <div>Queued Orders: ${queuedOrders}</div>
-      <div>Unqueued Orders: ${unqueuedOrders}</div>
-      <div>Loaded Orders: ${loadedOrders}</div>
-      <div>Pending Orders: ${pendingOrders}</div>
-      <div>AGO Orders: ${agoOrders}</div>
-      <div>PMS Orders: ${pmsOrders}</div>
-      <div>Loaded Trucks: ${loadedTrucks}</div>
-    </div>
-  `;
+    summaryStats.innerHTML = `
+        <div class="bg-gray-700 p-4 rounded">
+            <div>Total Orders: ${totalOrders}</div>
+            <div>Queued Orders: ${queuedOrders}</div>
+            <div>Unqueued Orders: ${unqueuedOrders}</div>
+            <div>Loaded Orders: ${loadedOrders}</div>
+            <div>Pending Orders: ${pendingOrders}</div>
+            <div>AGO Orders: ${agoOrders}</div>
+            <div>PMS Orders: ${pmsOrders}</div>
+            <div>Loaded Trucks: ${loadedTrucks}</div>
+        </div>
+    `;
 
-  // Update the owner summary
-  updateOwnerSummary();
+    updateOwnerSummary();
 }
 
-// Update the ticker with the latest data
 function updateTicker() {
-  const ticker = document.getElementById('ticker');
-  ticker.innerHTML = `Total Orders: ${totalOrders}, Queued Orders: ${queuedOrders}, Unqueued Orders: ${unqueuedOrders}, AGO Orders: ${agoOrders}, PMS Orders: ${pmsOrders}`;
+    const ticker = document.getElementById('ticker');
+    ticker.innerHTML = `Total Orders: ${totalOrders}, Queued Orders: ${queuedOrders}, Unqueued Orders: ${unqueuedOrders}, AGO Orders: ${agoOrders}, PMS Orders: ${pmsOrders}`;
 }
 
-// Call updateTicker function whenever you update the variables
 updateTicker();
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -927,194 +956,224 @@ document.addEventListener("DOMContentLoaded", function() {
 <script>
 // Listen for changes to the data in the "work_details" node
 workDetailsRef.on("value", function(snapshot) {
-            var workDetails = snapshot.val();
-            if (workDetails) {
-                var tableBody = document.getElementById("work_details_table_body");
-                tableBody.innerHTML = "";
-                // Loop through the child nodes of the "work_details" node
-                snapshot.forEach(function(childSnapshot) {
-                    var childData = childSnapshot.val();
-                    // Check if all required data is present
-                    if (childData.owner && childData.product && childData.truck_number && childData.quantity && childData.orderno && childData.depot && childData.destination) {
-                        // Create table rows
-                        var row = tableBody.insertRow();
-                        row.insertCell().textContent = childData.owner;
-                        row.insertCell().textContent = childData.product;
-                        // Create cell for truck number
-                        var truckNumberCell = row.insertCell();
-                        var truckInput = document.createElement("input");
-                        truckInput.type = "text";
-                        truckInput.value = childData.truck_number;
-                        truckInput.classList.add("bg-gray-800", "text-white", "p-2", "rounded", "focus:outline-none", "focus:bg-gray-900");
-                        truckInput.disabled = true; // Disable input by default
-                        truckNumberCell.appendChild(truckInput);
-                        // Display the latest previous truck number
-                        if (childData.previous_trucks && childData.previous_trucks.length > 0) {
-                            var latestPreviousTruck = childData.previous_trucks[childData.previous_trucks.length - 1];
-                            var previousTruckText = document.createElement("small");
-                            previousTruckText.textContent = "Previous: " + latestPreviousTruck;
-                            truckNumberCell.appendChild(previousTruckText);
-                        }
-                        row.insertCell().textContent = childData.quantity;
-                        // Create cell for status
-                        var statusCell = row.insertCell();
-                        var statusButton = document.createElement("button");
-                        statusButton.classList.add("px-4", "py-2", "rounded");
-                        statusButton.textContent = childData.status;
-                        statusButton.onclick = function() {
-                            childData.status = childData.status === "queued" ? "not queued" : "queued";
-                            statusButton.textContent = childData.status;
-                            // Save the updated status to Firebase
-                            workDetailsRef.child(childSnapshot.key).update({ status: childData.status });
-                        };
-                        
-                        // If the truck is loaded, grey out the status button and disable it
-                        if (childData.loaded) {
-                            statusButton.classList.add("bg-gray-500"); // Add a class to make the button appear greyed out
-                            statusButton.disabled = true; // Disable the button
-                        }
-                        
-                        statusCell.appendChild(statusButton);
-                        row.insertCell().textContent = childData.orderno; // New field
-                        row.insertCell().textContent = childData.depot; // New field
-                        row.insertCell().textContent = childData.destination; // New field
-                        // Add button for loaded/paid status change
-                        var actionsCell = row.insertCell();
+    var workDetails = snapshot.val();
+    if (workDetails) {
+        var tableBody = document.getElementById("work_details_table_body");
+        tableBody.innerHTML = "";
+        // Loop through the child nodes of the "work_details" node
+        snapshot.forEach(function(childSnapshot) {
+            var childData = childSnapshot.val();
+            // Check if all required data is present
+            if (childData.owner && childData.product && childData.truck_number && childData.quantity && childData.orderno && childData.depot && childData.destination) {
+                // Create table rows
+                var row = tableBody.insertRow();
+                row.insertCell().textContent = childData.owner;
+                row.insertCell().textContent = childData.product;
+                // Create cell for truck number
+                var truckNumberCell = row.insertCell();
+                var truckInput = document.createElement("input");
+                truckInput.type = "text";
+                truckInput.value = childData.truck_number;
+                truckInput.classList.add("bg-gray-800", "text-white", "p-2", "rounded", "focus:outline-none", "focus:bg-gray-900");
+                truckInput.disabled = true; // Disable input by default
+                truckNumberCell.appendChild(truckInput);
+                // Display the latest previous truck number
+                if (childData.previous_trucks && childData.previous_trucks.length > 0) {
+                    var latestPreviousTruck = childData.previous_trucks[childData.previous_trucks.length - 1];
+                    var previousTruckText = document.createElement("small");
+                    previousTruckText.textContent = "Previous: " + latestPreviousTruck;
+                    truckNumberCell.appendChild(previousTruckText);
+                }
+                row.insertCell().textContent = childData.quantity;
+                // Create cell for status
+                var statusCell = row.insertCell();
+                var statusButton = document.createElement("button");
+                statusButton.classList.add("px-4", "py-2", "rounded");
+                statusButton.textContent = childData.status;
+                statusButton.onclick = function() {
+                    childData.status = childData.status === "queued" ? "not queued" : "queued";
+                    statusButton.textContent = childData.status;
+                    // Save the updated status to Firebase
+                    workDetailsRef.child(childSnapshot.key).update({ status: childData.status });
+                };
 
-                        // Create the actions button (Paid/Loaded)
-                        var actionsButton = document.createElement("button");
-                        actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded", "mr-4");
-                        // Create Font Awesome icons
-                        var paidIcon = document.createElement("i");
-                        paidIcon.classList.add("fas", "fa-check");
+                // If the truck is loaded, grey out the status button and disable it
+                if (childData.loaded) {
+                    statusButton.classList.add("bg-gray-500"); // Add a class to make the button appear greyed out
+                    statusButton.disabled = true; // Disable the button
+                }
 
-                        // Add GP button 
-                        const gpButton = document.createElement("button");
-                        gpButton.textContent = "GP";
-                        gpButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
-                        gpButton.style.display = 'none'; // Hide GP button initially
-                        gpButton.onclick = function() {
-                            // Populate and show the gate pass form
-                            populateForm(this);
-                            document.getElementById('gatePassForm').style.display = 'block';
-                        };
+                statusCell.appendChild(statusButton);
+                row.insertCell().textContent = childData.orderno; // New field
+                row.insertCell().textContent = childData.depot; // New field
+                row.insertCell().textContent = childData.destination; // New field
+                // Add button for loaded/paid status change
+                var actionsCell = row.insertCell();
 
-                        // Create a container for the buttons
-                        var buttonContainer = document.createElement("div");
-                        buttonContainer.style.display = "flex";
+                // Create the actions button (Paid/Loaded)
+                var actionsButton = document.createElement("button");
+                actionsButton.classList.add("bg-green-600", "hover:bg-green-700", "px-4", "py-2", "rounded", "mr-4");
+                // Create Font Awesome icons
+                var paidIcon = document.createElement("i");
+                paidIcon.classList.add("fas", "fa-check");
 
-                        // Set initial button content for actionsButton
-                        if (childData.loaded && childData.paid) {
-                            actionsButton.appendChild(paidIcon);
-                            actionsButton.disabled = true; // Disable the button after paid
-                            buttonContainer.appendChild(actionsButton);
-                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
+                // Add GP button 
+                const gpButton = document.createElement("button");
+                gpButton.textContent = "GP";
+                gpButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
+                gpButton.style.display = 'none'; // Hide GP button initially
+                gpButton.onclick = function() {
+                    // Populate and show the gate pass form
+                    populateForm(this);
+                    document.getElementById('gatePassForm').style.display = 'block';
+                };
 
-                            // Show the GP button when paid is true
-                            if (childData.paid) {
-                                gpButton.style.display = 'inline-block'; // Display GP button inline
-                            }
-                        } else if (childData.loaded) {
-                            actionsButton.textContent = "Paid?";
-                            buttonContainer.appendChild(actionsButton);
-                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
-                        } else {
-                            actionsButton.textContent = "Loaded?";
-                            buttonContainer.appendChild(actionsButton);
-                            buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
-                        }
+                // Create a container for the buttons
+                var buttonContainer = document.createElement("div");
+                buttonContainer.style.display = "flex";
 
-                        // Append the container to the actionsCell
-                        actionsCell.appendChild(buttonContainer);
+                // Set initial button content for actionsButton
+                if (childData.loaded && childData.paid) {
+                    actionsButton.appendChild(paidIcon);
+                    actionsButton.disabled = true; // Disable the button after paid
+                    buttonContainer.appendChild(actionsButton);
+                    buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
 
-                        // Add "Change Truck" button
-                        var changeTruckButton = document.createElement("button");
-                        changeTruckButton.textContent = "Change Truck";
-                        changeTruckButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
-                        changeTruckButton.onclick = function() {
-                            // Check if the order is loaded
-                            if (childData.loaded) {
-                                // If the order is loaded, return immediately without making any changes
-                                return;
-                            }
-                            if (changeTruckButton.textContent === "Change Truck") {
-                                truckInput.disabled = false;
-                                changeTruckButton.textContent = "Save";
-                                var previousTruckText = document.createElement("small");
-                                previousTruckText.textContent = "Previous: " + childData.truck_number;
-                                truckNumberCell.appendChild(previousTruckText);
-                            } else {
-                                // Save the new truck number
-                                var newTruckNumber = truckInput.value;
-                                // Add the old truck number to the array of previous truck numbers
-                                if (!childData.previous_trucks) {
-                                    childData.previous_trucks = [];
-                                }
-                                childData.previous_trucks.push(childData.truck_number);
-                                childData.truck_number = newTruckNumber;
-                                // Disable input after saving
-                                truckInput.disabled = true;
-                                changeTruckButton.textContent = "Change Truck";
-                                // Save the updated truck number and previous truck numbers to Firebase
-                                workDetailsRef.child(childSnapshot.key).update({ truck_number: childData.truck_number, previous_trucks: childData.previous_trucks });
-                            }
-                        };
-
-                        // Hide the Change Truck button if the order is loaded
-                        changeTruckButton.style.display = childData.loaded ? "none" : "inline-block";
-
-                        // Create a container for the 'Loaded/Paid' buttons and 'Change Truck' button
-                        var actionButtonsContainer = document.createElement("div");
-                        actionButtonsContainer.style.display = "flex";
-                        actionButtonsContainer.appendChild(buttonContainer);
-                        actionButtonsContainer.appendChild(changeTruckButton);
-
-                        actionsCell.appendChild(actionButtonsContainer);
-                        // Add delete button to the row
-                        var deleteCell = row.insertCell();
-                        var deleteButton = document.createElement("button");
-                        deleteButton.classList.add("bg-red-600", "hover:bg-red-700", "px-4", "py-2", "rounded");
-                        deleteButton.onclick = function() {
-                            deleteOrder(childSnapshot.key); // Pass the key of the order to be deleted
-                        };
-                        // Create Font Awesome delete icon
-                        var deleteIcon = document.createElement("i");
-                        deleteIcon.classList.add("fas", "fa-trash-alt");
-                        deleteButton.appendChild(deleteIcon);
-                        deleteCell.appendChild(deleteButton);
-                        actionsButton.onclick = function() {
-                            if (!childData.loaded) {
-                                // Ask for at20 before marking as loaded
-                                var at20 = prompt("Please enter at20 before marking as loaded");
-                                if (at20) {
-                                    // Save at20 to Firebase
-                                    workDetailsRef.child(childSnapshot.key).update({ at20: at20 }).catch(console.error);
-                                    childData.loaded = true;
-                                    childData.crossedOut = true;
-                                    actionsButton.textContent = "Paid";
-                                    // Add the line-through class to all cells
-                                    for (var i = 0; i < row.cells.length; i++) {
-                                        row.cells[i].classList.add("line-through");
-                                    }
-                                    workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error);
-                                } else {
-                                    // Prevent marking as loaded if at20 is not provided
-                                    alert("You must provide at20 before marking as loaded");
-                                }
-                            } else if (!childData.paid) {
-                                childData.paid = true;
-                                childData.crossedOut = true;
-                                actionsButton.textContent = "";
-                                actionsButton.appendChild(paidIcon);
-                                actionsButton.disabled = true;
-                                workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, paid: childData.paid, crossedOut: childData.crossedOut }).catch(console.error);
-                            }
-                        };
-                    } else {
-                        console.error("Invalid data format: ", childData);
+                    // Show the GP button when paid is true
+                    if (childData.paid) {
+                        gpButton.style.display = 'inline-block'; // Display GP button inline
                     }
-                });
-            
+                } else if (childData.loaded) {
+                    actionsButton.textContent = "Paid?";
+                    buttonContainer.appendChild(actionsButton);
+                    buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
+                } else {
+                    actionsButton.textContent = "Loaded?";
+                    buttonContainer.appendChild(actionsButton);
+                    buttonContainer.appendChild(gpButton); // Append GP button after the actionsButton
+                }
+
+                // Append the container to the actionsCell
+                actionsCell.appendChild(buttonContainer);
+
+                // Add "Change Truck" button
+                var changeTruckButton = document.createElement("button");
+                changeTruckButton.textContent = "Change Truck";
+                changeTruckButton.classList.add("bg-blue-600", "hover:bg-blue-700", "px-4", "py-2", "rounded", "mr-4");
+                changeTruckButton.onclick = function() {
+                    // Check if the order is loaded
+                    if (childData.loaded) {
+                        // If the order is loaded, return immediately without making any changes
+                        return;
+                    }
+                    if (changeTruckButton.textContent === "Change Truck") {
+                        truckInput.disabled = false;
+                        changeTruckButton.textContent = "Save";
+                        var previousTruckText = document.createElement("small");
+                        previousTruckText.textContent = "Previous: " + childData.truck_number;
+                        truckNumberCell.appendChild(previousTruckText);
+                    } else {
+                        // Save the new truck number
+                        var newTruckNumber = truckInput.value;
+                        // Add the old truck number to the array of previous truck numbers
+                        if (!childData.previous_trucks) {
+                            childData.previous_trucks = [];
+                        }
+                        childData.previous_trucks.push(childData.truck_number);
+                        childData.truck_number = newTruckNumber;
+                        // Disable input after saving
+                        truckInput.disabled = true;
+                        changeTruckButton.textContent = "Change Truck";
+                        // Save the updated truck number and previous truck numbers to Firebase
+                        workDetailsRef.child(childSnapshot.key).update({ truck_number: childData.truck_number, previous_trucks: childData.previous_trucks });
+                    }
+                };
+
+                // Hide the Change Truck button if the order is loaded
+                changeTruckButton.style.display = childData.loaded ? "none" : "inline-block";
+
+                // Create a container for the 'Loaded/Paid' buttons and 'Change Truck' button
+                var actionButtonsContainer = document.createElement("div");
+                actionButtonsContainer.style.display = "flex";
+                actionButtonsContainer.appendChild(buttonContainer);
+                actionButtonsContainer.appendChild(changeTruckButton);
+
+                actionsCell.appendChild(actionButtonsContainer);
+                // Add delete button to the row
+                var deleteCell = row.insertCell();
+                var deleteButton = document.createElement("button");
+                deleteButton.classList.add("bg-red-600", "hover:bg-red-700", "px-4", "py-2", "rounded");
+                deleteButton.onclick = function() {
+                    deleteOrder(childSnapshot.key); // Pass the key of the order to be deleted
+                };
+                // Create Font Awesome delete icon
+                var deleteIcon = document.createElement("i");
+                deleteIcon.classList.add("fas", "fa-trash-alt");
+                deleteButton.appendChild(deleteIcon);
+                deleteCell.appendChild(deleteButton);
+
+                actionsButton.onclick = function() {
+    if (!childData.loaded) {
+        // Ask for at20 before marking as loaded
+        var at20 = prompt("Please enter at20 before marking as loaded");
+        if (at20) {
+            // Save at20 to Firebase
+            workDetailsRef.child(childSnapshot.key).update({ at20: at20 }).catch(console.error);
+            childData.loaded = true;
+            childData.crossedOut = true;
+            actionsButton.textContent = "Paid";
+            // Add the line-through class to all cells
+            for (var i = 0; i < row.cells.length; i++) {
+                row.cells[i].classList.add("line-through");
+            }
+            workDetailsRef.child(childSnapshot.key).update({ loaded: childData.loaded, crossedOut: childData.crossedOut }).catch(console.error);
+        } else {
+            // Prevent marking as loaded if at20 is not provided
+            alert("You must provide at20 before marking as loaded");
+        }
+    } else if (!childData.paid) {
+        // Ask for payment amount
+        var paymentAmount = prompt("Please enter the payment amount");
+        if (paymentAmount) {
+            paymentAmount = parseFloat(paymentAmount);
+            if (!isNaN(paymentAmount) && paymentAmount > 0) {
+                childData.paid = true;
+                childData.crossedOut = true;
+                actionsButton.textContent = "";
+                actionsButton.appendChild(paidIcon);
+                actionsButton.disabled = true;
+
+                // Update balance
+                if (!childData.balance) {
+                    childData.balance = 0;
+                }
+                var balanceChange = paymentAmount - childData.quantity;
+                childData.balance += balanceChange;
+
+                // Show balance in the UI (Optional, depending on your requirements)
+                var balanceCell = row.insertCell();
+                balanceCell.textContent = "Balance: " + childData.balance.toFixed(2);
+
+                workDetailsRef.child(childSnapshot.key).update({
+                    loaded: childData.loaded,
+                    paid: childData.paid,
+                    crossedOut: childData.crossedOut,
+                    balance: childData.balance
+                }).catch(console.error);
+            } else {
+                alert("Invalid payment amount");
+            }
+        } else {
+            alert("You must provide a payment amount");
+        }
+    }
+};
+            } else {
+                console.error("Invalid data format: ", childData);
+            }
+        });
+    
+       
             
                 
         
