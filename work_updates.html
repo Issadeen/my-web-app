@@ -702,158 +702,207 @@ function updateSummaryData(snapshot) {
 }
 
 
+function handleButtonClick(button, owner) {
+  button.innerHTML = 'Fetching...'; // Store the button object
+  showOwnerModal(owner, button); // Pass the button to the modal
+}
+function closeOwnerModal(button) {
+  const modal = document.getElementById("ownerModal");
+  modal.style.display = "none";
+  // Reset the button text
+  if (button) {
+    button.innerHTML = "Info";
+  }
+}
 
+function showOwnerModal(owner, button) { // Pass button as an argument
+  const modal = document.getElementById("ownerModal");
+  const modalContent = document.getElementById("ownerModalContent");
+  const ownerData = ownerSummary[owner];
 
-function showOwnerModal(owner) {
-    const modal = document.getElementById("ownerModal");
-    const modalContent = document.getElementById("ownerModalContent");
-    const ownerData = ownerSummary[owner];
+  // Initialize or reset totalAmountPaid to 0 before fetching new payments
+  let totalAmountPaid = 0;
 
+  // Fetch payment details from Firebase
+  const paymentsRef = firebase.database().ref('payments/' + owner);
+  paymentsRef.once('value', (snapshot) => {
+    const payments = snapshot.val();
+    let paymentsHtml = '<h4 class="text-md font-semibold mt-4">Payment Details</h4><ul>';
+    if (payments) {
+      for (let key in payments) {
+        const payment = payments[key];
+        totalAmountPaid += payment.amountPaid; // Accumulate total paid amount
+        paymentsHtml += `<li>Amount Paid: $${payment.amountPaid.toFixed(2)} on ${new Date(payment.timestamp).toLocaleDateString()}</li>`;
+      }
+    } else {
+      paymentsHtml += '<li>No Payment History Found</li>';
+    }
+    paymentsHtml += '</ul>';
+
+    // Update ownerData with the new totalAmountPaid
+    ownerData.totalAmountPaid = totalAmountPaid;
+
+    // Continue with the rest of the modal setup...
     let totalAmountNotPaid = 0;
-    let totalAmountPaid = ownerData.totalAmountPaid || 0;
     let totalAmountToBePaid = 0;
 
     const loadedTrucksHtml = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Index</th>
-                    <th>Truck</th>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>At20</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${ownerData.loadedTrucks.map((truck, index) => {
-                    const amount = truck.price * truck.at20;
-                    totalAmountToBePaid += amount;
-                    let amountHtml = `$${amount.toFixed(2)}`;
-                    let rowClass = '';
+      <table>
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Truck</th>
+            <th>Product</th>
+            <th>Price</th>
+            <th>At20</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ownerData.loadedTrucks.map((truck, index) => {
+            const amount = truck.price * truck.at20;
+            totalAmountToBePaid += amount;
+            let amountHtml = `$${amount.toFixed(2)}`;
+            let rowClass = '';
 
-                    if (truck.paid) {
-                        if (truck.amountPaid < amount) {
-                            amountHtml = `<span style="color: orange;">$${truck.amountPaid.toFixed(2)} Underpaid</span>`;
-                            totalAmountNotPaid += (amount - truck.amountPaid); // Add only the unpaid part
-                            rowClass = 'underpaid';
-                        } else if (truck.amountPaid > amount) {
-                            amountHtml = `<span style="color: green;">$${truck.amountPaid.toFixed(2)} Overpaid</span>`;
-                            rowClass = 'overpaid';
-                        } else {
-                            amountHtml = `<s>$${amount.toFixed(2)}</s> Paid in Full`;
-                        }
-                    } else {
-                        amountHtml = `$${amount.toFixed(2)} Not Paid`;
-                        totalAmountNotPaid += amount; // Add the whole amount
-                        rowClass = 'not-paid'; // Add class to not paid trucks
-                    }
+            if (truck.paid) {
+              if (truck.amountPaid < amount) {
+                amountHtml = `<span style="color: orange;">$${truck.amountPaid.toFixed(2)} Underpaid</span>`;
+                totalAmountNotPaid += (amount - truck.amountPaid); // Add only the unpaid part
+                rowClass = 'underpaid';
+              } else if (truck.amountPaid > amount) {
+                amountHtml = `<span style="color: green;">$${truck.amountPaid.toFixed(2)} Overpaid</span>`;
+                rowClass = 'overpaid';
+              } else {
+                amountHtml = `<s>$${amount.toFixed(2)}</s> Paid in Full`;
+              }
+            } else {
+              amountHtml = `$${amount.toFixed(2)} Not Paid`;
+              totalAmountNotPaid += amount; // Add the whole amount
+              rowClass = 'not-paid'; // Add class to not paid trucks
+            }
 
-                    return `
-                        <tr class="${rowClass}">
-                            <td>${index + 1}</td>
-                            <td>${truck.truck_number}</td>
-                            <td>${truck.product}</td>
-                            <td>$${Number(truck.price).toFixed(2)}</td>
-                            <td>${truck.at20}</td>
-                            <td>${amountHtml}</td>
-                        </tr>
-                    `;
-                }).join("")}
-            </tbody>
-        </table>
+            return `
+              <tr class="${rowClass}">
+                <td>${index + 1}</td>
+                <td>${truck.truck_number}</td>
+                <td>${truck.product}</td>
+                <td>$${Number(truck.price).toFixed(2)}</td>
+                <td>${truck.at20}</td>
+                <td>${amountHtml}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
     `;
 
     const pendingTrucksHtml = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Index</th>
-                    <th>Truck</th>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${ownerData.pendingTrucks.map((truck, index) => {
-                    return `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${truck.truck_number}</td>
-                            <td>${truck.product}</td>
-                            <td>$${Number(truck.price).toFixed(2)}</td>
-                            <td>${truck.quantity}</td>
-                        </tr>
-                    `;
-                }).join("")}
-            </tbody>
-        </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Truck</th>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ownerData.pendingTrucks.map((truck, index) => {
+            return `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${truck.truck_number}</td>
+                <td>${truck.product}</td>
+                <td>$${Number(truck.price).toFixed(2)}</td>
+                <td>${truck.quantity}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
     `;
 
     const totalAmountHtml = totalAmountNotPaid > 0 ? `$${totalAmountNotPaid.toFixed(2)}` : '-';
     const pendingBalance = totalAmountToBePaid - totalAmountPaid;
 
     modalContent.innerHTML = `
-        <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
-        <span class="close" onclick="closeOwnerModal()">×</span>
-        <h3 class="text-lg font-semibold">${owner}</h3>
-        <div>Total Orders: ${ownerData.totalOrders}</div>
-        <div>AGO Orders: ${ownerData.agoOrders}</div>
-        <div>PMS Orders: ${ownerData.pmsOrders}</div>
-        <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
-        ${loadedTrucksHtml}
-        <div>Total Amount to be Paid: ${totalAmountHtml}</div>
-        <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
-        ${pendingTrucksHtml}
-        <h4 class="text-md font-semibold mt-4">Payment Stats</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Total to be Paid</th>
-                    <th>Paid Amount</th>
-                    <th>Pending Balance</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>$${totalAmountToBePaid.toFixed(2)}</td>
-                    <td>$${totalAmountPaid.toFixed(2)}</td>
-                    <td>$${pendingBalance.toFixed(2)}</td>
-                    <td><button onclick="addPaidAmount('${owner}')" class="bg-blue-500 text-white p-2 rounded">Add Paid</button></td>
-                </tr>
-            </tbody>
-        </table>
+      <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
+      <span class="close" onclick="closeOwnerModal()">×</span>
+      <h3 class="text-lg font-semibold">${owner}</h3>
+      <div>Total Orders: ${ownerData.totalOrders}</div>
+      <div>AGO Orders: ${ownerData.agoOrders}</div>
+      <div>PMS Orders: ${ownerData.pmsOrders}</div>
+      <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
+      ${loadedTrucksHtml}
+      <div>Total Amount to be Paid: ${totalAmountHtml}</div>
+      <h4 class="text-md font-semibold mt-4">Pending Trucks</h4>
+      ${pendingTrucksHtml}
+      <h4 class="text-md font-semibold mt-4">Payment Stats</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Total to be Paid</th>
+            <th>Paid Amount</th>
+            <th>Pending Balance</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>$${totalAmountToBePaid.toFixed(2)}</td>
+            <td>$${totalAmountPaid.toFixed(2)}</td>
+            <td>$${pendingBalance.toFixed(2)}</td>
+            <td><button onclick="addPaidAmount('${owner}')" class="bg-blue-500 text-white p-2 rounded">Add Paid</button></td>
+          </tr>
+        </tbody>
+      </table>
+      ${paymentsHtml}
     `;
 
     modal.style.display = "flex";
+  });
 
-    document.getElementById("copyButton").addEventListener("click", async function() {
-        const htmlContent = modalContent.innerHTML;
-        try {
-            await navigator.clipboard.writeText(htmlContent);
-            alert("Content copied to clipboard");
-        } catch (err) {
-            console.error("Failed to copy: ", err);
-        }
-    });
+  document.getElementById("copyButton").addEventListener("click", async function() {
+    const htmlContent = modalContent.innerHTML;
+    try {
+      await navigator.clipboard.writeText(htmlContent);
+      alert("Content copied to clipboard");
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  });
+
+  // Update button text to "Fetching..." if button is provided
+  if (button) {
+    button.innerHTML = 'Fetching...'; 
+  }
 }
 
-function closeOwnerModal() {
-    const modal = document.getElementById("ownerModal");
-    modal.style.display = "none";
+function handleButtonClick(button, owner) {
+  showOwnerModal(owner, button); // Pass the button to showOwnerModal
 }
 
 function addPaidAmount(owner) {
     const amount = prompt("Enter the paid amount:");
     if (amount !== null && !isNaN(amount) && amount > 0) {
-        ownerSummary[owner].totalAmountPaid = (ownerSummary[owner].totalAmountPaid || 0) + parseFloat(amount);
-        showOwnerModal(owner); // Refresh the modal to show updated payment stats
+        const parsedAmount = parseFloat(amount);
+        const paymentRef = firebase.database().ref('payments/' + owner);
+        paymentRef.push({
+            amountPaid: parsedAmount,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            console.log("Payment saved successfully.");
+            showOwnerModal(owner); // Refresh the modal to show updated payment stats
+        }).catch((error) => {
+            console.error("Error saving payment: ", error);
+            alert("Failed to save payment. Please try again.");
+        });
     } else {
         alert("Invalid amount entered");
     }
-}
+} 
 
 function updateOwnerSummary() {
     const ownerSummaryDiv = document.getElementById("owner_summary");
@@ -872,10 +921,23 @@ function updateOwnerSummary() {
                 <div>Pending Orders: ${ownerData.pendingOrders || 0}</div>
                 <div>AGO Orders: ${ownerData.agoOrders}</div>
                 <div>PMS Orders: ${ownerData.pmsOrders}</div>
-                <button onclick="showOwnerModal('${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
+                <button id="infoButton" onclick="handleButtonClick(this, '${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
             </div>
         `;
     }
+}
+
+function handleButtonClick(button, owner) {
+    // Change the button text to 'Fetching...'
+    button.innerHTML = 'Fetching...';
+
+    // Set a timeout to revert the button text back to 'Info' after 3 seconds
+    setTimeout(() => {
+        button.innerHTML = 'Info';
+    }, 3000);
+
+    // Call showOwnerModal or any other logic you need
+    showOwnerModal(owner);
 }
 
 function updateSummarySection() {
