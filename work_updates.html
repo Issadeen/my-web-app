@@ -409,13 +409,13 @@
             </div>
         </div>
 
-        <!-- Insufficient Stock Modal -->
-        <div id="noStockModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none; z-index: 1000;">
-            <div class="bg-gray-800 text-white p-4 rounded-lg w-1/2">
-                <span class="close text-white text-2xl float-right cursor-pointer" onclick="closeNoStockModal()">×</span>
-                <p>Insufficient stock to fulfill the order. Please try again with a lower quantity or wait for restock.</p>
-            </div>
-        </div>
+<!-- Insufficient Stock Modal -->
+<div id="noStockModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none; z-index: 1000;">
+    <div class="bg-gray-800 text-white p-4 rounded-lg w-1/2 relative">
+        <span class="close text-white text-2xl cursor-pointer absolute top-2 right-2" onclick="closeNoStockModal()">×</span> 
+        <p>Insufficient stock to fulfill the order. Please try again with a lower quantity or wait for restock.</p>
+    </div>
+</div>
 
         <!-- Add Stock Modal -->
         <div id="addStockModal" class="modl">
@@ -1356,7 +1356,6 @@ document.getElementById("download_button").addEventListener("click", function ()
 });
 
 
-
 document.getElementById("add_work_form").addEventListener("submit", function(event) {
     event.preventDefault();
     const formData = new FormData(this);
@@ -1382,25 +1381,46 @@ document.getElementById("add_work_form").addEventListener("submit", function(eve
             orderNoError.style.display = 'block'; // Show the error message
             orderNoInput.focus(); // Focus on the input field
         } else {
-            // No duplicate found, proceed with saving the order
-            const newOrderId = generateUniqueId(); // Generate a unique ID for the new order
-            firebase.database().ref('work_details/' + newOrderId).set(newWorkDetail)
-            .then(() => {
-                console.log('Order saved successfully');
-                // You can add code here to clear the form or give feedback to the user
+            // Check if sufficient stock is available
+            const stockRef = firebase.database().ref(`/stocks/${newWorkDetail.product}`);
+            stockRef.once('value').then(snapshot => {
+                const stockQuantity = snapshot.val() ? snapshot.val().quantity : 0;
+                if (stockQuantity >= parseFloat(newWorkDetail.quantity)) {
+                    // Sufficient stock - Save the order and update stock
+                    const newOrderId = generateUniqueId(); // Generate a unique ID for the new order
+                    firebase.database().ref('work_details/' + newOrderId).set(newWorkDetail)
+                    .then(() => {
+                        console.log('Order saved successfully');
+
+                        // Update stock quantity
+                        stockRef.update({
+                            quantity: stockQuantity - parseFloat(newWorkDetail.quantity)
+                        })
+                        .then(() => {
+                            console.log('Order saved successfully, stock updated.');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating stock:', error);
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Error saving order:', error);
+                    });
+                } else {
+                    // Insufficient stock - display error message
+                    document.getElementById("noStockModal").style.display = "flex";
+                    // Prevent order from being saved
+                    event.stopPropagation(); // Prevent default form submission
+                }
             })
             .catch((error) => {
-                console.error('Error saving order:', error);
-                // Handle error appropriately
+                console.error('Error checking stock:', error);
             });
         }
     }).catch(error => {
         console.error('Error checking order number:', error);
-        // Handle error appropriately
     });
 });
-
-// ... Your existing JavaScript ...
 
 // Function to generate unique ID
 function generateUniqueId() {
@@ -1408,8 +1428,6 @@ function generateUniqueId() {
     // Example:
     return Math.random().toString(36).substr(2, 9);
 }
-
-
 
 document.getElementById("add_stock_form").addEventListener("submit", function(event) {
     event.preventDefault();
@@ -1470,21 +1488,26 @@ stocksRef.on('value', function(snapshot) {
         stocksDiv.appendChild(stockDiv);
     }
 });
-        // Function to close the Add Stock modal
-        function closeAddStockModal() {
-            document.getElementById("addStockModal").style.display = "none";
-        }
 
-        // Function to show the Add Stock modal
-        function showAddStockModal() {
-            document.getElementById("addStockModal").style.display = "flex";
-        }
+// Function to close the Add Stock modal
+function closeAddStockModal() {
+    document.getElementById("addStockModal").style.display = "none";
+}
+
+// Function to show the Add Stock modal
+function showAddStockModal() {
+    document.getElementById("addStockModal").style.display = "flex";
+}
 
 // Function to close the "Add Work Form" modal
 function closemodl() {
     document.getElementById("mymodl").style.display = "none";
 }
 
+// Function to close the "Insufficient Stock" modal
+function closeNoStockModal() {
+    document.getElementById("noStockModal").style.display = "none";
+}
 
 
 // Function to delete an order
