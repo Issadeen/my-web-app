@@ -1,52 +1,113 @@
 <!DOCTYPE html>
-< lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Cursor Head</title>
-    <!-- Include Three.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>MOK Petro Energy Invoice Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
+    <style>
+        body { font-family: 'Times New Roman', Times, serif; line-height: 1.6; padding: 20px; max-width: 600px; margin: 0 auto; }
+        form { display: grid; gap: 10px; }
+        label { font-weight: bold; }
+        input, select { width: 100%; padding: 5px; font-family: 'Times New Roman', Times, serif; }
+        button { background-color: #1e3f7a; color: white; padding: 10px; border: none; cursor: pointer; font-family: 'Times New Roman', Times, serif; }
+    </style>
 </head>
 <body>
-    <!-- Your Three.js code will go here -->
+    <h1>MOK Petro Energy Invoice Generator</h1>
+    <form id="invoiceForm">
+        <label for="billTo">Bill To:</label>
+        <input type="text" id="billTo" required>
+
+        <label for="shipTo">Ship To:</label>
+        <input type="text" id="shipTo" required>
+
+        <label for="invoiceNumber">Proforma Invoice Number:</label>
+        <input type="text" id="invoiceNumber" required>
+
+        <label for="invoiceDate">Date:</label>
+        <input type="date" id="invoiceDate" required>
+
+        <label for="customerId">Customer ID:</label>
+        <input type="text" id="customerId">
+
+        <label for="description">Description of Goods:</label>
+        <input type="text" id="description" required>
+
+        <label for="hsCode">HS Code:</label>
+        <input type="text" id="hsCode" value="0001.13.01" readonly>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" step="0.01" required>
+
+        <label for="unitPrice">Unit Price:</label>
+        <input type="number" id="unitPrice" step="0.01" required>
+
+        <button type="submit">Generate Invoice</button>
+    </form>
+
     <script>
-// Set up Three.js scene
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+        async function fillPdf(formData) {
+            const pdfTemplate = await fetch('/template.pdf').then(res => res.arrayBuffer());
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
+            const page = pdfDoc.getPages()[0];
+            const { width, height } = page.getSize();
 
-// Create the robot head (load your 3D model here)
-const robotHead = new THREE.Mesh(/* Load your 3D model here */);
-scene.add(robotHead);
+            // Define field positions (adjust these based on your actual template)
+            const fieldPositions = {
+             billTo: { x: 75, y: height - 230, size: 10 },
+             shipTo: { x: 395, y: height - 240, size: 10 },
+             invoiceNumber: { x: 395, y: height - 165, size: 10 },
+             invoiceDate: { x: 510, y: height - 165, size: 10 },
+             customerId: { x: 395, y: height - 195, size: 10 },
+             description: { x: 75, y: height - 380, size: 10 },
+             hsCode: { x: 300, y: height - 380, size: 10 },
+             quantity: { x: 400, y: height - 380, size: 10 },
+             unitPrice: { x: 460, y: height - 380, size: 10 },
+             amount: { x: 520, y: height - 435, size: 10 }
+            };
 
-// Listen for mouse movement
-document.addEventListener('mousemove', (event) => {
-    const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            // Add text to the PDF
+            Object.entries(formData).forEach(([key, value]) => {
+                const position = fieldPositions[key];
+                page.drawText(value.toUpperCase(), {
+                    x: position.x,
+                    y: position.y,
+                    size: position.size,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+            });
 
-    // Convert mouse coordinates to 3D world coordinates
-    const vector = new THREE.Vector3(mouseX, mouseY, 0.5);
-    vector.unproject(camera);
-    const dir = vector.sub(camera.position).normalize();
-    const distance = -camera.position.z / dir.z;
-    const cursorPosition = camera.position.clone().add(dir.multiplyScalar(distance));
+            // Calculate and add total
+            const total = (formData.quantity * formData.unitPrice).toFixed(2);
+            page.drawText(total, {
+                x: 520,
+                y: height - 380,
+                size: 10,
+                color: PDFLib.rgb(0, 0, 0)
+            });
 
-    // Update robot head position
-    robotHead.position.copy(cursorPosition);
-});
+            const pdfBytes = await pdfDoc.save();
+            download(pdfBytes, "invoice.pdf", "application/pdf");
+        }
 
-// Set up camera position
-camera.position.z = 10;
-
-// Render loop
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-}
-animate();
-</script>
+        document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                billTo: document.getElementById('billTo').value.toUpperCase(),
+                shipTo: document.getElementById('shipTo').value.toUpperCase(),
+                invoiceNumber: document.getElementById('invoiceNumber').value.toUpperCase(),
+                invoiceDate: document.getElementById('invoiceDate').value,
+                customerId: document.getElementById('customerId').value.toUpperCase(),
+                description: document.getElementById('description').value.toUpperCase(),
+                hsCode: "0001.13.01",
+                quantity: document.getElementById('quantity').value,
+                unitPrice: document.getElementById('unitPrice').value,
+                amount: (document.getElementById('quantity').value * document.getElementById('unitPrice').value).toFixed(2)
+            };
+            await fillPdf(formData);
+        });
+    </script>
 </body>
 </html>
-```
