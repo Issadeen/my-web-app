@@ -49,58 +49,67 @@
 
     <script>
         async function fillPdf(formData) {
-            const pdfTemplate = await fetch('/template.pdf').then(res => res.arrayBuffer());
-            const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
-            const page = pdfDoc.getPages()[0];
-            const { width, height } = page.getSize();
+            try {
+                const response = await fetch('https://issadeen.github.io/my-web-app/template.pdf');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const pdfTemplate = await response.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
+                const page = pdfDoc.getPages()[0];
+                const { width, height } = page.getSize();
 
-            // Define field positions (adjust these based on your actual template)
-            const fieldPositions = {
-             billTo: { x: 75, y: height - 230, size: 10 },
-             shipTo: { x: 395, y: height - 240, size: 10 },
-             invoiceNumber: { x: 395, y: height - 165, size: 10 },
-             invoiceDate: { x: 510, y: height - 165, size: 10 },
-             customerId: { x: 395, y: height - 195, size: 10 },
-             description: { x: 75, y: height - 380, size: 10 },
-             hsCode: { x: 300, y: height - 380, size: 10 },
-             quantity: { x: 400, y: height - 380, size: 10 },
-             unitPrice: { x: 460, y: height - 380, size: 10 },
-             amount: { x: 520, y: height - 435, size: 10 }
-            };
+                // Define field positions (adjust these based on your actual template)
+                const fieldPositions = {
+                    billTo: { x: 75, y: height - 230, size: 10 },
+                    shipTo: { x: 395, y: height - 240, size: 10 },
+                    invoiceNumber: { x: 395, y: height - 165, size: 10 },
+                    invoiceDate: { x: 510, y: height - 165, size: 10 },
+                    customerId: { x: 395, y: height - 195, size: 10 },
+                    description: { x: 75, y: height - 380, size: 10 },
+                    hsCode: { x: 300, y: height - 380, size: 10 },
+                    quantity: { x: 400, y: height - 380, size: 10 },
+                    unitPrice: { x: 460, y: height - 380, size: 10 },
+                    amount: { x: 520, y: height - 435, size: 10 }
+                };
 
-            // Add text to the PDF
-            Object.entries(formData).forEach(([key, value]) => {
-                const position = fieldPositions[key];
-                page.drawText(value.toUpperCase(), {
-                    x: position.x,
-                    y: position.y,
-                    size: position.size,
+                // Add text to the PDF
+                Object.entries(formData).forEach(([key, value]) => {
+                    const position = fieldPositions[key];
+                    page.drawText(value.toString().toUpperCase(), {
+                        x: position.x,
+                        y: position.y,
+                        size: position.size,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                });
+
+                // Calculate and add total
+                const total = (formData.quantity * formData.unitPrice).toFixed(2);
+                page.drawText(total, {
+                    x: 520,
+                    y: height - 380,
+                    size: 10,
                     color: PDFLib.rgb(0, 0, 0)
                 });
-            });
 
-            // Calculate and add total
-            const total = (formData.quantity * formData.unitPrice).toFixed(2);
-            page.drawText(total, {
-                x: 520,
-                y: height - 380,
-                size: 10,
-                color: PDFLib.rgb(0, 0, 0)
-            });
-
-            const pdfBytes = await pdfDoc.save();
-            download(pdfBytes, "invoice.pdf", "application/pdf");
+                const pdfBytes = await pdfDoc.save();
+                download(pdfBytes, "invoice.pdf", "application/pdf");
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('An error occurred while generating the PDF. Please try again.');
+            }
         }
 
         document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = {
-                billTo: document.getElementById('billTo').value.toUpperCase(),
-                shipTo: document.getElementById('shipTo').value.toUpperCase(),
-                invoiceNumber: document.getElementById('invoiceNumber').value.toUpperCase(),
+                billTo: document.getElementById('billTo').value,
+                shipTo: document.getElementById('shipTo').value,
+                invoiceNumber: document.getElementById('invoiceNumber').value,
                 invoiceDate: document.getElementById('invoiceDate').value,
-                customerId: document.getElementById('customerId').value.toUpperCase(),
-                description: document.getElementById('description').value.toUpperCase(),
+                customerId: document.getElementById('customerId').value,
+                description: document.getElementById('description').value,
                 hsCode: "0001.13.01",
                 quantity: document.getElementById('quantity').value,
                 unitPrice: document.getElementById('unitPrice').value,
