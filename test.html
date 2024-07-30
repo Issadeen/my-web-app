@@ -123,7 +123,7 @@
         <input type="text" id="shipTo" required>
 
         <label for="invoiceNumber">Proforma Invoice Number:</label>
-        <input type="text" id="invoiceNumber" required>
+        <input type="text" id="invoiceNumber" readonly>
 
         <label for="invoiceDate">Date:</label>
         <input type="date" id="invoiceDate" required>
@@ -155,94 +155,134 @@
                       </div>
     <script>
 
-                // Theme toggle functionality
-                const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+       // Initialize Firebase
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const database = firebase.database();
 
-        function setTheme(theme) {
-            document.body.classList.toggle('dark-theme', theme === 'dark');
-            localStorage.setItem('theme', theme);
-        }
+            // Function to get the next invoice number
+            async function getNextInvoiceNumber() {
+                const snapshot = await database.ref('invoiceNumber').once('value');
+                let currentNumber = snapshot.val() || 599; // Start from 599 if no value exists
+                currentNumber++;
+                await database.ref('invoiceNumber').set(currentNumber);
+                return `MOK-PFI-${currentNumber.toString().padStart(3, '0')}`; // Format as MOK-PFI-XXX
+            }
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            setTheme(newTheme);
-        });
+            async function fillPdf(formData) {
+                try {
+                    const response = await fetch('https://issadeen.github.io/my-web-app/template.pdf');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const pdfTemplate = await response.arrayBuffer();
+                    const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
+                    const page = pdfDoc.getPages()[0];
+                    const { width, height } = page.getSize();
 
-        // Set initial theme
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            setTheme(savedTheme);
-        } else if (prefersDarkScheme.matches) {
-            setTheme('dark');
-        }
+                    // Define field positions (adjust these based on your actual template)
+                    const fieldPositions = {
+                        billTo: { x: 75, y: height - 230, size: 10 },
+                        shipTo: { x: 395, y: height - 240, size: 10 },
+                        invoiceNumber: { x: 395, y: height - 165, size: 10 },
+                        invoiceDate: { x: 510, y: height - 165, size: 10 },
+                        customerId: { x: 395, y: height - 195, size: 10 },
+                        description: { x: 75, y: height - 380, size: 10 },
+                        hsCode: { x: 300, y: height - 380, size: 10 },
+                        quantity: { x: 400, y: height - 380, size: 10 },
+                        unitPrice: { x: 460, y: height - 380, size: 10 },
+                        amount: { x: 520, y: height - 435, size: 10 }
+                    };
 
+                    // Add text to the PDF
+                    Object.entries(formData).forEach(([key, value]) => {
+                        const position = fieldPositions[key];
+                        page.drawText(value.toString().toUpperCase(), {
+                            x: position.x,
+                            y: position.y,
+                            size: position.size,
+                            color: PDFLib.rgb(0, 0, 0)
+                        });
+                    });
 
-        async function fillPdf(formData) {
-            try {
-                const response = await fetch('https://issadeen.github.io/my-web-app/template.pdf');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Calculate and add total
+                    const total = (formData.quantity * formData.unitPrice).toFixed(2);
+                    page.drawText(total, {
+                        x: 520,
+                        y: height - 380,
+                        size: 10,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+
+                    const pdfBytes = await pdfDoc.save();
+                    download(pdfBytes, "invoice.pdf", "application/pdf");
+
+                    // Increment and save the invoice number only after successful PDF generation
+                    const nextInvoiceNumber = await getNextInvoiceNumber();
+                    document.getElementById('invoiceNumber').value = nextInvoiceNumber;
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('An error occurred while generating the PDF. Please try again.');
                 }
-                const pdfTemplate = await response.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(pdfTemplate);
-                const page = pdfDoc.getPages()[0];
-                const { width, height } = page.getSize();
+            }
 
-                // Define field positions (adjust these based on your actual template)
-                const fieldPositions = {
-                    billTo: { x: 75, y: height - 230, size: 10 },
-                    shipTo: { x: 395, y: height - 240, size: 10 },
-                    invoiceNumber: { x: 395, y: height - 165, size: 10 },
-                    invoiceDate: { x: 510, y: height - 165, size: 10 },
-                    customerId: { x: 395, y: height - 195, size: 10 },
-                    description: { x: 75, y: height - 380, size: 10 },
-                    hsCode: { x: 300, y: height - 380, size: 10 },
-                    quantity: { x: 400, y: height - 380, size: 10 },
-                    unitPrice: { x: 460, y: height - 380, size: 10 },
-                    amount: { x: 520, y: height - 435, size: 10 }
-                };
+            const form = document.getElementById('invoiceForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Prevent form submission and page reload
+                try {
+                    const formData = {
+                        billTo: document.getElementById('billTo').value,
+                        shipTo: document.getElementById('shipTo').value,
+                        invoiceNumber: document.getElementById('invoiceNumber').value,
+                        invoiceDate: document.getElementById('invoiceDate').value,
+                        customerId: document.getElementById('customerId').value,
+                        description: document.getElementById('description').value,
+                        hsCode: document.getElementById('hsCode').value,
+                        quantity: document.getElementById('quantity').value,
+                        unitPrice: document.getElementById('unitPrice').value,
+                        amount: (document.getElementById('quantity').value * document.getElementById('unitPrice').value).toFixed(2)
+                    };
+                    await fillPdf(formData);
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('An error occurred while submitting the form. Please try again.');
+                }
+            });
 
-            // Add text to the PDF
-            Object.entries(formData).forEach(([key, value]) => {
-                const position = fieldPositions[key];
-                page.drawText(value.toUpperCase(), {
-                    x: position.x,
-                    y: position.y,
-                    size: position.size,
-                    color: PDFLib.rgb(0, 0, 0)
+            // Fetch and set the initial invoice number when the page loads
+            (async () => {
+                try {
+                    const nextInvoiceNumber = await getNextInvoiceNumber();
+                    document.getElementById('invoiceNumber').value = nextInvoiceNumber;
+                } catch (error) {
+                    console.error('Error fetching initial invoice number:', error);
+                }
+            })();
+
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('themeToggle');
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function setTheme(theme) {
+                document.body.classList.toggle('dark-theme', theme === 'dark');
+                localStorage.setItem('theme', theme);
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = localStorage.getItem('theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    setTheme(newTheme);
                 });
-            });
+            }
 
-            // Calculate and add total
-            const total = (formData.quantity * formData.unitPrice).toFixed(2);
-            page.drawText(total, {
-                x: 520,
-                y: height - 380,
-                size: 10,
-                color: PDFLib.rgb(0, 0, 0)
-            });
-
-            const pdfBytes = await pdfDoc.save();
-            download(pdfBytes, "invoice.pdf", "application/pdf");
-        }
-
-        document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = {
-                billTo: document.getElementById('billTo').value.toUpperCase(),
-                shipTo: document.getElementById('shipTo').value.toUpperCase(),
-                invoiceNumber: document.getElementById('invoiceNumber').value.toUpperCase(),
-                invoiceDate: document.getElementById('invoiceDate').value,
-                customerId: document.getElementById('customerId').value.toUpperCase(),
-                description: document.getElementById('description').value.toUpperCase(),
-                hsCode: "0001.13.01",
-                quantity: document.getElementById('quantity').value,
-                unitPrice: document.getElementById('unitPrice').value,
-                amount: (document.getElementById('quantity').value * document.getElementById('unitPrice').value).toFixed(2)
-            };
-            await fillPdf(formData);
+            // Set initial theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else if (prefersDarkScheme.matches) {
+                setTheme('dark');
+            }
         });
     </script>
 </body>
