@@ -81,6 +81,11 @@
     </footer>
 
     <script>
+
+        // Initialize Firebase
+
+        firebase.initializeApp(firebaseConfig);
+        
         const form = document.getElementById('login-form');
         const signInButton = document.getElementById('sign-in-button');
         const errorMessage = document.getElementById('error-message');
