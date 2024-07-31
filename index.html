@@ -6,7 +6,6 @@
     <title>Sign in to Issaerium-23</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Configure Tailwind to use class-based dark mode
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -28,21 +27,12 @@
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <script>
-        // Apply the appropriate theme based on the user's system preferences
+        // Check for system dark mode preference on initial load
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-
-        // Listen for changes in the system theme
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        });
     </script>
 </head>
 <body class="bg-custom-dark text-white flex flex-col min-h-screen">
