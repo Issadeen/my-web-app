@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in to Issaerium-23</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Configure Tailwind to use class-based dark mode
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -26,6 +27,23 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="config.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // Apply the appropriate theme based on the user's system preferences
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Listen for changes in the system theme
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
 </head>
 <body class="bg-custom-dark text-white flex flex-col min-h-screen">
     <div class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -100,8 +118,6 @@
                     signInButton.disabled = false;
                 });
         });
-
-
     </script>
 </body>
 </html>
