@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account - Issaerium-23</title>
+    <title>Forgot Password - Issaerium-23</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -33,37 +33,31 @@
                 <svg height="40" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="40" data-view-component="true" class="mx-auto fill-white">
                     <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
                 </svg>
-                <h2 class="mt-4 text-center text-xl font-bold">Create Account for Issaerium-23</h2>
+                <h2 class="mt-4 text-center text-xl font-bold">Forgot Password - Issaerium-23</h2>
             </div>
-            <div id="welcome-message" class="text-center text-lg font-medium"></div>
             <div id="error-message" class="hidden bg-custom-error-bg text-white p-3 rounded-md text-sm flex justify-between items-center">
                 <span></span>
                 <button class="text-white font-bold" onclick="this.parentElement.style.display='none';">&times;</button>
             </div>
-            <form id="create-account-form" class="bg-custom-dark-secondary rounded-md p-4 space-y-4 shadow hidden">
-                <div>
+            <form id="forgot-password-form" class="bg-custom-dark-secondary rounded-md p-4 space-y-4 shadow">
+                <div id="work-id-section">
                     <label for="work-id" class="block text-sm font-medium mb-2">Work ID</label>
                     <input id="work-id" name="work-id" type="text" required pattern="IA00[0-9]{1,2}" class="w-full px-3 py-2 bg-custom-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Work Id">
+                    <button type="button" id="verify-work-id" class="mt-2 w-full py-2 px-4 bg-custom-button-green hover:bg-custom-button-green-hover text-white rounded-md font-medium transition-colors duration-300">
+                        Verify Work ID
+                    </button>
                 </div>
-                <div>
+                <div id="email-section" class="hidden">
                     <label for="email" class="block text-sm font-medium mb-2">Email address</label>
                     <input id="email" name="email" type="email" required class="w-full px-3 py-2 bg-custom-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" id="reset-password" class="mt-2 w-full py-2 px-4 bg-custom-button-green hover:bg-custom-button-green-hover text-white rounded-md font-medium transition-colors duration-300">
+                        Reset Password
+                    </button>
                 </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium mb-2">Password</label>
-                    <input id="password" name="password" type="password" required class="w-full px-3 py-2 bg-custom-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label for="confirm-password" class="block text-sm font-medium mb-2">Confirm Password</label>
-                    <input id="confirm-password" name="confirm-password" type="password" required class="w-full px-3 py-2 bg-custom-dark border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <button type="submit" id="create-account-button" class="w-full py-2 px-4 bg-custom-button-green hover:bg-custom-button-green-hover text-white rounded-md font-medium transition-colors duration-300">
-                    Create Account
-                </button>
             </form>
             <div class="bg-custom-dark-secondary rounded-md p-4 text-center text-sm shadow">
                 <div>
-                    Already have an account? <a href="index.html" class="text-blue-400 hover:underline">Sign in</a>.
+                    Remember your password? <a href="index.html" class="text-blue-400 hover:underline">Sign in</a>.
                 </div>
             </div>
         </div>
@@ -73,299 +67,83 @@
         <a href="#" class="hover:text-blue-400">Privacy</a>
         <a href="#" class="hover:text-blue-400">Docs</a>
         <a href="#" class="hover:text-blue-400">Contact Issaerium-23 Support</a>
-        <a href="#" class="hover:text-blue-400">Manage cookies</a>
-        <a href="#" class="hover:text-blue-400">Do not share my personal information</a>
     </footer>
 
     <script>
-        const welcomeMessage = document.getElementById('welcome-message');
-        const form = document.getElementById('create-account-form');
-        const createAccountButton = document.getElementById('create-account-button');
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const form = document.getElementById('forgot-password-form');
+        const workIdSection = document.getElementById('work-id-section');
+        const emailSection = document.getElementById('email-section');
+        const verifyWorkIdButton = document.getElementById('verify-work-id');
+        const resetPasswordButton = document.getElementById('reset-password');
         const errorMessage = document.getElementById('error-message');
-
-        // Typewriter effect for welcome message
-        const message = "Welcome to Issaerium-23, a simple way of working...";
-        let i = 0;
-        function typeWriter() {
-            if (i < message.length) {
-                welcomeMessage.innerHTML += message.charAt(i);
-                i++;
-                setTimeout(typeWriter, 50);
-            } else {
-                // Show the form after the message is fully typed
-                form.classList.remove('hidden');
-            }
-        }
-        typeWriter();
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const workId = document.getElementById('work-id').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-
-            // Validate Work ID
-            if (!workId.match(/^IA00[0-9]{1,2}$/) || parseInt(workId.slice(4)) >= 100) {
-                showError("Invalid Work ID.");
-                return;
-            }
-
-            // Validate password match
-            if (password !== confirmPassword) {
-                showError("Passwords do not match.");
-                return;
-            }
-
-            createAccountButton.textContent = 'Creating Account...';
-            createAccountButton.disabled = true;
-
-            // Here you would typically call your Firebase create account function
-
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-        // Signed in 
-        var user = userCredential.user;
-        // Add the work ID to the user's profile or a separate database entry
-        return firebase.database().ref('users/' + user.uid).set({
-            workId: workId,
-            email: email
-        });
-    })
-    .then(() => {
-        console.log('Account created successfully');
-        window.location.href = "dashboard.html"; // or wherever you want to redirect
-    })
-    .catch((error) => {
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        showError(errorMessage);
-        createAccountButton.textContent = 'Create Account';
-        createAccountButton.disabled = false;
-    });
-        });
 
         function showError(message) {
             errorMessage.querySelector('span').textContent = message;
             errorMessage.style.display = 'flex';
         }
-    </script>
-</body>
-</html>
-  <script>
 
-    const emailInput = document.getElementById("email");
-    const emailError = document.getElementById("email-error");
-    const passwordInput = document.getElementById("password");
-    const passwordError = document.getElementById("password-error");
-    const confirmPasswordInput = document.getElementById("confirm-password");
-    const confirmPasswordError = document.getElementById("confirm-password-error");
-    const workIdInput = document.getElementById("work-id");
+        verifyWorkIdButton.addEventListener('click', function() {
+            const workId = document.getElementById('work-id').value;
 
-    function validateWorkId(workId) {
-      const regex = /^[A-Za-z0-9]+$/;
-      return regex.test(workId);
-    }
-
-    function validateEmail(email) {
-      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return regex.test(email);
-    }
-
-    function validatePassword(password) {
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      return regex.test(password);
-    }
-
-    // Select all password toggle icons
-    const passwordToggleIcons = document.querySelectorAll(".password-toggle-icon");
-
-    // Add click event listener to each icon
-    passwordToggleIcons.forEach(icon => {
-      icon.addEventListener("click", (event) => {
-        // Get the associated input field
-        const passwordInput = event.target.parentNode.previousElementSibling;
-
-        // Toggle the type attribute
-        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-        passwordInput.setAttribute("type", type);
-
-        // Toggle the icon
-        if (type === "password") {
-          event.target.classList.replace("fa-eye", "fa-eye-slash");
-        } else {
-          event.target.classList.replace("fa-eye-slash", "fa-eye");
-        }
-      });
-    });
-
-    workIdInput.addEventListener("input", () => {
-      const workId = workIdInput.value;
-      if (!validateWorkId(workId)) {
-        workIdError.textContent = "Work ID can only contain letters and numbers";
-        workIdError.style.color = "red";
-      } else {
-        workIdError.textContent = "";
-      }
-    });
-
-    emailInput.addEventListener("input", () => {
-      const email = emailInput.value;
-      if (!validateEmail(email)) {
-        emailError.textContent = "Invalid email address";
-        emailError.style.color = "red";
-      } else {
-        emailError.textContent = "";
-      }
-    });
-
-    passwordInput.addEventListener("input", () => {
-      const password = passwordInput.value;
-      if (!validatePassword(password)) {
-        passwordError.textContent = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character";
-        passwordError.style.color = "red";
-      } else {
-        passwordError.textContent = "";
-      }
-    });
-
-    confirmPasswordInput.addEventListener("input", () => {
-      const password = passwordInput.value;
-      const confirmPassword = confirmPasswordInput.value;
-      if (password !== confirmPassword) {
-        confirmPasswordError.textContent = "Passwords do not match";
-        confirmPasswordError.style.color = "red";
-      } else {
-        confirmPasswordError.textContent = "";
-      }
-    });
-  </script>
-    <script>
-      
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-    </script>
-
-    <script>
-      // Get a reference to the database service
-      var database = firebase.database();
-
-      // Get references to the Work ID input field and error message element
-      const workIdError = document.getElementById("work-id-error");
-
-      // Function to validate the Work ID
-      function validateWorkId(workId) {
-        // Check if the Work ID starts with "IA00"
-        if (!workId.startsWith("IA00")) {
-          return false;
-        }
-
-        // Extract the numeric part of the Work ID
-        const numericPart = parseInt(workId.substring(4));
-
-        // Check if the numeric part is less than 10
-        return numericPart < 10;
-      }
-
-      // Add an event listener for the input event on the Work ID input field
-      workIdInput.addEventListener("input", () => {
-        const workId = workIdInput.value;
-        if (!validateWorkId(workId)) {
-          workIdError.textContent = "Invalid Work ID";
-          workIdError.style.color = "red";
-        } else {
-          workIdError.textContent = "";
-        }
-      });
-
-      // Get a reference to the create account form
-      const createAccountForm = document.querySelector('form');
-
-      createAccountForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-
-        const email = createAccountForm.email.value;
-        const password = createAccountForm.password.value;
-        const workId = createAccountForm['work-id'].value; // Get the workId from the form
-
-        // Check if the work ID is valid
-        if (!validateWorkId(workId)) {
-          workIdError.textContent = "Invalid Work ID";
-          workIdError.style.color = "red";
-          return;
-        }
-
-        // Check if the work ID already exists in the database
-        firebase.database().ref('users').orderByChild('workId').equalTo(workId).once('value')
-          .then(snapshot => {
-            if (snapshot.exists()) {
-              workIdError.textContent = "Work ID already exists";
-              workIdError.style.color = "red";
-              throw new Error("Work ID already exists");
+            if (!workId.match(/^IA00[0-9]{1,2}$/) || parseInt(workId.slice(4)) >= 10) {
+                showError("Invalid Work ID.");
+                return;
             }
-          })
-          .then(() => {
-            // Create a new user
-            return firebase.auth().createUserWithEmailAndPassword(email, password);
-          })
-          .then((userCredential) => {
-            // User created
-            var user = userCredential.user;
 
-            // Store the work ID and email in Realtime Database
-            return firebase.database().ref('users/' + user.uid).set({
-              email: email,
-              workId: workId
-            
-          })
-          .then(() => {
-            // Data successfully written!
-            console.log("Data successfully written!");
-          
- 
+            // Check if the work ID exists in the database
+            firebase.database().ref('users').orderByChild('workId').equalTo(workId).once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        workIdSection.classList.add('hidden');
+                        emailSection.classList.remove('hidden');
+                    } else {
+                        showError("Work ID not found.");
+                    }
+                })
+                .catch(error => {
+                    showError("An error occurred. Please try again.");
+                    console.error(error);
+                });
+        });
 
-        // Clear the form
-        createAccountForm.reset();
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const workId = document.getElementById('work-id').value;
+            const email = document.getElementById('email').value;
 
-        // Navigate to index.html
-        window.location.href = "index.html";
-      })
-    })
-        .catch((error) => {
-            // Handle errors here
-            console.error("Error:", error.message);
-            // Display error message to the user
-            const emailError = document.getElementById("email-error");
-            emailError.textContent = error.message;
-            emailError.style.color = "red";
-          
-      });
-  });
+            // Verify that the work ID and email match in the database
+            firebase.database().ref('users').orderByChild('workId').equalTo(workId).once('value')
+                .then(snapshot => {
+                    let userFound = false;
+                    snapshot.forEach(function(childSnapshot) {
+                        if (childSnapshot.val().email === email) {
+                            userFound = true;
+                        }
+                    });
+
+                    if (userFound) {
+                        // Send password reset email
+                        firebase.auth().sendPasswordResetEmail(email)
+                            .then(() => {
+                                alert("Password reset email sent. Please check your inbox.");
+                                window.location.href = "index.html";
+                            })
+                            .catch((error) => {
+                                showError("An error occurred. Please try again.");
+                                console.error(error);
+                            });
+                    } else {
+                        showError("Work ID and email do not match.");
+                    }
+                })
+                .catch(error => {
+                    showError("An error occurred. Please try again.");
+                    console.error(error);
+                });
+        });
     </script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', (event) => {
-    const themeToggle = document.getElementById('theme-toggle');
-
-    // Check if the user prefers a dark theme
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.body.classList.remove('light-theme');
-      document.body.classList.add('dark-theme');
-    }
-
-    themeToggle.addEventListener('change', () => {
-      if (document.body.classList.contains('dark-theme')) {
-        document.body.classList.remove('dark-theme');
-        document.body.classList.add('light-theme');
-      } else {
-        document.body.classList.remove('light-theme');
-        document.body.classList.add('dark-theme');
-      }
-    });
-  });
-
-  
-</script>
-
 </body>
 </html>
