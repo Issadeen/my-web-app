@@ -674,41 +674,47 @@ workDetailsRef.on("value", function(snapshot) {
 
 // Function to update summary variables from a snapshot
 function updateSummaryData(snapshot) {
-  var workDetails = snapshot.val();
-  if (workDetails) {
-    // Reset summary variables
-    totalOrders = 0;
-    queuedOrders = 0;
-    unqueuedOrders = 0;
-    agoOrders = 0;
-    pmsOrders = 0;
-    loadedOrders = 0;
-    pendingOrders = 0;
-    ownerSummary = {};
-    loadedTrucks = 0;
+    var workDetails = snapshot.val();
+    if (workDetails) {
+        // Reset summary variables
+        totalOrders = 0;
+        queuedOrders = 0;
+        unqueuedOrders = 0;
+        agoOrders = 0;
+        pmsOrders = 0;
+        loadedOrders = 0;
+        pendingOrders = 0;
+        ownerSummary = {};
+        loadedTrucks = 0;
 
-    snapshot.forEach(function(childSnapshot) {
-      var childData = childSnapshot.val();
-      totalOrders++;
+        snapshot.forEach(function(childSnapshot) {
+            var childData = childSnapshot.val();
+            totalOrders++;
 
-      // Check if the order is loaded
-      if (childData.loaded === true || childData.loaded === "true") {
-        loadedOrders++;
-        loadedTrucks++; // Increment loaded trucks
-      }
+            // Check if the order is loaded
+            if (childData.loaded === true || childData.loaded === "true") {
+                loadedOrders++;
+                loadedTrucks++; // Increment loaded trucks
+            }
 
-      // Increment pending orders count
-      if (childData.status === "queued" && (childData.loaded !== true && childData.loaded !== "true")) {
-        pendingOrders++;
-      }
+            // Increment pending orders count
+            if (childData.status === "queued" && (childData.loaded !== true && childData.loaded !== "true")) {
+                pendingOrders++;
+            }
 
-      // Increment ago or pms orders count based on product
-      if (childData.product.trim().toUpperCase() === "AGO") {
-        agoOrders++;
-      } else if (childData.product.trim().toUpperCase() === "PMS") {
-        pmsOrders++;
-      }
+            // Increment ago or pms orders count based on product
+            if (childData.product.trim().toUpperCase() === "AGO") {
+                agoOrders++;
+            } else if (childData.product.trim().toUpperCase() === "PMS") {
+                pmsOrders++;
+            }
 
+            // Increment queued or unqueued orders based on status
+            if (childData.status === "queued") {
+                queuedOrders++;
+            } else {
+                unqueuedOrders++;
+            }
       // Increment owner's orders count and product count
       if (!ownerSummary[childData.owner]) {
         ownerSummary[childData.owner] = {
