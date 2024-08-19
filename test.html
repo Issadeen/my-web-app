@@ -138,10 +138,10 @@
         <input type="text" id="hsCode" value="0001.13.01" readonly>
 
         <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" step="0.01" required>
+        <input type="number" id="quantity" step="0.001" required>  <!-- Allow 3 decimal places -->
 
         <label for="unitPrice">Unit Price:</label>
-        <input type="number" id="unitPrice" step="0.01" required>
+        <input type="number" id="unitPrice" step="0.001" required>  <!-- Allow 3 decimal places -->
 
         <button type="submit">Generate Invoice</button>
     </form>
@@ -149,7 +149,7 @@
                      <div id="myModal" class="modal">
                         <!-- Modal content -->
                         <div class="modal-content">
-                          <span class="close">&times;</span>
+                          <span class="close">×</span>
                           <p>Your session will end soon due to inactivity.</p>
                         </div>
                       </div>
