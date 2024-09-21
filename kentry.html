@@ -495,9 +495,8 @@ at20QuantityInput.addEventListener('input', function() {
     }
 });
 
-
 // For Allocating the entries...
-    function getEntries() {
+function getEntries() {
     const getEntriesButton = document.getElementById('getEntriesButton');
     getEntriesButton.disabled = true;
     getEntriesButton.textContent = 'Getting entries...';
@@ -597,9 +596,6 @@ at20QuantityInput.addEventListener('input', function() {
                         if (remaining === 0) {
                             return true; // Stop the iteration
                         }
-                    } else {
-                        // Add a new row to the table
-                        resultTable.innerHTML += `<tr><td>${data.number}</td><td>${data.initialQuantity}</td><td>${data.remainingQuantity}</td><td colspan="4">Not enough quantity or destination does not match or entry is cleared</td></tr>`;
                     }
                 });
 
@@ -710,8 +706,6 @@ at20QuantityInput.addEventListener('input', function() {
             console.error(error);
         });
 }
-
-
     // for the pdf..
     let downloadPdfButton = document.getElementById('downloadPdfButton');
 
