@@ -113,8 +113,8 @@ body.dark-theme input.theme-input {
             <!-- Input fields for TR800 details -->
             <input type="text" id="tr800Number" class="theme-input w-full mb-2 p-2 border rounded" placeholder="TR800 Number">
             <input type="number" id="tr800Quantity" class="theme-input w-full mb-2 p-2 border rounded" placeholder="TR800 Quantity">
-            <input type="text" id="tr800Product" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Product">
-            <input type="text" id="tr800Destination" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Destination">
+            <input type="text" id="tr800Product" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Product" oninput="toLowerCase(this)">
+            <input type="text" id="tr800Destination" class="theme-input w-full mb-2 p-2 border rounded" placeholder="Destination" oninput="toLowerCase(this)">
             <button type="button" id="addTR800Button" onclick="addTR800()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add TR800</button>
             <button type="button" onclick="window.location.href='kentry.html'" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Back</button>
         </form>
@@ -130,6 +130,12 @@ body.dark-theme input.theme-input {
 
 
     </div>
+    
+    <script>
+        function toLowerCase(input) {
+            input.value = input.value.toLowerCase();
+        }
+    </script>  
 
     <script>
             // Initialize Firebase
@@ -170,43 +176,60 @@ body.dark-theme input.theme-input {
 
     // Check if an entry with the same TR800 number already exists
     var tr800Ref = database.ref('tr800');
-    tr800Ref.orderByChild('number').equalTo(tr800Number.value).once('value', snapshot => {
-      if (snapshot.exists()) {
-        alert('An entry with this TR800 number already exists.');
-      } else {
-        // Generate a new child location using a unique key
-        var tr800DataRef = tr800Ref.push();
+        tr800Ref.orderByChild('number').equalTo(tr800Number.value).once('value', snapshot => {
+            if (snapshot.exists()) {
+                alert('An entry with this TR800 number already exists.');
+            } else {
+                // Generate a new child location using a unique key
+                var tr800DataRef = tr800Ref.push();
 
-        // Set the TR800 data for that location
-        tr800DataRef.set({
-          number: tr800Number.value,
-          initialQuantity: tr800QuantityFloat,
-          remainingQuantity: tr800QuantityFloat, // Set remainingQuantity to the same value as initialQuantity
-          product: tr800Product.value,
-          destination: tr800Destination.value,
-          product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
-          timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
-        }).then(() => {
-          // Display a confirmation message
-          alert('TR800 entry added successfully.');
+                // Set the TR800 data for that location
+                tr800DataRef.set({
+                    number: tr800Number.value,
+                    initialQuantity: tr800QuantityFloat,
+                    remainingQuantity: tr800QuantityFloat, // Set remainingQuantity to the same value as initialQuantity
+                    product: tr800Product.value,
+                    destination: tr800Destination.value,
+                    product_destination: tr800Product.value + '_' + tr800Destination.value, // Add this line
+                    timestamp: firebase.database.ServerValue.TIMESTAMP // for sorting
+                }).then(() => {
+                    // If the destination is 'ssd', add the same data to the 'allocations' node
+                    if (tr800Destination.value.toLowerCase() === 'ssd') {
+                        var allocationsRef = database.ref('allocations');
+                        var allocationDataRef = allocationsRef.push();
+                        allocationDataRef.set({
+                            number: tr800Number.value,
+                            initialQuantity: tr800QuantityFloat,
+                            remainingQuantity: tr800QuantityFloat,
+                            product: tr800Product.value,
+                            destination: tr800Destination.value,
+                            product_destination: tr800Product.value + '_' + tr800Destination.value,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        }).catch((error) => {
+                            // Handle any errors
+                            console.error('Error adding allocation entry: ', error);
+                        });
+                    }
 
-          // Clear the form
-          tr800Number.value = '';
-          tr800Quantity.value = '';
-          tr800Product.value = '';
-          tr800Destination.value = '';
+                    // Display a confirmation message
+                    alert('TR800 entry added successfully.');
 
-          // Re-enable the button and change its text back
-        addTR800Button.disabled = false;
-        addTR800Button.textContent = 'Add TR800';
-    })
-        .catch((error) => {
-          // Handle any errors
-          console.error('Error adding TR800 entry: ', error);
+                    // Clear the form
+                    tr800Number.value = '';
+                    tr800Quantity.value = '';
+                    tr800Product.value = '';
+                    tr800Destination.value = '';
+
+                    // Re-enable the button and change its text back
+                    addTR800Button.disabled = false;
+                    addTR800Button.textContent = 'Add TR800';
+                }).catch((error) => {
+                    // Handle any errors
+                    console.error('Error adding TR800 entry: ', error);
+                });
+            }
         });
-      }
-    });
-  }
+    }
 // Theme switcher
 document.getElementById('themeSwitcher').addEventListener('click', function() {
             document.body.classList.toggle('dark-theme');
