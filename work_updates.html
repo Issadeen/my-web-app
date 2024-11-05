@@ -252,44 +252,119 @@
 
             /* Dark theme and modern styles for the modal */
     #ownerModal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.8);
-        justify-content: center;
-        align-items: center;
-    }
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 20px;
+}
 
-    #ownerModalContent {
-        background-color: #333;
-        color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        width: 80%;
-        max-width: 600px;
-        position: relative;
-    }
+#ownerModalContent {
+    background-color: #1f2937;
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+}
 
-    .close {
-        color: #aaa;
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
+/* Add new styles for the modal header and content sections */
+.modal-header {
+    position: sticky;
+    top: 0;
+    background-color: #1f2937;
+    padding: 10px 0;
+    border-bottom: 1px solid #374151;
+    margin-bottom: 20px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .close:hover, .close:focus {
-        color: #fff;
-        text-decoration: none;
-        cursor: pointer;
-    }
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.modal-section {
+    margin-bottom: 30px;
+    background-color: #283548;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.modal-section h4 {
+    margin-top: 0;
+    color: #60a5fa;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+/* Update table styles within the modal */
+#ownerModalContent table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 15px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#ownerModalContent th {
+    background-color: #374151;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#ownerModalContent td {
+    padding: 12px;
+    border-bottom: 1px solid #374151;
+}
+
+#ownerModalContent tr:hover {
+    background-color: #2d3748;
+}
+
+/* Style for the buttons within the modal */
+#ownerModalContent button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+
+#ownerModalContent button:hover {
+    background-color: #2563eb;
+}
+
+/* Add animation for modal opening */
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+#ownerModalContent {
+    animation: modalFadeIn 0.2s ease-out;
+}
 
     table {
         width: 100%;
@@ -885,12 +960,27 @@ function showOwnerModal(owner, button) { // Pass button as an argument
     const pendingBalance = totalAmountToBePaid - totalAmountPaid;
 
     modalContent.innerHTML = `
-      <button id="copyButton" class="bg-green-500 text-white p-2 rounded absolute top-4 right-16">Copy</button>
-      <span class="close" onclick="closeOwnerModal()">×</span>
-      <h3 class="text-lg font-semibold">${owner}</h3>
-      <div>Total Orders: ${ownerData.totalOrders}</div>
-      <div>AGO Orders: ${ownerData.agoOrders}</div>
-      <div>PMS Orders: ${ownerData.pmsOrders}</div>
+        <div class="modal-header">
+            <h3>${owner}</h3>
+            <div>
+                <button id="copyButton" class="bg-green-500 hover:bg-green-600">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <button onclick="closeOwnerModal()" class="bg-red-500 hover:bg-red-600 ml-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <h4>Overview</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>Total Orders: ${ownerData.totalOrders}</div>
+                <div>AGO Orders: ${ownerData.agoOrders}</div>
+                <div>PMS Orders: ${ownerData.pmsOrders}</div>
+                <div>Loaded Orders: ${ownerData.loadedOrders || 0}</div>
+            </div>
+        </div>
       <h4 class="text-md font-semibold mt-4">Loaded Trucks</h4>
       ${loadedTrucksHtml}
       <div>Total Amount to be Paid: ${totalAmountHtml}</div>
@@ -1911,4 +2001,4 @@ if (licensePlateValue.includes('/')) {
 
 </script>
 </body>
-</html>   
+</html>
