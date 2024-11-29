@@ -644,6 +644,9 @@
         <div id="summary_stats" class="flex flex-wrap gap-4"></div>
     </div>
     <div id="owner_summary"></div>
+    <button id="copySummaryButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4">
+        Copy Summary
+    </button>
 </div>
 
         <button id="unpaidPreviewButton">Unpaid Preview</button>
@@ -1068,6 +1071,7 @@ function updateOwnerSummary() {
                 <div>Pending Orders: ${ownerData.pendingOrders || 0}</div>
                 <div>AGO Orders: ${ownerData.agoOrders}</div>
                 <div>PMS Orders: ${ownerData.pmsOrders}</div>
+                <div>Loaded Trucks: ${ownerData.loadedTrucks.map(truck => truck.truck_number).join(', ') || 'None'}</div>
                 <button id="infoButton" onclick="handleButtonClick(this, '${owner}')" class="bg-blue-500 text-white p-2 rounded mt-2">Info</button>
             </div>
         `;
@@ -1160,6 +1164,34 @@ document.addEventListener("DOMContentLoaded", function() {
   // Your other code...
 
 }); 
+
+document.getElementById('copySummaryButton').addEventListener('click', function() {
+    let summaryText = `Summary:\nTotal Orders: ${totalOrders}\nQueued Orders: ${queuedOrders}\nUnqueued Orders: ${unqueuedOrders}\nLoaded Trucks: ${loadedTrucks}\nPending Orders: ${pendingOrders}\nAGO Orders: ${agoOrders}\nPMS Orders: ${pmsOrders}\n\nOwners Summary:\n`;
+    
+    for (let owner in ownerSummary) {
+        summaryText += `\nOwner: ${owner}\n`;
+        summaryText += `Total Orders: ${ownerSummary[owner].totalOrders}\n`;
+        summaryText += `Queued Orders: ${ownerSummary[owner].queuedOrders}\n`;
+        summaryText += `Unqueued Orders: ${ownerSummary[owner].unqueuedOrders}\n`;
+        summaryText += `Loaded Orders: ${ownerSummary[owner].loadedOrders}\n`;
+        summaryText += `Pending Orders: ${ownerSummary[owner].pendingOrders}\n`;
+        summaryText += `AGO Orders: ${ownerSummary[owner].agoOrders}\n`;
+        summaryText += `PMS Orders: ${ownerSummary[owner].pmsOrders}\n`;
+        summaryText += `Loaded Trucks: ${ownerSummary[owner].loadedTrucks.map(truck => truck.truck_number).join(', ') || 'None'}\n`;
+        summaryText += `Pending Trucks: ${ownerSummary[owner].pendingTrucks.map(truck => truck.truck_number).join(', ') || 'None'}\n`;
+        summaryText += `Products:\n`;
+        for (let product in ownerSummary[owner].products) {
+            summaryText += `  - ${product}: ${ownerSummary[owner].products[product]}\n`;
+        }
+        summaryText += `\n`;
+    }
+
+    navigator.clipboard.writeText(summaryText).then(function() {
+        alert('Summary copied to clipboard!');
+    }, function(err) {
+        alert('Failed to copy summary: ', err);
+    });
+});
 
 </script>
 <script>
